@@ -1,0 +1,173 @@
+# =============================================================================
+# .gitignore — The Hitchhiker's Guide (LaTeX book, xelatex + bibtex)
+# -----------------------------------------------------------------------------
+# Tracking policy (intentional):
+#   TRACK   book.tex, book.bib, figures/, Makefile,
+#           00README.json, .gitignore
+#   IGNORE  every regenerable LaTeX intermediate, the compiled book.pdf,
+#           editor/OS junk, local agent state, secrets, packaging artifacts
+#
+#
+# book.pdf is intentionally NOT tracked — it is a build artifact regenerable
+# from book.tex via `make`. Run the build locally to produce it.
+#
+# Adapted from github/gitignore TeX template and trimmed for this project.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Force-track these even if the user's ~/.gitignore_global excludes them.
+# Some users globally ignore Makefile, *.pdf, etc.; for this project
+# they are first-class sources/artifacts and MUST be in version control.
+# -----------------------------------------------------------------------------
+!Makefile
+!book.bib
+!book.tex
+
+# -----------------------------------------------------------------------------
+# OS / filesystem cruft
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+Icon?
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# Editors / IDEs
+# -----------------------------------------------------------------------------
+*~
+*.swp
+*.swo
+*.swn
+\#*\#
+.\#*
+.idea/
+.vscode/
+.fleet/
+.zed/
+*.sublime-project
+*.sublime-workspace
+.history/
+nbproject/
+.project
+.cproject
+
+# -----------------------------------------------------------------------------
+# LaTeX core intermediates
+# -----------------------------------------------------------------------------
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# Intermediate documents
+*.dvi
+*.xdv
+*-converted-to.*
+
+# Bibliography (keep .bib + .bbl tracked; ignore the rest)
+*.blg
+*.bcf
+*.run.xml
+*-blx.aux
+*-blx.bib
+
+# Hyperref / cross-ref
+*.brf
+
+# Indexing
+*.idx
+*.ilg
+*.ind
+*.ist
+*.glo
+*.gls
+*.glg
+*.acn
+*.acr
+*.alg
+
+# Beamer
+*.nav
+*.snm
+*.vrb
+
+# listings / minted / pygments
+*.lol
+_minted-*/
+*.pyg
+
+# algorithm / fancy chapter / cleveref
+*.loa
+*.thm
+*.upa
+*.upb
+
+# Build tools (latexmk, synctex, pdfsync, fancy pdf metadata)
+*.fdb_latexmk
+*.synctex
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+*.auxlock
+*.xmpi
+
+# latexindent backups
+*.bak[0-9]*
+
+# Temporary scratch
+*.tmp
+*.bak
+
+# -----------------------------------------------------------------------------
+# PDFs
+# -----------------------------------------------------------------------------
+# Ignore all top-level PDFs (including the compiled book.pdf build artifact).
+# Figure PDFs under figures/ remain tracked.
+*.pdf
+!figures/**/*.pdf
+
+# -----------------------------------------------------------------------------
+# Local agent / tooling state
+# -----------------------------------------------------------------------------
+.claude/
+.cursor/
+.aider*
+.continue/
+
+# -----------------------------------------------------------------------------
+# Secrets and environment
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+*_secret*
+*_token*
+
+# -----------------------------------------------------------------------------
+# Python venvs (in case helper scripts land here)
+# -----------------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.pyc

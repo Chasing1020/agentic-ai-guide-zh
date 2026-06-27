@@ -1,0 +1,829 @@
+\part{Evaluation}
+
+\chapter{LLM Evaluation}
+\label{sec:llm-evaluation}
+
+Evaluation is the backbone of any rigorous machine learning pipeline, yet it is perhaps the most underappreciated component in the development of large language models. Unlike classical supervised learning, where a held-out test set with ground-truth labels provides a clean signal, evaluating LLMs requires grappling with open-ended generation, subjective quality judgments, multi-step reasoning chains, and the ever-present risk of benchmark contamination. This section provides a systematic treatment of the evaluation landscape: from the taxonomy of evaluation types and the mechanics of human annotation, through the mathematics of ranking metrics and the practicalities of LLM-as-judge, to the pitfalls that silently corrupt evaluation pipelines.
+
+\begin{keybox}[Why Evaluation is Hard for LLMs]
+\textbf{Three fundamental challenges} distinguish LLM evaluation from classical ML evaluation:
+
+\begin{enumerate}
+  \item \textbf{Output space is unbounded.} A language model can produce any string; there is rarely a single correct answer.
+  \item \textbf{Quality is multidimensional.} Helpfulness, factuality, safety, coherence, and style are distinct axes that may trade off against each other.
+  \item \textbf{Evaluation is itself a language task.} Judging whether a response is good requires understanding, which means evaluation is susceptible to the same failure modes as generation.
+\end{enumerate}
+\end{keybox}
+
+\section{Evaluation Scheme Design}
+\label{subsec:eval-scheme}
+
+Before collecting a single data point, practitioners must decide \emph{what} to measure and \emph{how} to measure it. A principled taxonomy prevents the common mistake of choosing metrics by convenience rather than by alignment with the deployment objective.
+
+\subsection{Taxonomy of Evaluation Types}
+\label{taxonomy-of-evaluation-types}
+
+\paragraph{Intrinsic vs.~Extrinsic Evaluation.}
+\label{intrinsic-vs.-extrinsic-evaluation.}
+
+\emph{Intrinsic} evaluation measures properties of the model output in isolation, without reference to a downstream application. Perplexity on a held-out corpus, BLEU score against reference translations, and pass@$k$ on coding benchmarks are all intrinsic. \emph{Extrinsic} evaluation measures the impact of the model on a real-world task or system: does integrating the LLM into a customer-service pipeline reduce ticket escalation rates? Does the coding assistant increase developer velocity?
+
+\begin{intuitionbox}[The Intrinsic–Extrinsic Gap]
+Intrinsic metrics are cheap and reproducible but often poorly correlated with real-world utility. A model with lower perplexity is not necessarily more helpful. Extrinsic metrics are expensive and slow but directly measure what we care about. A mature evaluation strategy uses intrinsic metrics for rapid iteration and extrinsic metrics for final validation.
+\end{intuitionbox}
+
+\paragraph{Automatic vs.~Human Evaluation.}
+\label{automatic-vs.-human-evaluation.}
+
+\emph{Automatic} evaluation uses deterministic functions (BLEU, exact match) or learned models (BERTScore, LLM-as-judge) to score outputs without human involvement. \emph{Human} evaluation involves annotators rating or ranking model outputs. Table~\ref{tab:eval-taxonomy} summarises the trade-offs.
+
+\begin{table}[ht!]
+\centering
+\caption{Taxonomy of evaluation approaches with key trade-offs.}
+\label{tab:eval-taxonomy}
+\begin{tabular}{@{}lp{3cm}p{3.2cm}p{3.2cm}p{3.5cm}@{}}
+\toprule
+\textbf{Type} & \textbf{Cost} & \textbf{Speed} & \textbf{Reproducibility} & \textbf{Validity} \\
+\midrule
+Automatic (rule-based) & Very low & Very fast & Perfect & Low--Medium \\
+Automatic (model-based) & Low & Fast & High & Medium--High \\
+Crowdsourced human & Medium & Days & Medium & Medium \\
+Expert human & High & Weeks & Low--Medium & High \\
+Extrinsic / A/B test & Very high & Months & Low & Very high \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reference-Based vs.~Reference-Free Evaluation.}
+\label{reference-based-vs.-reference-free-evaluation.}
+
+Reference-based metrics (BLEU, ROUGE, BERTScore) compare model output to one or more gold-standard references. Reference-free metrics (perplexity, LLM-as-judge, human preference) assess quality without a reference. Reference-free approaches are essential when the output space is too large for exhaustive reference collection, as in open-ended dialogue.
+
+\subsection{When to Use What}
+\label{when-to-use-what}
+
+\begin{examplebox}[Evaluation Strategy for a Dialogue Assistant]
+\textbf{Development phase:} Use automatic metrics (perplexity, ROUGE on summarisation sub-tasks, pass@$k$ on tool-use) for rapid iteration. Run nightly benchmarks on standard suites (MMLU, HellaSwag, HumanEval).
+
+\textbf{Pre-release phase:} Conduct a human preference study comparing the new model to the previous checkpoint. Use LLM-as-judge for scalable pairwise comparison on a diverse prompt set.
+
+\textbf{Post-release phase:} Monitor extrinsic metrics (user satisfaction scores, task completion rates) and watch for distribution shift in production prompts.
+\end{examplebox}
+
+A useful decision framework:
+
+\begin{itemize}
+  \item If the task has a clear correct answer (math, code, factual QA): use exact match or execution-based metrics.
+  \item If the task is open-ended but has reference outputs: use reference-based metrics as a lower bound, supplement with LLM-as-judge.
+  \item If the task is subjective (helpfulness, tone, creativity): use human evaluation or a well-calibrated LLM judge.
+  \item If the task involves multi-step agent behaviour: use task success rate and trajectory efficiency (Section~\ref{subsec:agentic-metrics}).
+\end{itemize}
+
+\section{Data Collection for Evaluation}
+\label{subsec:data-collection}
+
+High-quality evaluation data is the foundation of trustworthy benchmarks. This section covers the design of human annotation pipelines, statistical measures of annotation quality, and the choice between crowdsourcing and expert annotation.
+
+\subsection{Human Annotation Pipelines}
+\label{human-annotation-pipelines}
+
+A robust annotation pipeline consists of five stages:
+
+\begin{enumerate}
+  \item \textbf{Task definition.} Specify the annotation task precisely: what is being rated, on what scale, and with what criteria. Ambiguity at this stage propagates into noisy labels.
+  \item \textbf{Guideline development.} Write annotation guidelines with worked examples covering edge cases. Iterate with a small pilot group before full deployment.
+  \item \textbf{Annotator recruitment and training.} Select annotators with appropriate background knowledge. Conduct a calibration session where annotators label the same examples and discuss disagreements.
+  \item \textbf{Quality control.} Embed gold-standard examples with known labels into the annotation queue. Flag annotators whose accuracy on gold examples falls below a threshold.
+  \item \textbf{Aggregation.} Combine multiple annotations per item using majority vote, averaging, or a probabilistic model (e.g., Dawid--Skene).
+\end{enumerate}
+
+\subsection{Inter-Annotator Agreement}
+\label{inter-annotator-agreement}
+
+Raw agreement (fraction of items where all annotators agree) is an inadequate measure because it does not account for chance agreement. Two standard chance-corrected measures are Cohen’s $\kappa$~\cite{cohen1960coefficient} (two annotators) and Fleiss’ $\kappa$~\cite{fleiss1971measuring} (multiple annotators).
+
+\paragraph{Cohen’s Kappa.}
+\label{cohens-kappa.}
+
+Given two annotators labelling $N$ items into $k$ categories, let $p_o$ be the observed agreement and $p_e$ be the expected agreement under independence: 
+\begin{equation}
+    \kappa = \frac{p_o - p_e}{1 - p_e}
+\label{eq:cohens-kappa}
+\end{equation}
+ where 
+\begin{equation}
+    p_o = \frac{1}{N}\sum_{i=1}^{N} \mathbf{1}[\text{annotator 1 agrees with annotator 2 on item } i]
+\end{equation}
+ and 
+\begin{equation}
+    p_e = \sum_{c=1}^{k} p_{1c} \cdot p_{2c}
+\end{equation}
+ with $p_{jc}$ being the proportion of items assigned to category $c$ by annotator $j$. Cohen’s $\kappa$ ranges from $-1$ (perfect disagreement) through $0$ (chance agreement) to $1$ (perfect agreement). Values above $0.6$ are generally considered acceptable; above $0.8$ is strong agreement.
+
+\paragraph{Fleiss’ Kappa.}
+\label{fleiss-kappa.}
+
+For $n$ annotators labelling $N$ items into $k$ categories, let $n_{ij}$ be the number of annotators who assigned item $i$ to category $j$. Define: 
+\begin{equation}
+    \bar{P}_i = \frac{1}{n(n-1)} \sum_{j=1}^{k} n_{ij}(n_{ij} - 1), \qquad \bar{P} = \frac{1}{N}\sum_{i=1}^{N}\bar{P}_i
+\end{equation}
+ 
+\begin{equation}
+    \bar{P}_j^e = \frac{1}{Nn}\sum_{i=1}^{N} n_{ij}, \qquad P_e = \sum_{j=1}^{k} \left(\bar{P}_j^e\right)^2
+\end{equation}
+ 
+\begin{equation}
+    \kappa_F = \frac{\bar{P} - P_e}{1 - P_e}
+\end{equation}
+
+\begin{warningbox}[Kappa Limitations]
+Kappa is sensitive to the prevalence of categories: when one category dominates, kappa can be low even when raw agreement is high (the \emph{kappa paradox}). For ordinal scales, weighted kappa (which penalises disagreements proportionally to their distance) is more appropriate. For LLM evaluation, where ratings are often on a 1--5 Likert scale, always report weighted kappa.
+\end{warningbox}
+
+\subsection{Annotation Guideline Design}
+\label{annotation-guideline-design}
+
+Effective annotation guidelines share several properties:
+
+\begin{itemize}
+  \item \textbf{Operationalised criteria.} Replace vague terms like ``helpful'' with concrete, observable behaviours: ``The response directly addresses the user’s question and provides all information needed to complete the stated task.''
+  \item \textbf{Worked examples.} Provide at least two examples per rating level, including borderline cases.
+  \item \textbf{Decision trees.} For complex tasks, a flowchart that guides annotators through a sequence of binary decisions reduces cognitive load and improves consistency.
+  \item \textbf{Explicit scope.} State what annotators should \emph{not} consider (e.g., ``Do not penalise for stylistic preferences; focus only on factual accuracy'').
+\end{itemize}
+
+\subsection{Crowdsourcing vs.~Expert Annotation}
+\label{crowdsourcing-vs.-expert-annotation}
+
+\begin{table}[ht!]
+\centering
+\caption{Comparison of crowdsourcing and expert annotation for LLM evaluation.}
+\begin{tabular}{@{}lp{5cm}p{8cm}@{}}
+\toprule
+\textbf{Dimension} & \textbf{Crowdsourcing} & \textbf{Expert Annotation} \\
+\midrule
+Cost per item & Low ($0.01--$0.10) & High ($1--$50) \\
+Throughput & Very high & Low \\
+Domain knowledge & Low & High \\
+Consistency & Variable & High \\
+Suitable tasks & Simple preference, fluency & Technical accuracy, safety \\
+Platforms & MTurk, Prolific, Scale AI & Domain specialists, in-house \\
+Quality control & Gold examples, attention checks & Calibration sessions, peer review \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For safety-critical evaluation (e.g., detecting harmful outputs, evaluating medical advice), expert annotation is non-negotiable. For large-scale preference collection (e.g., building a reward model training set), crowdsourcing with rigorous quality control is often the only feasible option.
+
+\section{Synthetic Data Generation for Evaluation}
+\label{subsec:synthetic-data}
+
+Human annotation is expensive and slow. Synthetic data generation uses LLMs themselves to produce evaluation data at scale. This section covers the major paradigms.
+
+\subsection{LLM-as-Judge for Calibration}
+\label{llm-as-judge-for-calibration}
+
+When using an LLM to generate evaluation labels, calibration is essential: the judge’s scores must be aligned with human judgments. Let $h_i \in [0,1]$ be the human preference score for item $i$ and $\hat{h}_i$ be the judge’s predicted score. Calibration error is measured by the Expected Calibration Error (ECE)~\cite{guo2017calibration}: 
+\begin{equation}
+    \text{ECE} = \sum_{b=1}^{B} \frac{|B_b|}{n} \left| \text{acc}(B_b) - \text{conf}(B_b) \right|
+\end{equation}
+ where $B_b$ is the $b$-th confidence bin, $\text{acc}(B_b)$ is the fraction of items in the bin where the judge agrees with humans, and $\text{conf}(B_b)$ is the mean judge confidence in that bin.
+
+A well-calibrated judge satisfies $\mathbb{E}[\hat{h}_i \mid \hat{h}_i = p] = p$ for all $p \in [0,1]$. Calibration can be improved by temperature scaling: replacing the judge’s raw logit $z$ with $z/T$ where $T$ is tuned on a held-out calibration set to minimise negative log-likelihood.
+
+\subsection{Self-Instruct}
+\label{self-instruct}
+
+Self-Instruct~\cite{wang2022selfinstruct} bootstraps instruction-following data from a seed set of human-written tasks. The algorithm:
+
+\begin{enumerate}
+  \item Maintain a task pool initialised with $175$ seed tasks.
+  \item Sample $8$ tasks from the pool; use them as few-shot examples to prompt the LLM to generate new tasks.
+  \item Filter generated tasks: remove near-duplicates (ROUGE-L similarity $> 0.7$ with any existing task), classify as classification vs.~non-classification, and generate input--output instances.
+  \item Add accepted tasks to the pool.
+  \item Repeat until the desired pool size is reached.
+\end{enumerate}
+
+\begin{examplebox}[Self-Instruct Prompt Template]
+\begin{lstlisting}[style=pythonstyle]
+system_prompt = """
+Come up with a series of tasks:
+Task 1: {seed_task_1_instruction}
+Task 2: {seed_task_2_instruction}
+...
+Task 8: {seed_task_8_instruction}
+Task 9:"""
+\end{lstlisting}
+
+The model completes the prompt, generating a new task instruction. A separate prompt then generates input--output pairs for the new task.
+\end{examplebox}
+
+\subsection{Evol-Instruct}
+\label{evol-instruct}
+
+Evol-Instruct~\cite{xu2023wizardlm} evolves a seed instruction set by iteratively rewriting instructions to be more complex or diverse. Two evolution operators are applied:
+
+\begin{itemize}
+  \item \textbf{In-depth evolution:} Add constraints, increase reasoning steps, concretise abstractions, deepen domain knowledge requirements.
+  \item \textbf{In-breadth evolution:} Generate a new instruction on a related but different topic, increasing topic diversity.
+\end{itemize}
+
+An instruction is accepted if it passes an elimination filter: the evolved instruction must not be a simple copy, must not contain ``I’m sorry'' or similar refusals, and must not be shorter than the original.
+
+\subsection{Constitutional AI Data Generation}
+\label{constitutional-ai-data-generation}
+
+Constitutional AI (CAI)~\cite{bai2022constitutional} generates preference data by having the model critique and revise its own outputs according to a set of principles (the ``constitution''). The pipeline:
+
+\begin{enumerate}
+  \item \textbf{Supervised learning phase:} Sample a harmful prompt, generate an initial response, then prompt the model to critique the response according to a constitutional principle and revise it. Use the revised response as a supervised fine-tuning target.
+  \item \textbf{RL phase:} Generate pairs of responses (original vs.~revised), use the model to label which is more constitutional, and train a preference model on these labels. Use the preference model as a reward signal for RLHF.
+\end{enumerate}
+
+This approach generates preference data without human labelling of harmful content, reducing annotator exposure to distressing material.
+
+\subsection{Distillation for Evaluation Data}
+\label{distillation-for-evaluation-data}
+
+A powerful teacher model (e.g., GPT-4) can generate high-quality evaluation data for training a smaller judge model. The distillation pipeline:
+
+\begin{enumerate}
+  \item Collect a diverse set of prompts and model responses.
+  \item Use the teacher to generate detailed judgments (scores + rationales).
+  \item Fine-tune a smaller model on (prompt, response, judgment) triples.
+  \item Validate the student judge against held-out human annotations.
+\end{enumerate}
+
+\begin{warningbox}[Distillation Bias]
+A student judge distilled from a single teacher inherits the teacher’s biases, including verbosity bias (preferring longer responses), self-enhancement bias (if the teacher is also the model being evaluated), and positional bias. Always validate distilled judges against independent human annotations.
+\end{warningbox}
+
+\subsection{Arena-Style Pairwise Generation}
+\label{arena-style-pairwise-generation}
+
+Chatbot Arena~\cite{zheng2023judging} generates evaluation data through a crowdsourced battle platform where users submit prompts and vote on which of two anonymised model responses they prefer. This produces a large-scale, naturally diverse dataset of pairwise preferences. The key design choices:
+
+\begin{itemize}
+  \item \textbf{Anonymisation:} Model identities are hidden to prevent brand bias.
+  \item \textbf{User-submitted prompts:} Ensures prompt diversity and real-world relevance.
+  \item \textbf{Tie handling:} Users can declare a tie or indicate that both responses are bad.
+  \item \textbf{Deduplication:} Near-duplicate prompts are filtered to prevent over-representation of common queries.
+\end{itemize}
+
+\section{Metrics for Ranking Tasks}
+\label{subsec:ranking-metrics}
+
+When the goal is to rank models by quality, pairwise comparison data is more reliable than absolute scores. This section derives the major ranking systems used in LLM evaluation.
+
+\subsection{ELO Rating System}
+\label{elo-rating-system}
+
+The ELO system~\cite{elo1978rating}, originally developed for chess, assigns each player (model) a scalar rating $R$ such that the expected score of player $A$ against player $B$ is: 
+\begin{equation}
+    E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}
+\end{equation}
+
+\paragraph{Derivation.}
+\label{derivation.}
+
+The ELO model assumes that each player’s performance on a given game is a random variable drawn from a logistic distribution centred at their rating. The probability that $A$ beats $B$ is: 
+\begin{equation}
+    P(A \succ B) = \sigma\!\left(\frac{R_A - R_B}{s}\right) = \frac{1}{1 + e^{-(R_A - R_B)/s}}
+\end{equation}
+ where $s = 400/\ln(10) \approx 173.7$ is a scale parameter chosen so that a 400-point difference corresponds to a $10:1$ odds ratio. After each game with outcome $S_A \in \{0, 0.5, 1\}$ (loss, draw, win), ratings are updated: 
+\begin{equation}
+    R_A \leftarrow R_A + K(S_A - E_A), \qquad R_B \leftarrow R_B + K(S_B - E_B)
+\end{equation}
+ where $K$ is the $K$-factor controlling the learning rate. In Chatbot Arena, $K = 4$ is used.
+
+\begin{intuitionbox}[ELO Intuition]
+ELO is a stochastic gradient descent update on the log-likelihood of the observed outcomes under the logistic model. Each game provides a noisy gradient signal; the $K$-factor controls the step size. A large $K$ adapts quickly but is noisy; a small $K$ is stable but slow to reflect true skill changes.
+\end{intuitionbox}
+
+\paragraph{Bootstrap Confidence Intervals for ELO.}
+\label{bootstrap-confidence-intervals-for-elo.}
+
+Because ELO ratings depend on the order in which games are processed, confidence intervals are computed by bootstrap resampling: resample the battle log with replacement $B = 1000$ times, recompute ELO ratings from scratch for each resample, and report the 2.5th and 97.5th percentiles as the 95\% confidence interval.
+
+\subsection{Bradley--Terry Model}
+\label{bradleyterry-model}
+
+The Bradley--Terry (BT) model~\cite{bradley1952rank} is a maximum-likelihood alternative to ELO. Given $n$ models with strength parameters $\beta_1, \ldots, \beta_n > 0$, the probability that model $i$ beats model $j$ is: 
+\begin{equation}
+    P(i \succ j) = \frac{\beta_i}{\beta_i + \beta_j}
+\end{equation}
+
+Given a set of pairwise outcomes $\{(i_k, j_k, y_k)\}_{k=1}^{M}$ where $y_k = 1$ if $i_k$ beats $j_k$ and $y_k = 0$ otherwise, the log-likelihood is: 
+\begin{equation}
+    \ell(\boldsymbol{\beta}) = \sum_{k=1}^{M} \left[ y_k \log \frac{\beta_{i_k}}{\beta_{i_k} + \beta_{j_k}} + (1-y_k) \log \frac{\beta_{j_k}}{\beta_{i_k} + \beta_{j_k}} \right]
+\end{equation}
+
+The MLE $\hat{\boldsymbol{\beta}}$ is found by iterative scaling or gradient ascent. The BT model is identifiable only up to a multiplicative constant; a common normalisation is $\sum_i \log \beta_i = 0$. Working in log-space with $\theta_i = \log \beta_i$ gives: 
+\begin{equation}
+    P(i \succ j) = \sigma(\theta_i - \theta_j)
+\end{equation}
+ which is equivalent to a logistic regression with item-specific intercepts. The BT model is preferred over ELO when the full battle history is available, as it uses all data simultaneously rather than processing games sequentially.
+
+\subsection{TrueSkill}
+\label{trueskill}
+
+TrueSkill~\cite{herbrich2006trueskill} is a Bayesian skill rating system that models each player’s skill as a Gaussian random variable $s_i \sim \mathcal{N}(\mu_i, \sigma_i^2)$. The performance of player $i$ in a game is $p_i = s_i + \epsilon_i$ where $\epsilon_i \sim \mathcal{N}(0, \beta^2)$ is game-specific noise. Player $i$ beats player $j$ if $p_i > p_j$.
+
+The posterior update after observing $i \succ j$ is computed via expectation propagation (EP). The key update equations for the winner are: 
+\begin{equation}
+    \mu_i \leftarrow \mu_i + \frac{\sigma_i^2}{c} \cdot v\!\left(\frac{\mu_i - \mu_j}{c}\right)
+\end{equation}
+ 
+\begin{equation}
+    \sigma_i^2 \leftarrow \sigma_i^2 \left[1 - \frac{\sigma_i^2}{c^2} \cdot w\!\left(\frac{\mu_i - \mu_j}{c}\right)\right]
+\end{equation}
+ where $c = \sqrt{2\beta^2 + \sigma_i^2 + \sigma_j^2}$, and $v(t) = \phi(t)/\Phi(t)$, $w(t) = v(t)(v(t) + t)$ are the truncated Gaussian correction factors ($\phi$ and $\Phi$ are the standard normal PDF and CDF). TrueSkill’s uncertainty estimate $\sigma_i$ is particularly useful for identifying models that need more evaluation data.
+
+\subsection{Win Rate with Confidence Intervals}
+\label{win-rate-with-confidence-intervals}
+
+The simplest ranking metric is the win rate: the fraction of pairwise comparisons in which model $A$ is preferred. Given $n$ comparisons with $w$ wins, the win rate is $\hat{p} = w/n$. A Wilson score confidence interval~\cite{wilson1927probable} is preferred over the naive Wald interval because it has better coverage near $p = 0$ and $p = 1$: 
+\begin{equation}
+    \text{CI} = \frac{\hat{p} + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat{p}(1-\hat{p})}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}
+\end{equation}
+ where $z = 1.96$ for a 95\% interval. For multi-way comparisons, win rate should be computed against a fixed baseline model to ensure comparability.
+
+\subsection{Chatbot Arena Methodology}
+\label{chatbot-arena-methodology}
+
+Chatbot Arena~\cite{zheng2023judging} combines the above elements into a production-scale evaluation system:
+
+\begin{enumerate}
+  \item Users submit prompts and receive responses from two anonymised models.
+  \item Users vote for the preferred response (or declare a tie).
+  \item Votes are aggregated using the BT model to produce a leaderboard.
+  \item Bootstrap confidence intervals are reported for each model’s score.
+  \item Models with overlapping confidence intervals are considered statistically indistinguishable.
+\end{enumerate}
+
+As of 2024, Chatbot Arena has collected over one million human preference votes, making it the largest publicly available LLM preference dataset.
+
+\section{Metrics for Generation Tasks}
+\label{subsec:generation-metrics}
+
+Generation metrics quantify the quality of model outputs for tasks with reference answers or well-defined correctness criteria.
+
+\subsection{BLEU}
+\label{bleu}
+
+BLEU (Bilingual Evaluation Understudy)~\cite{papineni2002bleu} measures $n$-gram precision between a hypothesis $h$ and one or more references $\mathcal{R}$: 
+\begin{equation}
+    \text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log p_n\right)
+\end{equation}
+ where $p_n$ is the modified $n$-gram precision, $w_n = 1/N$ are uniform weights, and BP is the brevity penalty: 
+\begin{equation}
+    \text{BP} = \begin{cases} 1 & \text{if } |h| > |r| \\ e^{1 - |r|/|h|} & \text{if } |h| \leq |r| \end{cases}
+\end{equation}
+ with $|r|$ being the length of the closest reference. Modified $n$-gram precision clips each $n$-gram count to its maximum count in any reference: 
+\begin{equation}
+    p_n = \frac{\sum_{\text{ngram} \in h} \min\!\left(\text{count}(\text{ngram}, h),\, \max_{r \in \mathcal{R}} \text{count}(\text{ngram}, r)\right)}{\sum_{\text{ngram} \in h} \text{count}(\text{ngram}, h)}
+\end{equation}
+
+\begin{warningbox}[BLEU Limitations]
+BLEU was designed for machine translation with multiple references. For open-ended generation with a single reference, BLEU scores are often near zero even for high-quality outputs. BLEU does not capture semantic similarity, penalises valid paraphrases, and is sensitive to tokenisation. Use BLEU only when multiple diverse references are available and the task has low output diversity.
+\end{warningbox}
+
+\subsection{ROUGE}
+\label{rouge}
+
+ROUGE (Recall-Oriented Understudy for Gisting Evaluation)~\cite{lin2004rouge} is a family of recall-oriented metrics designed for summarisation: 
+\begin{align}
+    \text{ROUGE-N} &= \frac{\sum_{r \in \mathcal{R}} \sum_{\text{ngram} \in r} \min(\text{count}(\text{ngram}, h), \text{count}(\text{ngram}, r))}{\sum_{r \in \mathcal{R}} \sum_{\text{ngram} \in r} \text{count}(\text{ngram}, r)} \\[6pt]
+    \text{ROUGE-L} &= \frac{\text{LCS}(h, r)}{|r|}
+\end{align}
+ where LCS denotes the longest common subsequence. ROUGE-1 and ROUGE-2 measure unigram and bigram recall; ROUGE-L captures sentence-level structure. The F-measure variant balances precision and recall: 
+\begin{equation}
+    \text{ROUGE-N}_F = \frac{(1+\beta^2) \cdot P \cdot R}{\beta^2 P + R}
+\end{equation}
+ with $\beta = 1$ for equal weighting.
+
+\subsection{BERTScore}
+\label{bertscore}
+
+BERTScore~\cite{zhang2020bertscore} computes token-level similarity using contextual embeddings from a pre-trained BERT model. Given hypothesis tokens $\hat{\mathbf{x}} = \langle \hat{x}_1, \ldots, \hat{x}_m \rangle$ and reference tokens $\mathbf{x} = \langle x_1, \ldots, x_n \rangle$ with embeddings $\hat{\mathbf{e}}_i$ and $\mathbf{e}_j$: 
+\begin{align}
+    R_{\text{BERT}} &= \frac{1}{|x|} \sum_{x_j \in \mathbf{x}} \max_{\hat{x}_i \in \hat{\mathbf{x}}} \frac{\hat{\mathbf{e}}_i^\top \mathbf{e}_j}{\|\hat{\mathbf{e}}_i\| \|\mathbf{e}_j\|} \\[4pt]
+    P_{\text{BERT}} &= \frac{1}{|\hat{x}|} \sum_{\hat{x}_i \in \hat{\mathbf{x}}} \max_{x_j \in \mathbf{x}} \frac{\hat{\mathbf{e}}_i^\top \mathbf{e}_j}{\|\hat{\mathbf{e}}_i\| \|\mathbf{e}_j\|} \\[4pt]
+    F_{\text{BERT}} &= 2 \cdot \frac{P_{\text{BERT}} \cdot R_{\text{BERT}}}{P_{\text{BERT}} + R_{\text{BERT}}}
+\end{align}
+
+BERTScore correlates better with human judgments than BLEU and ROUGE, particularly for paraphrases and semantically equivalent but lexically different outputs. Importance weighting using inverse document frequency (IDF) further improves correlation: 
+\begin{equation}
+    R_{\text{BERT}}^{\text{idf}} = \frac{\sum_{x_j \in \mathbf{x}} \text{idf}(x_j) \max_{\hat{x}_i} \cos(\hat{\mathbf{e}}_i, \mathbf{e}_j)}{\sum_{x_j \in \mathbf{x}} \text{idf}(x_j)}
+\end{equation}
+
+\subsection{METEOR}
+\label{meteor}
+
+METEOR~\cite{banerjee2005meteor} addresses BLEU’s recall blindness by computing an F-score over unigram matches, with additional modules for stemming and synonym matching: 
+\begin{equation}
+    \text{METEOR} = F_{\text{mean}} \cdot (1 - \text{Pen})
+\end{equation}
+ where $F_{\text{mean}} = \frac{10PR}{R + 9P}$ (recall-weighted harmonic mean) and the fragmentation penalty $\text{Pen} = 0.5 \cdot (c/u_m)^3$ penalises non-contiguous matches ($c$ = number of chunks, $u_m$ = number of matched unigrams).
+
+\subsection{Perplexity}
+\label{perplexity}
+
+Perplexity measures how well a language model predicts a held-out text sequence $w_1, w_2, \ldots, w_T$: 
+\begin{equation}
+    \text{PPL}(w_{1:T}) = \exp\!\left(-\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(w_t \mid w_{1:t-1})\right)
+\end{equation}
+
+Lower perplexity indicates better predictive performance. Perplexity is useful for comparing models on the same tokenisation and test set, but is not directly comparable across models with different vocabularies or tokenisers. For evaluation purposes, perplexity is most useful as a sanity check and for detecting distribution shift.
+
+\subsection{Pass@k for Code}
+\label{passk-for-code}
+
+For code generation, functional correctness is measured by executing generated code against test cases. The pass@$k$ metric~\cite{chen2021evaluating} estimates the probability that at least one of $k$ generated samples passes all tests: 
+\begin{equation}
+    \text{pass@}k = \mathbb{E}_{\text{problems}}\!\left[1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
+\end{equation}
+ where $n$ is the total number of samples generated per problem and $c$ is the number that pass. This unbiased estimator avoids the high variance of the naive estimator (which samples exactly $k$ solutions and checks if any pass). In practice, $n = 200$ samples are generated and pass@1, pass@10, pass@100 are reported.
+
+\begin{examplebox}[Pass@k Computation]
+\begin{lstlisting}[style=pythonstyle]
+import numpy as np
+from scipy.special import comb
+
+def pass_at_k(n: int, c: int, k: int) -> float:
+    """Unbiased estimator for pass@k.
+    
+    Args:
+        n: total samples generated per problem
+        c: number of samples that pass all tests
+        k: number of samples to consider
+    """
+    if n - c < k:
+        return 1.0
+    return 1.0 - comb(n - c, k, exact=True) / comb(n, k, exact=True)
+
+# Example: 200 samples, 15 pass, compute pass@1, pass@10, pass@100
+for k in [1, 10, 100]:
+    score = pass_at_k(n=200, c=15, k=k)
+    print(f"pass@{k}: {score:.4f}")
+# pass@1:   0.0750
+# pass@10:  0.5391
+# pass@100: 0.9999
+\end{lstlisting}
+\end{examplebox}
+
+\subsection{Exact Match and F1}
+\label{exact-match-and-f1}
+
+For extractive question answering (e.g., SQuAD), two standard metrics are:
+
+\begin{itemize}
+  \item \textbf{Exact Match (EM):} Binary indicator of whether the predicted answer string exactly matches any gold answer after normalisation (lowercasing, removing articles and punctuation).
+  \item \textbf{Token-level F1:} Treats prediction and gold answer as bags of tokens and computes the F1 score: 
+\begin{equation}
+        F1 = \frac{2 \cdot |\text{pred} \cap \text{gold}|}{|\text{pred}| + |\text{gold}|}
+\end{equation}
+\end{itemize}
+
+For multi-answer settings, the maximum F1 over all gold answers is reported.
+
+\begin{table}[ht!]
+\centering
+\caption{Summary of generation metrics: applicability and key properties.}
+\begin{tabular}{@{}lp{3.5cm}p{3.5cm}p{6cm}@{}}
+\toprule
+\textbf{Metric} & \textbf{Task} & \textbf{Reference-free?} & \textbf{Human correlation} \\
+\midrule
+BLEU & Translation & No & Low--Medium \\
+ROUGE & Summarisation & No & Medium \\
+BERTScore & General NLG & No & High \\
+METEOR & Translation & No & Medium--High \\
+Perplexity & LM quality & Yes & Low \\
+Pass@k & Code generation & No (tests) & Very high \\
+Exact Match & Extractive QA & No & Very high \\
+Token F1 & Extractive QA & No & High \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Metrics for Agentic Tasks}
+\label{subsec:agentic-metrics}
+
+Agentic LLMs operate in environments, take sequences of actions, and must complete multi-step tasks. Standard generation metrics are insufficient; agentic evaluation requires metrics that capture task completion, efficiency, and the quality of intermediate steps.
+
+\subsection{Task Success Rate}
+\label{task-success-rate}
+
+The primary metric for agentic tasks is the task success rate (TSR): the fraction of tasks for which the agent achieves the specified goal state: 
+\begin{equation}
+    \text{TSR} = \frac{1}{|\mathcal{T}|} \sum_{\tau \in \mathcal{T}} \mathbf{1}[\text{goal}(\tau) \text{ achieved}]
+\end{equation}
+
+Goal achievement is typically verified by a deterministic oracle (e.g., checking database state, file system state, or test case execution). For tasks with partial credit, a graded success metric can be defined: 
+\begin{equation}
+    \text{TSR}_{\text{graded}} = \frac{1}{|\mathcal{T}|} \sum_{\tau \in \mathcal{T}} \text{score}(\tau) \in [0, 1]
+\end{equation}
+
+\subsection{Trajectory Efficiency}
+\label{trajectory-efficiency}
+
+A successful agent should complete tasks with minimal unnecessary actions. Trajectory efficiency measures the ratio of the optimal trajectory length to the agent’s actual trajectory length: 
+\begin{equation}
+    \eta = \frac{L^*}{L_{\text{agent}}}
+\end{equation}
+ where $L^*$ is the length of the shortest successful trajectory (computed by an oracle or human expert) and $L_{\text{agent}}$ is the number of actions taken by the agent. $\eta \in (0, 1]$ with $\eta = 1$ indicating optimal efficiency. For failed trajectories, $\eta = 0$.
+
+A complementary metric is the \emph{redundancy rate}: the fraction of agent actions that are not present in any optimal trajectory.
+
+\subsection{Tool-Use Accuracy}
+\label{tool-use-accuracy}
+
+For agents that invoke external tools (APIs, code interpreters, search engines), tool-use accuracy measures the correctness of tool calls: 
+\begin{equation}
+    \text{TUA} = \frac{\text{\# correct tool calls}}{\text{\# total tool calls}}
+\end{equation}
+ A tool call is correct if (a) the correct tool is selected, (b) the arguments are valid, and (c) the call is made at the appropriate point in the trajectory. Partial credit can be assigned for correct tool selection with incorrect arguments.
+
+\subsection{Multi-Step Reasoning Accuracy}
+\label{multi-step-reasoning-accuracy}
+
+For tasks requiring chains of reasoning (e.g., multi-hop QA, mathematical problem solving), step-level accuracy measures the fraction of reasoning steps that are correct: 
+\begin{equation}
+    \text{SRA} = \frac{1}{|\mathcal{T}|} \sum_{\tau \in \mathcal{T}} \frac{1}{|S_\tau|} \sum_{s \in S_\tau} \mathbf{1}[s \text{ is correct}]
+\end{equation}
+ where $S_\tau$ is the set of reasoning steps in trajectory $\tau$. Step correctness can be verified by a process reward model (PRM) or by human annotation.
+
+\subsection{SWE-bench Methodology}
+\label{swe-bench-methodology}
+
+SWE-bench~\cite{jimenez2024swebench} evaluates LLMs on real-world software engineering tasks: given a GitHub issue description and the repository codebase, the model must generate a patch that resolves the issue. Evaluation proceeds as follows:
+
+\begin{enumerate}
+  \item The model is given the issue description and relevant code context.
+  \item The model generates a patch (unified diff format).
+  \item The patch is applied to the repository.
+  \item The repository’s test suite is executed; the task is successful if all tests pass.
+\end{enumerate}
+
+The primary metric is \textbf{\% Resolved}: the fraction of issues for which the generated patch passes all tests. SWE-bench Verified is a curated subset of 500 problems verified by human annotators to be solvable and unambiguous. SWE-bench Lite is a 300-problem subset designed for faster evaluation.
+
+\begin{keybox}[SWE-bench Key Statistics (as of 2024)]
+\begin{itemize}
+  \item \textbf{Full benchmark:} 2,294 tasks from 12 popular Python repositories.
+  \item \textbf{Best open-source agent:} $\sim$43\% resolved (SWE-bench Verified).
+  \item \textbf{Human performance:} $\sim$87\% resolved (with 15 minutes per task).
+  \item \textbf{Evaluation cost:} $\sim$\$0.25 per task for API-based models.
+\end{itemize}
+\end{keybox}
+
+\subsection{WebArena Methodology}
+\label{webarena-methodology}
+
+WebArena~\cite{zhou2024webarena} evaluates agents on realistic web navigation tasks in a sandboxed browser environment. The benchmark includes 812 tasks across five web applications (e-commerce, social forum, collaborative development, content management, and maps). Evaluation:
+
+\begin{itemize}
+  \item \textbf{Functional evaluation:} The task outcome is verified by checking the application state (e.g., ``Was the item added to the cart?'', ``Was the post created?'').
+  \item \textbf{URL-based evaluation:} For navigation tasks, the final URL is compared to the expected URL.
+  \item \textbf{Program-based evaluation:} A custom evaluator script checks complex conditions (e.g., ``Is the price less than \$50?'').
+\end{itemize}
+
+The primary metric is task success rate. Human performance is approximately 78\%; state-of-the-art agents achieve approximately 35--45\%.
+
+\begin{table}[ht!]
+\centering
+\caption{Comparison of agentic evaluation benchmarks.}
+\begin{tabular}{@{}lp{3cm}p{3.2cm}p{3.2cm}p{3.5cm}@{}}
+\toprule
+\textbf{Benchmark} & \textbf{Domain} & \textbf{\# Tasks} & \textbf{Eval Method} & \textbf{SOTA (\%)} \\
+\midrule
+SWE-bench & Software engineering & 2,294 & Test execution & $\sim$43 \\
+SWE-bench Lite & Software engineering & 300 & Test execution & $\sim$50 \\
+WebArena & Web navigation & 812 & State/URL/program & $\sim$40 \\
+ALFWorld~\cite{shridhar2021alfworld} & Household tasks & 3,553 & Simulator state & $\sim$90 \\
+AgentBench~\cite{liu2023agentbench} & Multi-domain & 1,091 & Task-specific & $\sim$45 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{LLM-as-Judge}
+\label{subsec:llm-as-judge}
+
+LLM-as-judge~\cite{zheng2023judging} uses a capable LLM to evaluate the outputs of other (or the same) LLMs. This approach scales to large evaluation sets without human annotation and can provide detailed rationales for its judgments.
+
+\subsection{Setup and Prompt Templates}
+\label{setup-and-prompt-templates}
+
+The judge is presented with a prompt, one or more model responses, and an evaluation rubric. Three common formats:
+
+\paragraph{Pointwise scoring.}
+\label{pointwise-scoring.}
+
+The judge assigns an absolute score to a single response:
+
+\begin{examplebox}[Pointwise Judge Prompt]
+\begin{lstlisting}[style=pythonstyle]
+POINTWISE_PROMPT = """
+You are an expert evaluator. Rate the following response on a scale 
+of 1-10 for helpfulness, accuracy, and clarity.
+
+[Question]
+{question}
+
+[Response]
+{response}
+
+Provide your evaluation in the following format:
+Reasoning: <step-by-step analysis>
+Score: <integer from 1 to 10>
+"""
+\end{lstlisting}
+\end{examplebox}
+
+\paragraph{Pairwise comparison.}
+\label{pairwise-comparison.}
+
+The judge compares two responses and selects the better one:
+
+\begin{examplebox}[Pairwise Judge Prompt]
+\begin{lstlisting}[style=pythonstyle]
+PAIRWISE_PROMPT = """
+You are an expert evaluator. Compare the two responses below and 
+determine which is better. Consider helpfulness, accuracy, and 
+depth of explanation.
+
+[Question]
+{question}
+
+[Response A]
+{response_a}
+
+[Response B]
+{response_b}
+
+Output exactly one of: [[A]], [[B]], or [[C]] (tie).
+Reasoning: <your analysis>
+Verdict: <[[A]], [[B]], or [[C]]>
+"""
+\end{lstlisting}
+\end{examplebox}
+
+\paragraph{Reference-guided scoring.}
+\label{reference-guided-scoring.}
+
+The judge is provided with a reference answer and rates the response relative to it. This is particularly useful for factual tasks where the judge may not have reliable knowledge.
+
+\subsection{Position Bias Mitigation}
+\label{position-bias-mitigation}
+
+LLM judges exhibit \emph{position bias}: a systematic preference for the response appearing in a particular position (first or last). This bias can be as large as 10--15 percentage points. Mitigation strategies:
+
+\begin{enumerate}
+  \item \textbf{Swap augmentation:} Evaluate each pair in both orders (A vs.~B and B vs.~A). A consistent judgment is accepted; an inconsistent judgment is recorded as a tie.
+  \item \textbf{Calibration prompting:} Explicitly instruct the judge: ``Your evaluation should not be influenced by the order in which the responses are presented.''
+  \item \textbf{Ensemble judging:} Use multiple judges with different position orderings and aggregate their verdicts.
+  \item \textbf{Chain-of-thought forcing:} Require the judge to produce a detailed rationale before the verdict, which reduces reliance on superficial positional cues.
+\end{enumerate}
+
+\begin{warningbox}[Verbosity Bias]
+LLM judges also exhibit verbosity bias: longer responses are systematically preferred, even when the additional content is irrelevant or repetitive. To mitigate this, instruct the judge to penalise unnecessary length and to focus on the quality of information rather than quantity. Alternatively, truncate responses to a fixed length before judging.
+\end{warningbox}
+
+\subsection{Multi-Judge Panels}
+\label{multi-judge-panels}
+
+A single judge may have systematic biases. A panel of judges from different model families provides more robust evaluations. Given $J$ judges with verdicts $v_1, \ldots, v_J \in \{A, B, \text{tie}\}$, the panel verdict is determined by majority vote. The panel agreement rate is: 
+\begin{equation}
+    \text{Agreement} = \frac{1}{\binom{J}{2}} \sum_{i < j} \mathbf{1}[v_i = v_j]
+\end{equation}
+
+For a three-judge panel, a unanimous verdict (all three agree) is treated as high-confidence; a 2--1 split as medium-confidence; and a three-way tie as low-confidence.
+
+\subsection{Agreement Metrics for LLM Judges}
+\label{agreement-metrics-for-llm-judges}
+
+To validate an LLM judge, its verdicts are compared to human annotations on a held-out set. Key metrics:
+
+\begin{itemize}
+  \item \textbf{Agreement rate:} Fraction of items where judge and human agree.
+  \item \textbf{Cohen’s $\kappa$:} Chance-corrected agreement (Equation~\ref{eq:cohens-kappa}).
+  \item \textbf{Spearman’s $\rho$:} Rank correlation between judge scores and human scores, appropriate for ordinal ratings.
+  \item \textbf{Kendall’s $\tau$:} Alternative rank correlation that is more robust to ties.
+\end{itemize}
+
+A judge is considered reliable if it achieves $\kappa > 0.6$ and agreement rate $> 80\%$ with human annotators on a representative sample.
+
+\subsection{G-Eval Framework}
+\label{g-eval-framework}
+
+G-Eval~\cite{liu2023geval} is a structured framework for LLM-based evaluation that uses chain-of-thought prompting and token probability weighting to produce more reliable scores. The framework:
+
+\begin{enumerate}
+  \item \textbf{Generate evaluation steps:} Prompt the LLM to generate a detailed rubric for the evaluation task (e.g., ``List the steps you would take to evaluate the coherence of a summary'').
+  \item \textbf{Score with probability weighting:} For each score value $s \in \{1, 2, 3, 4, 5\}$, obtain the log-probability $\log P_\theta(s \mid \text{prompt, steps, response})$ from the judge model. The final score is the probability-weighted average: 
+\begin{equation}
+        \text{G-Eval score} = \sum_{s=1}^{5} s \cdot \frac{e^{\log P_\theta(s)}}{\sum_{s'=1}^{5} e^{\log P_\theta(s')}}
+\end{equation}
+  \item \textbf{Normalise:} Map the score to $[0, 1]$ by dividing by the maximum score.
+\end{enumerate}
+
+G-Eval achieves higher correlation with human judgments than direct prompting, particularly for nuanced dimensions like coherence and consistency, because the probability weighting captures the judge’s uncertainty rather than forcing a discrete choice.
+
+\begin{intuitionbox}[Why G-Eval Works]
+Standard prompting asks the judge to output a single token (e.g., ``4''), which discards the model’s uncertainty. G-Eval reads the probability distribution over all score tokens, effectively computing the expected score under the judge’s belief. This is analogous to using the mean of a posterior distribution rather than the mode.
+\end{intuitionbox}
+
+\section{Evaluation Pitfalls}
+\label{subsec:eval-pitfalls}
+
+Even carefully designed evaluation pipelines can produce misleading results. This section catalogues the most common failure modes.
+
+\subsection{Benchmark Contamination}
+\label{benchmark-contamination}
+
+Benchmark contamination occurs when evaluation data appears in the model’s training set, either directly (verbatim inclusion) or indirectly (paraphrased or semantically similar content). Contaminated models achieve inflated scores that do not reflect true generalisation ability.
+
+\paragraph{Detection methods:}
+\label{detection-methods}
+
+\begin{itemize}
+  \item \textbf{$n$-gram overlap:} Compute the fraction of evaluation examples with high $n$-gram overlap (e.g., ROUGE-L $> 0.8$) with the training corpus.
+  \item \textbf{Membership inference:} Use a membership inference attack to estimate the probability that each evaluation example was in the training set.
+  \item \textbf{Canary strings:} Embed unique, randomly generated strings in evaluation examples and check if the model can complete them.
+  \item \textbf{Temporal holdout:} Use evaluation data created after the model’s training cutoff date.
+\end{itemize}
+
+\paragraph{Mitigation:}
+\label{mitigation}
+
+\begin{itemize}
+  \item Maintain a private test set that is never released publicly.
+  \item Regularly refresh benchmarks with new examples.
+  \item Report training data cutoff dates and decontamination procedures.
+\end{itemize}
+
+\subsection{Overfitting to Benchmarks}
+\label{overfitting-to-benchmarks}
+
+Even without direct contamination, models can be implicitly optimised for specific benchmarks through repeated evaluation and hyperparameter tuning. This is a form of \emph{adaptive overfitting}: the benchmark leaks information into model development decisions.
+
+\begin{warningbox}[The Benchmark Lifecycle]
+A benchmark’s utility degrades over time as the research community optimises for it. MMLU~\cite{hendrycks2021measuring}, once a challenging test of world knowledge, now has models achieving near-human performance, yet these models still fail on novel knowledge tasks. New benchmarks should be treated as temporary signal sources, not permanent ground truth.
+\end{warningbox}
+
+\subsection{Goodhart’s Law in Evaluation}
+\label{goodharts-law-in-evaluation}
+
+Goodhart’s Law states: \emph{``When a measure becomes a target, it ceases to be a good measure.''}~\cite{goodhart1984problems} In LLM evaluation, this manifests in several ways:
+
+\begin{itemize}
+  \item \textbf{Reward hacking:} Models trained with RLHF learn to exploit the reward model rather than genuinely improving. A model may learn to produce verbose, confident-sounding responses that score highly on the reward model but are factually incorrect.
+  \item \textbf{Metric gaming:} Models fine-tuned to maximise BLEU or ROUGE may produce outputs that score well on these metrics but are less useful to humans.
+  \item \textbf{Judge gaming:} Models trained with LLM-as-judge feedback may learn the judge’s biases (e.g., verbosity bias) rather than genuinely improving quality.
+\end{itemize}
+
+\begin{keybox}[Defences Against Goodhart’s Law]
+\begin{enumerate}
+  \item \textbf{Metric diversity:} Use multiple metrics from different families; a model that games one metric will likely not game all simultaneously.
+  \item \textbf{Held-out evaluation:} Maintain evaluation metrics that are not used in training or model selection.
+  \item \textbf{Human spot-checks:} Regularly sample model outputs for human review, independent of automated metrics.
+  \item \textbf{Adversarial evaluation:} Actively probe for failure modes that automated metrics miss.
+  \item \textbf{Extrinsic validation:} Periodically validate intrinsic metrics against extrinsic outcomes.
+\end{enumerate}
+\end{keybox}
+
+\subsection{Additional Pitfalls}
+\label{additional-pitfalls}
+
+\paragraph{Prompt sensitivity.}
+\label{prompt-sensitivity.}
+
+LLM performance can vary dramatically with small changes to the evaluation prompt (e.g., adding ``Think step by step'' or changing the answer format). Always report the exact prompt used and consider evaluating across multiple prompt variants.
+
+\paragraph{Aggregation artefacts.}
+\label{aggregation-artefacts.}
+
+Averaging scores across tasks with different difficulty levels and score distributions can produce misleading aggregate metrics. A model that excels at easy tasks but fails at hard tasks may have the same average score as a model with uniform performance.
+
+\paragraph{Selection bias in human evaluation.}
+\label{selection-bias-in-human-evaluation.}
+
+Human evaluators are not a random sample of end users. Annotators on crowdsourcing platforms may have different preferences, cultural backgrounds, and domain knowledge than the target user population.
+
+\paragraph{Evaluation--deployment mismatch.}
+\label{evaluationdeployment-mismatch.}
+
+Evaluation prompts are often shorter, cleaner, and more well-formed than real user queries. A model that performs well on benchmark prompts may degrade significantly on the noisy, ambiguous, multi-turn conversations that occur in production.
+
+\begin{questionbox}[Key Questions for Evaluation Design]
+Before deploying an evaluation pipeline, ask:
+
+\begin{enumerate}
+  \item Does the evaluation metric align with the deployment objective?
+  \item Is the evaluation data representative of the target distribution?
+  \item Have contamination and overfitting risks been assessed?
+  \item Are confidence intervals reported for all metrics?
+  \item Is the evaluation reproducible (fixed seeds, versioned prompts, public test sets)?
+  \item Has the evaluation been validated against human judgments or extrinsic outcomes?
+\end{enumerate}
+\end{questionbox}
+

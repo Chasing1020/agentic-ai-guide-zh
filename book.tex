@@ -1,0 +1,429 @@
+\documentclass[11pt,a4paper,openany]{book}
+
+% Encoding and fonts
+% NOTE: fontspec removed for arXiv/pdflatex compatibility
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+% Page layout
+\usepackage[margin=0.85in,top=0.75in,bottom=0.75in]{geometry}
+\usepackage{fancyhdr}
+
+% Math
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+
+% Graphics and figures
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc}
+
+% Tables
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+
+% Code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Hyperlinks
+
+% --- Compact spacing ---
+\setlength{\parskip}{0.2ex plus 0.1ex minus 0.1ex}
+\setlength{\parindent}{1.2em}
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{1pt}
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{4pt plus 2pt minus 1pt}
+\setlength{\abovedisplayskip}{4pt plus 2pt minus 1pt}
+\setlength{\belowdisplayskip}{4pt plus 2pt minus 1pt}
+\setlength{\topsep}{2pt plus 1pt minus 1pt}
+\setlength{\itemsep}{1pt plus 0.5pt minus 0.5pt}
+\setlength{\parsep}{1pt plus 0.5pt minus 0.5pt}
+
+% Bibliography (must load BEFORE hyperref for correct citation links)
+\usepackage[numbers,sort&compress]{natbib}
+
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+% --- Running headers ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\small\itshape H. Roitman \enspace --- \enspace The Hitchhiker's Guide to Agentic AI: From Foundations to Systems}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% Custom boxes (tcolorbox)
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{breakable,skins}
+\tcbsetforeverylayer{boxsep=2pt,top=2pt,bottom=2pt,left=3pt,right=3pt,before skip=3pt plus 1pt,after skip=3pt plus 1pt}
+
+% Misc
+\usepackage{enumitem}
+\usepackage{pifont}
+\usepackage{microtype}
+
+% --- Color definitions ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+\definecolor{framerulecolor}{rgb}{0.75,0.75,0.75}
+
+% --- Code listing style ---
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=none,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=Python,
+    frame=single,
+    framerule=0.4pt,
+    rulecolor=\color{framerulecolor},
+    framexleftmargin=3pt,
+    xleftmargin=6pt,
+    xrightmargin=3pt,
+    framesep=4pt,
+    aboveskip=8pt,
+    belowskip=8pt
+}
+
+\lstset{style=pythonstyle}
+
+% --- Custom tcolorbox environments ---
+\newtcolorbox{keybox}[1][]{
+    colback=blue!5!white,
+    colframe=blue!60!black,
+    fonttitle=\bfseries,
+    title={#1},
+    breakable
+}
+
+\newtcolorbox{intuitionbox}[1][]{
+    colback=green!5!white,
+    colframe=green!50!black,
+    fonttitle=\bfseries,
+    title={#1},
+    breakable
+}
+
+\newtcolorbox{questionbox}[1][]{
+    colback=violet!5!white,
+    colframe=violet!60!black,
+    fonttitle=\bfseries,
+    title={#1},
+    breakable
+}
+
+\newtcolorbox{examplebox}[1][]{
+    colback=orange!5!white,
+    colframe=orange!60!black,
+    fonttitle=\bfseries,
+    title={#1},
+    breakable
+}
+
+\newtcolorbox{warningbox}[1][]{
+    colback=red!5!white,
+    colframe=red!60!black,
+    fonttitle=\bfseries,
+    title={#1},
+    breakable
+}
+
+% --- Math operators ---
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\rank}{rank}
+
+% --- Title ---
+\title{\textbf{The Hitchhiker's Guide to Agentic AI}\\[0.5em]\Large From Foundations to Systems}
+\author{Haggai Roitman}
+\date{2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vfill
+{\Huge\bfseries The Hitchhiker's Guide to Agentic AI\par}
+\vspace{0.5cm}
+{\Large From Foundations to Systems\par}
+\vspace{2cm}
+\includegraphics[width=0.55\textwidth]{figures/hitchhiker_logo.jpg}\\[2cm]
+{\Large Haggai Roitman\par}
+\vspace{0.5cm}
+{\large 2026\par}
+\vfill
+{\normalsize Version 1.2.2\par}
+\vspace{1cm}
+\end{titlepage}
+
+\newpage
+~\vfill
+\begin{center}
+{\large\itshape To my beloved wife Janna and daughters Inbar and Einav.}
+\end{center}
+\vfill
+\newpage
+
+\tableofcontents
+
+\chapter*{Disclaimer}
+\addcontentsline{toc}{chapter}{Disclaimer}
+\label{disclaimer}
+
+This document is an independent survey and educational resource prepared solely by the author. The views, opinions, and conclusions expressed herein are those of the author alone and do not necessarily reflect the views of any employer, organization, or institution with which the author is or has been affiliated.
+
+This work does not contain any proprietary, confidential, or trade-secret information. All referenced material is drawn from publicly available sources, including peer-reviewed publications, open-access preprints, official documentation, and open-source repositories.
+
+The content is provided ``as is'' without warranty of any kind, express or implied. The author makes no representations regarding the accuracy, completeness, or suitability of the information for any particular purpose. Readers should independently verify any claims, formulas, or implementation details before applying them in production systems.
+
+\textbf{Feedback welcome.} If you find any mistakes, inaccuracies, or have suggestions for improvement, you are encouraged to send feedback to \texttt{[first\_name]r@gmail.com}.
+
+\textbf{AI Disclosure.} Large language models were used as a research and drafting aid. All content was edited and verified by the author on a best-effort basis.
+
+\textbf{License.} This work is licensed under the \textbf{Creative Commons Attribution-ShareAlike 4.0 International License} (CC~BY-SA~4.0). You are free to share (copy and redistribute) and adapt (remix, transform, and build upon) this material for any purpose, including commercially, provided you give appropriate credit, provide a link to the license, indicate if changes were made, and distribute any derivative works under the same license. Full license text: \href{https://creativecommons.org/licenses/by-sa/4.0/}{https://creativecommons.org/licenses/by-sa/4.0/}.
+
+\chapter*{About the Author}
+\addcontentsline{toc}{chapter}{About the Author}
+\label{about-the-author}
+
+\textbf{Haggai Roitman} has spent over two decades at the intersection of AI research and large-scale production systems. His work bridges theory and practice---from publishing foundational research to shipping systems that serve millions of users.
+
+His research interests span information retrieval, recommender systems, natural language processing, large language models, reinforcement learning for LLMs, and agentic AI. He has authored more than 100 peer-reviewed publications and holds approximately 100 patents. He earned his BSc (\emph{Cum Laude}) and PhD from the Technion --- Israel Institute of Technology.
+
+When not thinking about gradient flows and KV caches, he can be found behind a set of turntables, mixing progressive trance and deep house.
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+\label{preface}
+
+\section*{Why This Guide Exists}
+\label{why-this-guide-exists}
+
+Building intelligent AI systems in 2026 requires mastering an extraordinary breadth of knowledge --- from how transformers process language internally, through the hardware and systems that make training possible, the optimization techniques that make it efficient, the reinforcement learning algorithms that teach models to reason and align with human intent, all the way to multi-agent architectures that coordinate autonomous systems at scale.
+
+This knowledge is scattered across hundreds of papers, blog posts, GitHub repositories, and tribal knowledge within a handful of labs. This guide exists because \textbf{practitioners need a single, unified reference} that covers the entire stack --- not just the theory, but the implementation details that make things actually work.
+
+\section*{A Personal Journey to Agentic AI}
+\label{a-personal-journey-to-agentic-ai}
+
+My fascination with intelligent agents began two decades ago, when I still studied for my first degree in information systems engineering. I took courses on Agent-Oriented Software Engineering (AOSE)~\cite{wooldridge2000gaia} and learned to build multi-agent systems using JADE~\cite{bellifemine2007jade} (Java Agent DEvelopment Framework)---a FIPA-compliant~\cite{fipa2002acl} platform where agents communicated via structured protocols, negotiated over shared resources, and coordinated autonomously. Around the same time, Berners-Lee, Hendler, and Lassila’s seminal paper ``The Semantic Web''~\cite{bernerslee2001semantic} painted a vision of machine-readable knowledge that agents could reason over. These two threads---autonomous agent architectures and semantic knowledge representation---planted a seed that has guided my career ever since. One early project that crystallized this vision was an attempt to build a \emph{shopping agent}---developed with OntoBuilder~\cite{gal2006ontobuilder} under the guidance of my respected future academic advisor Prof.~Avigdor Gal---a system that could automatically fill product search queries and orders across different heterogeneous websites, understanding their varied schemas through ontology matching and mapping. The Semantic Web promised that such agents would thrive in a world of structured, machine-readable data. In practice, the brittleness of hand-crafted ontologies, the messiness of real-world product data, and the lack of robust natural language understanding made the vision perpetually ``five years away.''
+
+Over the following years, I tracked each wave of AI progress as it arrived: neural networks and heuristic search for combinatorial optimization; deep learning and representation learning; information retrieval and personalization at scale; and most recently, the revolution of large language models. Each wave brought powerful new tools, but the dream remained the same: systems that \emph{understand}, \emph{reason}, and \emph{act} autonomously in complex environments.
+
+What makes 2024--2026 remarkable is that these threads have finally converged. LLMs provide the language understanding and generation; reinforcement learning teaches them to reason and align with human intent; tool-use protocols (MCP) give them hands to act in the world; and agent orchestration frameworks provide the coordination layer that JADE envisioned twenty years ago---now powered by foundation models instead of hand-coded ontologies. This guide is, in many ways, the reference I wish I had at each step of that journey.
+
+\section*{The Landscape in 2026}
+\label{the-landscape-in-2026}
+
+The journey to today’s agentic AI systems spans three decades of compounding breakthroughs across architecture, training, and deployment:
+
+\begin{enumerate}
+  \item \textbf{Architectural foundations (2017--2020)}: The Transformer~\cite{vaswani2017attention} introduced self-attention as a universal sequence-processing primitive. Scaling laws revealed that larger models trained on more data reliably improve. GPT-2 and GPT-3 demonstrated that decoder-only transformers, scaled sufficiently, become capable few-shot learners.
+  \item \textbf{Systems and efficiency (2020--2023)}: Flash Attention~\cite{dao2022flashattention} made training 2--4$\times$ faster by eliminating memory bottlenecks. LoRA~\cite{hu2022lora} enabled fine-tuning 70B+ models on a single node. Mixture-of-Experts (MoE) decoupled model capacity from compute cost. Inference engines like vLLM brought throughput within reach of real-time applications.
+  \item \textbf{Alignment via RL (2022--2024)}: RLHF~\cite{ouyang2022training} transformed capable-but-unhelpful base models into useful assistants --- the recipe behind ChatGPT. DPO~\cite{rafailov2023direct} collapsed the reward model and RL loop into a single supervised loss, democratizing alignment. Variants proliferated: KTO~\cite{ethayarajh2024kto}, IPO~\cite{azar2024general}, ORPO~\cite{hong2024orpo}, GRPO~\cite{shao2024deepseekmath}.
+  \item \textbf{Reasoning and autonomy (2024--2026)}: DeepSeek-R1~\cite{deepseek2025r1} and OpenAI’s o1/o3 demonstrated that RL could teach \emph{reasoning itself} --- models spontaneously discover chain-of-thought, backtracking, and self-verification. Simultaneously, the Model Context Protocol (MCP) standardized tool access, Agent-to-Agent (A2A) enabled inter-agent communication, and production-grade orchestration frameworks matured.
+\end{enumerate}
+
+\section*{Who This Guide Is For}
+\label{who-this-guide-is-for}
+
+This document is written for \textbf{practitioners who build things}:
+
+\begin{itemize}
+  \item \textbf{ML engineers} who need to understand transformer internals, training infrastructure, optimization, and why things diverge.
+  \item \textbf{Applied researchers} evaluating architectures, fine-tuning strategies, and RL methods for their specific domains.
+  \item \textbf{Agent developers} building production systems who need orchestration patterns, memory architectures, tool integration (MCP), and multi-agent coordination (A2A).
+  \item \textbf{Systems engineers} responsible for training infrastructure, GPU clusters, distributed training, and inference deployment.
+  \item \textbf{Technical leaders} making architectural and resourcing decisions across the full stack.
+\end{itemize}
+
+We assume familiarity with neural networks and basic probability. \textbf{No prior LLM, RL, or systems knowledge is required} --- the guide builds from first principles.
+
+\section*{What You Will Gain}
+\label{what-you-will-gain}
+
+After reading this guide, you will be able to:
+
+\begin{itemize}
+  \item \textbf{Understand LLM internals} --- attention mechanisms, positional encodings, MoE routing, Flash Attention, and why architectural choices matter for downstream capability.
+  \item \textbf{Reason about systems} --- GPU memory budgets, distributed training strategies (FSDP, tensor/pipeline parallelism), inference optimization, and production deployment with vLLM.
+  \item \textbf{Train and fine-tune efficiently} --- LoRA/QLoRA, quantization, knowledge distillation, optimizer selection, and learning rate scheduling.
+  \item \textbf{Align models with human preferences} --- implement RLHF/DPO/GRPO/KTO pipelines, debug reward hacking and mode collapse, choose the right algorithm among 20+ methods.
+  \item \textbf{Build reasoning models} --- understand how DeepSeek-R1, o1/o3, and QwQ discover chain-of-thought through RL without explicit demonstrations.
+  \item \textbf{Architect agentic systems} --- select orchestration patterns, design memory, integrate tools via MCP, coordinate agents via A2A, evaluate with production benchmarks.
+  \item \textbf{Evaluate rigorously} --- apply appropriate metrics, benchmarks, and LLM-as-Judge patterns for both model quality and agent capability.
+\end{itemize}
+
+\section*{How This Guide Is Organized}
+\label{how-this-guide-is-organized}
+
+The guide spans 29 chapters organized in five parts:
+
+\begin{enumerate}
+  \item \textbf{Part I --- Foundations} (Chapters 1--3): LLM architecture and optimization (transformers, attention, positional encodings, Flash Attention, LoRA, MoE), systems foundations (GPU hierarchies, distributed training, vLLM), and classical RL theory (MDPs, policy gradients, actor-critic).
+  \item \textbf{Part II --- RL Methods for LLMs} (Chapters 4--12): The complete RL-for-LLMs toolkit. RL foundations for language models, then full mathematical treatment of PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO), reward model training, SFT best practices, system architecture at scale, and agentic training with trajectory-level RL.
+  \item \textbf{Part III --- Reasoning} (Chapter 13): Large reasoning models --- DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
+  \item \textbf{Part IV --- Evaluation} (Chapter 14): Comprehensive LLM evaluation methodology --- metrics, LLM-as-Judge, human annotation, benchmark suites, contamination detection, and agentic evaluation.
+  \item \textbf{Part V --- Agentic AI} (Chapters 15--26): The complete agentic stack --- introduction to agentic AI, RAG and retrieval, memory systems, orchestration and context management, design patterns, agentic environments and benchmarks, Model Context Protocol (MCP), agent skills, Agent-to-Agent communication (A2A), multi-agent systems, development frameworks, and agentic UI.
+  \item \textbf{Part VI --- Assessment \& Reference} (Chapters 27--29): 108 detailed quiz questions with comprehensive answers spanning all topics, a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics, and a conclusion with future directions.
+\end{enumerate}
+
+The guide includes over 100 detailed quiz questions with comprehensive answers spanning all topics, plus a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics.
+
+\section*{Design Philosophy}
+\label{design-philosophy}
+
+Three principles guide this document:
+
+\begin{enumerate}
+  \item \textbf{Intuition first, formalism second}. Every equation is preceded by a plain-English explanation of what it means and why it matters.
+  \item \textbf{Implementation-aware}. Theory is useless without knowing how to make it work. We include code, hyperparameter tables, memory budgets, architecture diagrams, and debugging strategies throughout.
+  \item \textbf{Honest about what works}. We clearly state which approaches are production-tested and which are research explorations.
+\end{enumerate}
+
+\section*{Scope and Deliberate Omissions}
+\label{scope-and-deliberate-omissions}
+
+This guide focuses on \textbf{text-in, text-out language models} and the RL, systems, and agentic infrastructure built around them. Several important areas are intentionally excluded:
+
+\begin{itemize}
+  \item \textbf{Multimodal models} (vision--language, audio, video). Multimodal architectures introduce distinct training pipelines (contrastive pre-training, cross-modal alignment, modality-specific encoders), data curation challenges, and evaluation protocols that each merit book-length treatment. Including them would double the scope without deepening the RL and agentic core that unifies this guide.
+  \item \textbf{Domain-specific deployments} (healthcare, legal, finance, scientific discovery). Domain adaptation introduces regulatory constraints, specialized evaluation, and data-access issues that are orthogonal to the general methods presented here. The algorithms and architectures we cover \emph{are} the building blocks practitioners adapt to these domains, but the adaptation details are better served by dedicated references.
+  \item \textbf{Personalization and recommendation systems.} Personalization relies on user modeling, collaborative filtering, and interaction-history architectures that form a parallel research tradition. While LLMs are increasingly used \emph{within} recommender systems, the core techniques (sequential models, bandit-based exploration, cold-start handling) are sufficiently distinct to warrant separate coverage.
+\end{itemize}
+
+By maintaining this boundary, we keep a single coherent thread---\emph{from architectural foundations and systems infrastructure, through the training algorithms that produce aligned and reasoning models, to the orchestration and deployment of autonomous agents}---without fragmenting the narrative across modalities and verticals.
+
+--- \emph{Haggai Roitman, 2026}
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+\label{introduction}
+
+\section*{The Big Picture}
+\label{the-big-picture}
+
+This guide takes you from \textbf{first principles to production systems}. It is written for practitioners --- researchers, engineers, and applied scientists --- who want to understand and build the full stack of modern AI: from transformer architectures and the hardware that runs them, through the training algorithms that align models with human intent and teach them to reason, to the agentic architectures that deploy them as autonomous systems.
+
+The core thesis is simple: \emph{building great AI systems requires understanding the entire pipeline, not just one layer}. An engineer debugging a training run needs to understand GPU memory hierarchies and optimizer dynamics. A fine-tuning practitioner needs to know when LoRA suffices and when full-parameter training is worth the cost. An agent developer needs to understand how the underlying model was trained. A technical leader evaluating frameworks needs to understand what trade-offs each one makes. This guide provides that complete picture.
+
+\section*{The Road to Agentic AI: A Brief History}
+\label{the-road-to-agentic-ai-a-brief-history}
+
+Today’s agentic AI systems did not emerge in a vacuum. They stand on decades of milestone systems --- each solving a narrower problem but collectively building the techniques, hardware, and ambition that made autonomous agents possible.
+
+\begin{enumerate}
+  \item \textbf{Deep Blue (1997)}~\cite{campbell2002deep} --- IBM’s chess engine defeated world champion Garry Kasparov using brute-force search (200 million positions/second) with handcrafted evaluation functions. It proved machines could exceed human performance in well-defined adversarial domains, but generalized to nothing else.
+  \item \textbf{IBM Watson --- Jeopardy! (2011)}~\cite{ferrucci2010building} --- Watson combined information retrieval, NLP, and massive parallelism to defeat human champions at open-domain question answering. It demonstrated that AI could process unstructured text at scale, but required years of domain-specific engineering and couldn’t learn new domains without substantial human effort.
+  \item \textbf{AlexNet and the Deep Learning Revolution (2012)}~\cite{krizhevsky2012imagenet} --- Krizhevsky et al.’s CNN won ImageNet by a stunning margin, proving that deep neural networks trained on GPUs could learn representations from raw data. This single result triggered the modern deep learning era and the hardware investment that eventually made LLMs possible.
+  \item \textbf{AlphaGo (2016)}~\cite{silver2016mastering} --- DeepMind’s system defeated Go world champion Lee Sedol using deep RL (policy networks + value networks + Monte Carlo Tree Search). Unlike Deep Blue’s brute force, AlphaGo \emph{learned} to play --- demonstrating that RL could master domains where search alone was intractable ($10^{170}$ board states). AlphaGo Zero (2017)~\cite{silver2017mastering} later learned entirely from self-play, needing no human games at all.
+  \item \textbf{GPT-2/GPT-3 (2019--2020)}~\cite{brown2020language} --- OpenAI showed that scaling decoder-only transformers to billions of parameters produced emergent few-shot learning. GPT-3 (175B parameters) could perform tasks it was never explicitly trained for --- translation, arithmetic, code generation --- simply from in-context examples. The era of foundation models began.
+  \item \textbf{AlphaFold (2020)}~\cite{jumper2021alphafold} --- DeepMind solved the 50-year protein folding problem, predicting 3D protein structures with atomic accuracy. AlphaFold demonstrated that deep learning could crack fundamental scientific problems previously considered decades away. It also showcased the power of architecture innovation (attention over residue pairs) combined with massive compute.
+  \item \textbf{ChatGPT and RLHF (2022)}~\cite{ouyang2022training} --- InstructGPT/ChatGPT proved that a capable base model, when aligned via RLHF, becomes a genuinely useful assistant. This was the inflection point: AI went from a research tool to a consumer product used by hundreds of millions. The alignment techniques (reward models, PPO) became the template for all subsequent LLM post-training.
+  \item \textbf{GPT-4 and Multimodal Models (2023)}~\cite{openai2023gpt4} --- Multimodal capabilities (vision + language), longer contexts, and improved reasoning pushed LLMs toward general-purpose cognition. Tool use (code interpreter, web browsing) hinted at agentic capabilities.
+  \item \textbf{Reasoning Models (2024)}~\cite{deepseek2025r1} --- OpenAI’s o1 and DeepSeek-R1 showed that RL could teach models to \emph{reason}: chain-of-thought, backtracking, self-verification emerged spontaneously from reward signals alone. Models began solving competition-level mathematics and complex coding tasks.
+  \item \textbf{Agentic AI (2025--present)} --- The convergence point: LLMs with reasoning capabilities, equipped with standardized tool access (MCP), inter-agent communication (A2A), persistent memory, and sophisticated orchestration frameworks. Agents now autonomously write code, conduct research, manage workflows, and coordinate with other agents --- the subject of this guide.
+\end{enumerate}
+
+\begin{intuitionbox}
+Each milestone shares a common arc: \textbf{architecture innovation} $+$ \textbf{scale} $+$ \textbf{learning signal} $=$ \textbf{breakthrough}. Deep Blue used handcrafted search. AlphaGo learned from self-play. GPT-3 learned from internet text. Today’s agentic systems learn from human feedback, verifiable rewards, and environment interaction. The learning signal has expanded from game outcomes to open-ended human preferences --- and the architectures have grown to match.
+\end{intuitionbox}
+
+This guide picks up the story at the foundation model era and carries it forward through alignment, reasoning, and autonomous agency.
+
+\section*{What You Should Expect}
+\label{what-you-should-expect}
+
+\textbf{Part I: Foundations} (Chapters 1--3) builds the base knowledge the rest of the guide depends on. We start with how LLMs work internally --- the architecture decisions that determine capability --- then cover the hardware and systems that make training and inference possible, and finally introduce reinforcement learning from first principles.
+
+\begin{itemize}
+  \item \textbf{Chapter 1 --- LLM Architecture and Optimization}: Transformer internals (self-attention, multi-head attention, RoPE, GQA), Flash Attention, optimization methods (AdamW, learning rate schedules, gradient clipping), mixed precision, LoRA/QLoRA, quantization, knowledge distillation, and Mixture of Experts.
+  \item \textbf{Chapter 2 --- Systems Foundations}: GPU architecture (A100/H100/B200), memory hierarchies, NVLink/NVSwitch, distributed training (FSDP, DeepSpeed ZeRO, tensor/pipeline parallelism), and vLLM for high-throughput inference.
+  \item \textbf{Chapter 3 --- Introduction to RL}: MDPs, Bellman equations, TD learning, Q-learning, policy gradients (REINFORCE), actor-critic methods, GAE --- the algorithmic toolkit that underpins Part II.
+\end{itemize}
+
+\textbf{Part II: RL Methods for LLMs} (Chapters 4--12) is the training and alignment core. Here you learn how to align, improve, and fine-tune language models --- from full mathematical derivations to working code.
+
+\begin{itemize}
+  \item \textbf{Chapters 4--8}: Every major RL/preference algorithm with math, intuition, and TRL code --- PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO, Best-of-N).
+  \item \textbf{Chapters 9--10}: Reward model training (Bradley--Terry, scaling laws, reward hacking) and SFT best practices (data quality, curriculum, formatting).
+  \item \textbf{Chapters 11--12}: System architecture at scale (decoupled training, fault tolerance, GPU allocation) and LLM agentic training --- how to train agents end-to-end with trajectory-level RL.
+\end{itemize}
+
+\textbf{Part III: Reasoning} (Chapter 13) covers the frontier of model capability --- teaching LLMs to reason through multi-step problems.
+
+\begin{itemize}
+  \item \textbf{Chapter 13 --- RL for Large Reasoning Models}: DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
+\end{itemize}
+
+\textbf{Part IV: Evaluation} (Chapter 14) provides the methodology for measuring whether any of this actually works.
+
+\begin{itemize}
+  \item \textbf{Chapter 14 --- LLM Evaluation}: Metrics (perplexity, pass@k, ELO), LLM-as-Judge patterns, contamination detection, benchmark suites, and agentic evaluation methodology.
+\end{itemize}
+
+\textbf{Part V: Agentic AI} (Chapters 15--26) takes you from a trained model to a deployed autonomous system. This is the largest part, covering everything an agent needs to operate in the real world.
+
+\begin{itemize}
+  \item \textbf{Chapter 15 --- Introduction to Agentic AI}: What makes a system agentic, the spectrum from chatbots to autonomous agents, and the foundational concepts for the rest of Part V.
+  \item \textbf{Chapter 16 --- RAG}: Retrieval methods, chunking, embedding models, hybrid search, reranking, and production architectures.
+  \item \textbf{Chapter 17 --- Memory Systems}: Working, episodic, semantic, and procedural memory for persistent agent knowledge.
+  \item \textbf{Chapter 18 --- Orchestration}: ReAct, Plan-and-Execute, LLM Compiler, reflexion patterns, context management, and harness design.
+  \item \textbf{Chapter 19 --- Design Patterns}: Prompt chaining, routing, parallelization, evaluation-driven orchestration, and the simplicity principle.
+  \item \textbf{Chapter 20 --- Environments and Benchmarks}: WebArena, SWE-bench, OSWorld, GAIA --- evaluation environments for agentic capability.
+  \item \textbf{Chapter 21 --- Model Context Protocol (MCP)}: Architecture, transport layers, tool/resource/prompt primitives, security, and deployment.
+  \item \textbf{Chapter 22 --- Agent Skills}: Skill libraries, tool composition, and capability abstraction.
+  \item \textbf{Chapter 23 --- A2A Communication}: Google's Agent-to-Agent protocol --- Agent Cards, task lifecycle, streaming, enterprise patterns.
+  \item \textbf{Chapter 24 --- Multi-Agent Systems}: Hierarchical, debate, marketplace, and swarm architectures --- coordination at scale.
+  \item \textbf{Chapter 25 --- Development Frameworks}: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK --- comparative analysis with code.
+  \item \textbf{Chapter 26 --- Agentic UI}: Streaming interfaces, generative UI, canvas paradigms, tool visualization, human-in-the-loop patterns.
+\end{itemize}
+
+\section*{The Modern AI Pipeline}
+\label{the-modern-ai-pipeline}
+
+The full pipeline from base model to deployed agent:
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_001_pipeline.png}
+\caption{The modern LLM development pipeline: from pre-trained base model through alignment and reasoning to autonomous agentic capability. Each stage maps to a part of this guide.}
+\label{fig:pipeline}
+\end{figure}
+
+% --- Body split into parts/ ---
+\input{contents/part1}
+\input{contents/part2}
+\input{contents/part3}
+\input{contents/part4}
+\input{contents/part5}
+\input{contents/part6}
+
+\bibliographystyle{unsrtnat}
+\bibliography{book}
+
+\end{document}

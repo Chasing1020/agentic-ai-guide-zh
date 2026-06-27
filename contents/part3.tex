@@ -1,0 +1,1127 @@
+\part{Reasoning}
+
+\chapter{RL for Large Reasoning Models}
+\label{sec:rl_reasoning}
+
+The emergence of large reasoning models represents one of the most significant developments in modern AI. Unlike standard language model training, which optimizes for next-token prediction, reasoning-focused RL teaches models to \emph{think before answering}---allocating additional computation at inference time to explore, verify, and refine intermediate steps. This section provides a comprehensive technical treatment of the methods, architectures, and scaling laws that underpin this paradigm.
+
+\section{Motivation and Background}
+\label{subsec:reasoning_motivation}
+
+\subsection{Why Reasoning Requires Different RL Approaches}
+\label{why-reasoning-requires-different-rl-approaches}
+
+Standard RLHF (Section~\ref{the-rlhf-pipeline}) optimizes a single scalar reward over a complete response. For tasks requiring multi-step reasoning---mathematics, formal verification, competitive programming, scientific derivation---this formulation is insufficient for several reasons:
+
+\begin{itemize}
+  \item \textbf{Sparse rewards}: A math problem may require 20 intermediate steps; a single outcome reward provides no gradient signal for the intermediate steps that led to an error.
+  \item \textbf{Long horizons}: Reasoning chains can span hundreds to thousands of tokens, creating severe credit assignment problems.
+  \item \textbf{Combinatorial search}: The space of valid reasoning paths is exponentially large; the model must learn to search this space efficiently.
+  \item \textbf{Verifiability}: Unlike subjective text quality, mathematical and logical correctness is objectively verifiable, enabling automated reward computation without human annotation.
+\end{itemize}
+
+\begin{keybox}[Key Insight: Reasoning as a Search Problem]
+Multi-step reasoning can be framed as a \textbf{search problem} over a tree of partial solutions. Each node in the tree is a reasoning state (prefix of the chain-of-thought), each edge is a reasoning step (a token or sentence), and the leaves are final answers. RL for reasoning teaches the model to navigate this tree efficiently---exploring promising branches, backtracking from dead ends, and allocating compute where it matters most.
+\end{keybox}
+
+\subsection{Chain-of-Thought: Emergent Behavior vs.~Trained Capability}
+\label{chain-of-thought-emergent-behavior-vs.-trained-capability}
+
+Chain-of-thought (CoT) reasoning was first observed as an \emph{emergent} capability in sufficiently large language models~\cite{wei2022chain}: when prompted with step-by-step examples, large models (typically $\geq$100B parameters) spontaneously produced intermediate reasoning steps that improved accuracy. This raised a fundamental question: is CoT an emergent property of scale, or can it be explicitly trained?
+
+The answer, as demonstrated by DeepSeek-R1 and related work, is \textbf{both}---but with important nuances:
+
+\begin{itemize}
+  \item \textbf{Emergent CoT} arises from in-context learning and requires large base models. It is brittle, prompt-sensitive, and does not generalize robustly.
+  \item \textbf{Trained CoT} via RL produces models that \emph{intrinsically} generate reasoning chains as part of their generation process, independent of prompting style. These chains are longer, more exploratory, and exhibit qualitatively different behaviors (self-correction, backtracking, verification).
+\end{itemize}
+
+\begin{intuitionbox}[The ``Aha Moment'' Phenomenon (DeepSeek-AI et al. 2025)]
+During RL training of reasoning models, researchers at DeepSeek observed a striking emergent behavior: at a certain point in training, models spontaneously began to \emph{reconsider} their initial approaches mid-chain, using phrases like ``Wait, let me reconsider\ldots{}'' or ``Actually, I think I made an error\ldots{}''. This self-correction behavior---which was \emph{not} explicitly trained---emerged purely from the RL objective of maximizing final-answer accuracy. It suggests that RL can discover meta-cognitive strategies that are instrumentally useful for solving hard problems.
+\end{intuitionbox}
+
+\subsection{Test-Time Compute Scaling Laws}
+\label{test-time-compute-scaling-laws}
+
+A central empirical finding motivating reasoning model research is that \textbf{test-time compute scales predictably with performance}. Let $C_{\text{train}}$ denote training compute (FLOPs) and $C_{\text{test}}$ denote inference compute (tokens generated). The key observation is:
+
+\begin{equation}
+    \text{Accuracy}(C_{\text{train}}, C_{\text{test}}) \approx f\!\left(\alpha \log C_{\text{train}} + \beta \log C_{\text{test}}\right)
+\end{equation}
+
+for some monotone function $f$ and constants $\alpha, \beta > 0$. This implies that a smaller model with more inference compute can match a larger model with less inference compute---a fundamental shift in the compute-performance tradeoff.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_044_test_time_scaling.png}
+\caption{Schematic test-time compute scaling curves. Performance improves log-linearly with inference tokens across model sizes, and smaller models with more compute can approach larger models with less compute.}
+\label{fig:test_time_scaling}
+\end{figure}
+
+The practical implication is profound: \textbf{reasoning models trade training compute for inference compute}. Rather than always deploying the largest possible model, one can deploy a smaller, reasoning-capable model and allocate more tokens to ``thinking'' on hard problems.
+
+\section{Test-Time Scaling Methods}
+\label{sec:test_time_methods}
+
+The scaling laws above show that investing more compute at inference can dramatically improve reasoning performance. This section provides a comprehensive treatment of the \textbf{methods} that operationalize test-time scaling --- from simple chain-of-thought to sophisticated tree and graph search algorithms. These methods form a spectrum trading inference cost for accuracy, and understanding their structure is essential for designing modern reasoning systems.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_045_test_time_spectrum.png}
+\caption{Spectrum of test-time scaling methods. Each method trades additional inference compute for improved reasoning accuracy. Methods build on each other conceptually: CoT introduces explicit reasoning, Self-Consistency adds sampling, ToT adds structured search, GoT adds merging operations, and MCTS adds learned value guidance.}
+\label{fig:test_time_spectrum}
+\end{figure}
+
+\subsection{Chain-of-Thought (CoT)}
+\label{subsec:cot_method}
+
+Chain-of-Thought prompting~\cite{wei2022chain} is the foundation of all test-time scaling methods. Rather than directly outputting an answer, the model generates intermediate reasoning steps that decompose complex problems into manageable sub-problems.
+
+\paragraph{Zero-Shot CoT.}
+\label{zero-shot-cot.}
+
+Kojima et al.~\cite{kojima2022large} demonstrated that appending ``Let’s think step by step'' to a prompt elicits reasoning behavior without any exemplars. This simple trigger activates latent reasoning capabilities in sufficiently large models ($\geq$100B parameters).
+
+\paragraph{Few-Shot CoT.}
+\label{few-shot-cot.}
+
+Wei et al.~\cite{wei2022chain} showed that providing a few exemplars with explicit reasoning traces enables smaller models to reason effectively: 
+\begin{equation}
+\text{Prompt} = [(x_1, z_1, y_1), (x_2, z_2, y_2), \ldots, (x_k, z_k, y_k), (x_{\text{test}}, \texttt{?})]
+\end{equation}
+ where $z_i$ are hand-written reasoning traces for exemplar $(x_i, y_i)$.
+
+\paragraph{Formal characterization.}
+\label{formal-characterization.}
+
+CoT converts a single-step prediction $p(y|x)$ into a multi-step sequential generation: 
+\begin{equation}
+p(y|x) = \sum_{z} p(y|x, z) \cdot p(z|x) \approx p(y|x, z^*) \cdot p(z^*|x)
+\end{equation}
+ where $z^* = (z_1, z_2, \ldots, z_T)$ is the greedy reasoning chain. The summation over all possible chains is intractable; standard CoT uses a single sample (greedy or temperature sampling).
+
+\paragraph{Limitations.}
+\label{limitations.-dup2}
+
+Single-chain CoT is fragile: if an early reasoning step is wrong, all subsequent steps build on a flawed foundation with no mechanism for recovery.
+
+\subsection{Self-Consistency (Majority Voting)}
+\label{self-consistency-majority-voting}
+
+Self-Consistency~\cite{wang2023selfconsistency} addresses CoT’s single-chain fragility by sampling \textbf{multiple independent reasoning chains} and taking a majority vote over the final answers: 
+\begin{equation}
+\hat{y} = \arg\max_{y} \sum_{i=1}^{N} \mathbf{1}[y_i = y], \quad \text{where } (z_i, y_i) \sim p(\cdot | x), \; T > 0
+\end{equation}
+
+\textbf{Key properties}:
+
+\begin{itemize}
+  \item Uses temperature $T > 0$ sampling to generate diverse chains (typically $T = 0.7$--$1.0$)
+  \item No interaction between chains --- fully parallelizable
+  \item Accuracy improves monotonically with $N$ (diminishing returns after $N \approx 40$)
+  \item On GSM8K: CoT = 56.5\%, Self-Consistency ($N$=40) = 74.4\% (with PaLM-540B~\cite{chowdhery2022palm})
+  \item Equivalent to \textbf{Best-of-N with outcome reward} (majority vote acts as implicit ORM)
+\end{itemize}
+
+\begin{intuitionbox}[Why Majority Voting Works]
+If the model has probability $p > 0.5$ of generating a correct reasoning chain, then by the law of large numbers, majority voting over $N$ independent samples approaches 100\% accuracy as $N \to \infty$. Even with $p = 0.3$ (model is usually wrong), if correct answers concentrate on one value while incorrect answers are diverse, majority voting still recovers the correct answer. This is the statistical foundation of test-time scaling.
+\end{intuitionbox}
+
+\subsection{Tree-of-Thoughts (ToT)}
+\label{subsec:tot_method}
+
+Tree-of-Thoughts~\cite{yao2024tree} generalizes CoT from a \textbf{linear chain} to a \textbf{tree structure}, enabling the model to explore multiple reasoning paths, evaluate intermediate states, and backtrack from unpromising branches. This introduces deliberate planning into the reasoning process.
+
+\paragraph{Core Abstraction.}
+\label{core-abstraction.}
+
+A reasoning problem is decomposed into a search over a tree where:
+
+\begin{itemize}
+  \item \textbf{Root}: Initial problem statement $x$
+  \item \textbf{Nodes}: Partial reasoning states $s = (x, z_1, \ldots, z_k)$
+  \item \textbf{Edges}: Individual reasoning steps (``thoughts'') $z_{k+1}$
+  \item \textbf{Leaves}: Complete solutions with final answers
+  \item \textbf{Value function}: $V(s)$ estimates how promising a partial solution is
+\end{itemize}
+
+\paragraph{Formal Definition.}
+\label{formal-definition.}
+
+\begin{equation}
+\text{ToT} = (\mathcal{G}, \mathcal{E}, V, \pi_\theta, \text{Search})
+\end{equation}
+ where:
+
+\begin{itemize}
+  \item $\mathcal{G}$: \textbf{Thought generator} --- produces $b$ candidate next thoughts: $\{z^{(1)}, \ldots, z^{(b)}\} \sim \pi_\theta(\cdot | s)$
+  \item $\mathcal{E}$: \textbf{State evaluator} --- scores partial solutions: $V(s) \in \{$\emph{sure}, \emph{maybe}, \emph{impossible}$\}$ or $V(s) \in [0, 1]$
+  \item $\pi_\theta$: The language model generating thoughts
+  \item $\text{Search}$: Search algorithm (BFS or DFS)
+\end{itemize}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_046_tot_example.png}
+\caption{Tree-of-Thoughts on the ``Game of 24'' task: use operations on {4, 9, 10, 13} to make 24. At each level, the model generates $b=3$ candidate thoughts, evaluates each (sure/maybe/impossible), prunes unpromising branches, and expands the most promising ones. The green path leads to a solution; red paths are pruned early.}
+\end{figure}
+
+\paragraph{Search Algorithms.}
+\label{search-algorithms.}
+
+\textbf{BFS (Breadth-First Search):}
+
+\begin{enumerate}
+  \item Generate $b$ candidate thoughts for each node at current depth
+  \item Evaluate all candidates with $V(\cdot)$
+  \item Keep top-$k$ most promising states (beam search)
+  \item Advance all $k$ states to the next level
+  \item Repeat until a solution is found or depth limit reached
+\end{enumerate}
+
+\textbf{DFS (Depth-First Search):}
+
+\begin{enumerate}
+  \item Generate $b$ candidate thoughts for current state
+  \item Evaluate: if $V(s) =$ \emph{impossible}, backtrack immediately
+  \item If $V(s) =$ \emph{sure/maybe}, recurse deeper (pick the most promising)
+  \item If depth limit reached without solution, backtrack
+  \item Continue until solution found or all branches explored
+\end{enumerate}
+
+\begin{examplebox}[ToT: Value Evaluation Prompt]
+\begin{lstlisting}[style=pythonstyle]
+# The LLM evaluates partial reasoning states:
+EVAL_PROMPT = """Evaluate if this partial solution can reach 24.
+
+Numbers remaining: [4, 4, 10]
+Steps so far: 13 - 9 = 4
+
+Can these remaining numbers (4, 4, 10) be combined using +,-,*,/
+to make 24?
+
+Analysis: 4 * (10 - 4) = 4 * 6 = 24. Yes!
+
+Judge: sure/maybe/impossible
+Answer: sure"""
+
+# Thought generation prompt:
+GEN_PROMPT = """Input: 4 9 10 13
+Possible next steps:
+1. 13 - 9 = 4 (left: 4 4 10)
+2. 10 + 13 = 23 (left: 4 9 23)
+3. 9 - 4 = 5 (left: 5 10 13)
+..."""
+\end{lstlisting}
+\end{examplebox}
+
+\paragraph{Computational Cost.}
+\label{computational-cost.}
+
+For ToT with branching factor $b$, depth $d$, and beam width $k$: 
+\begin{equation}
+\text{LLM calls (BFS)} = \underbrace{k \cdot b}_{\text{generation}} + \underbrace{k \cdot b}_{\text{evaluation}} = 2kb \text{ per level} \implies \text{Total} = 2kbd
+\end{equation}
+ For the 24 game: $b=3, k=2, d=3 \implies 36$ LLM calls vs.~1 for standard CoT.
+
+\paragraph{Results.}
+\label{results.-dup2}
+
+On the Game of 24 (a challenging arithmetic reasoning task), ToT achieves 74\% success rate vs.~CoT’s 4\% --- a massive improvement from structured search over the same base model (GPT-4).
+
+\subsection{Graph-of-Thoughts (GoT)}
+\label{subsec:got_method}
+
+Graph-of-Thoughts~\cite{besta2024graph} extends ToT from a tree to a \textbf{directed acyclic graph (DAG)}, introducing a critical capability: \textbf{merging} partial solutions from different branches. This allows the model to synthesize insights from multiple reasoning paths into a single refined solution.
+
+\paragraph{Key Operations.}
+\label{key-operations.}
+
+GoT introduces three operations beyond ToT:
+
+\begin{itemize}
+  \item \textbf{Generate}: Produce new thoughts from a state (same as ToT)
+  \item \textbf{Aggregate/Merge}: Combine multiple thoughts into one refined thought --- this is impossible in a tree
+  \item \textbf{Refine}: Iteratively improve a thought based on feedback
+  \item \textbf{Score}: Evaluate thought quality (same as ToT’s value function)
+\end{itemize}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_047_got_comparison.png}
+\caption{Comparison of CoT (linear chain), ToT (tree --- branches but no merging), and GoT (DAG --- branches can merge). For a sorting task, GoT can split the array into sub-problems, solve them independently (parallel), then \textbf{merge} the results --- impossible in a pure tree structure. This enables divide-and-conquer reasoning.}
+\label{fig:got_comparison}
+\end{figure}
+
+\paragraph{Graph Operations (formal).}
+\label{graph-operations-formal.}
+
+Let $\mathcal{V} = \{v_1, \ldots, v_n\}$ be thought vertices and $\mathcal{E} \subseteq \mathcal{V} \times \mathcal{V}$ be directed edges. GoT supports: 
+\begin{align}
+\textbf{Generate}(v) &: v \to \{v_{c_1}, \ldots, v_{c_b}\} && \text{(create children)} \\
+\textbf{Aggregate}(v_1, \ldots, v_k) &\to v_{\text{merged}} && \text{(merge $k$ thoughts into one)} \\
+\textbf{Refine}(v, n) &\to v' && \text{(improve $v$ through $n$ iterations)} \\
+\textbf{Score}(v) &\to s \in [0, 1] && \text{(evaluate thought quality)}
+\end{align}
+
+The \textbf{Aggregate} operation is the key differentiator: it creates edges from multiple parent nodes to a single child, forming a DAG rather than a tree. This enables:
+
+\begin{itemize}
+  \item \textbf{Divide-and-conquer}: Split problem $\to$ solve sub-problems in parallel $\to$ merge solutions
+  \item \textbf{Ensemble reasoning}: Generate multiple perspectives, then synthesize the best ideas
+  \item \textbf{Iterative refinement}: Feed evaluation results back to improve earlier thoughts
+\end{itemize}
+
+\paragraph{Results.}
+\label{results.-1}
+
+On sorting (a task requiring merging), GoT achieves 62\% cost reduction vs.~ToT at equivalent quality. On set intersection and keyword counting, GoT matches ToT quality with 30--40\% fewer LLM calls due to the merge operation enabling more efficient decomposition.
+
+\subsection{Best-of-N with Reward Models}
+\label{subsec:bon_method}
+
+Best-of-N (BoN)~\cite{nakano2021webgpt, stiennon2020learning} is the simplest scaling method that uses a \textbf{learned reward model} to select among candidates: 
+\begin{equation}
+y^* = \arg\max_{y \in \{y_1, \ldots, y_N\}} R_\phi(x, y), \quad y_i \sim \pi_\theta(\cdot | x)
+\end{equation}
+
+\textbf{Variants by reward model type}:
+
+\begin{itemize}
+  \item \textbf{BoN with ORM}: Score complete solutions; select the highest-scoring one. Equivalent to Self-Consistency when ORM $\approx$ correctness check.
+  \item \textbf{BoN with PRM}: Score at each reasoning step; select the solution with highest minimum step score (least likely to have an error at any step).
+  \item \textbf{Weighted BoN}: Weight candidates by reward: $y^* \sim \text{softmax}(R(y_1)/\tau, \ldots, R(y_N)/\tau)$.
+\end{itemize}
+
+\begin{keybox}[BoN Scaling Law]
+For a model with per-sample accuracy $p$, the probability of at least one correct sample in $N$ tries: 
+\begin{equation}
+P(\text{success with BoN}) = 1 - (1-p)^N
+\end{equation}
+ With a perfect reward model (oracle that always selects correctly):
+
+\begin{itemize}
+  \item $p = 0.3, N = 10$: success = $97\%$
+  \item $p = 0.1, N = 50$: success = $99.5\%$
+\end{itemize}
+
+In practice, imperfect reward models cap the effective $N$ --- beyond $N \approx 64$--$256$, reward model errors dominate and accuracy plateaus or decreases (\textbf{reward hacking}).
+\end{keybox}
+
+\subsection{Monte Carlo Tree Search (MCTS) for Reasoning}
+\label{monte-carlo-tree-search-mcts-for-reasoning}
+
+MCTS~\cite{kocsis2006bandit, silver2016mastering} combines the structured exploration of ToT with \textbf{learned value estimates} and \textbf{visit-count statistics} to allocate inference compute optimally. Originally developed for game-playing (AlphaGo~\cite{silver2016mastering}), MCTS has been adapted for LLM reasoning by systems including AlphaProof~\cite{alphaproof2024} and rStar~\cite{qi2024mutual}.
+
+\paragraph{Algorithm (adapted for LLM reasoning).}
+\label{algorithm-adapted-for-llm-reasoning.}
+
+Each MCTS iteration consists of four phases:
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_048_mcts_phases.png}
+\caption{Four phases of MCTS for reasoning: (1) \textbf{Selection}: traverse tree using UCB to find a promising leaf; (2) \textbf{Expansion}: generate new reasoning steps from the leaf; (3) \textbf{Simulation}: complete the reasoning to a terminal state and evaluate; (4) \textbf{Backpropagation}: update value estimates along the path.}
+\label{fig:mcts_phases}
+\end{figure}
+
+\paragraph{UCB for Reasoning.}
+\label{ucb-for-reasoning.}
+
+Node selection uses PUCT (Predictor + UCB applied to Trees): 
+\begin{equation}
+a^* = \arg\max_a \left[ Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqrt{\sum_b N(s,b)}}{1 + N(s, a)} \right]
+\end{equation}
+ where $P(s,a) = \pi_\theta(a|s)$ is the LLM’s prior probability of generating step $a$ from state $s$. This biases exploration toward steps the LLM already considers likely, while the UCB term encourages trying under-explored alternatives.
+
+\begin{examplebox}[MCTS for Math Reasoning: Running Example]
+\textbf{Problem}: Prove that $\sqrt{2}$ is irrational.
+
+\textbf{Iteration 1} (Selection $\to$ root, Expansion):
+
+\begin{itemize}
+  \item Generate 3 candidate first steps:
+
+\begin{enumerate}
+  \item ``Assume for contradiction that $\sqrt{2} = p/q$ in lowest terms.'' ($P = 0.7$)
+  \item ``Consider the decimal expansion of $\sqrt{2}$ = 1.414...'' ($P = 0.15$)
+  \item ``Use the fundamental theorem of arithmetic.'' ($P = 0.10$)
+\end{enumerate}
+  \item Rollout from $z_1$: reaches correct proof in 4 steps $\to$ $r = 1.0$
+  \item Rollout from $z_2$: fails (decimal doesn’t prove irrationality) $\to$ $r = 0.0$
+  \item Backprop: $Q(s_0, z_1) = 1.0$, $N(s_0, z_1) = 1$
+\end{itemize}
+
+\textbf{Iteration 2} (Selection: pick $z_1$ by UCB):
+
+\begin{itemize}
+  \item Expand from state ``Assume $\sqrt{2} = p/q$...'':
+
+\begin{enumerate}
+  \item ``Then $2 = p^2/q^2$, so $p^2 = 2q^2$.'' ($P = 0.8$)
+  \item ``Then $p$ and $q$ share no common factors.'' ($P = 0.15$)
+\end{enumerate}
+  \item Rollout from $z_4$: correct continuation $\to r = 1.0$
+  \item Backprop: $Q(s_0, z_1) = 1.0$, $Q(s_1, z_4) = 1.0$
+\end{itemize}
+
+\textbf{After 20 iterations}: The tree has explored 8 distinct reasoning paths. The most-visited path is selected as the final proof: $z_1 \to z_4 \to z_6 \to z_8$ (classical proof by contradiction via even/odd argument).
+\end{examplebox}
+
+\paragraph{Comparison: ToT vs.~MCTS.}
+\label{comparison-tot-vs.-mcts.}
+
+\begin{table}[ht!]
+\centering
+\caption{Tree-of-Thoughts vs.~Monte Carlo Tree Search for reasoning.}
+\begin{tabular}{@{}lp{5cm}p{8cm}@{}}
+\toprule
+\textbf{Dimension} & \textbf{ToT} & \textbf{MCTS} \\
+\midrule
+Value estimation & LLM prompt (``sure/maybe/impossible'') & Learned value network + rollout statistics \\
+Exploration & Fixed beam width; no revisiting & UCB adaptively allocates budget to promising nodes \\
+Compute allocation & Uniform across depth levels & Focused: more simulations on harder sub-problems \\
+Training integration & No training; pure prompting & Can distill MCTS policy into the base model~\cite{silver2016mastering} \\
+Best for & Simple branching problems (24 game) & Complex problems requiring deep exploration (proofs, code) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Beam Search over Reasoning Steps}
+\label{subsec:beam_reasoning}
+
+Beam search --- long standard in NMT and text generation --- can be applied at the \emph{reasoning step} level rather than the token level. Instead of tracking the top-$k$ token sequences, we track the top-$k$ \textbf{reasoning prefixes}:
+
+\begin{equation}
+\mathcal{B}_d = \text{top-}k\left\{ (s_1, \ldots, s_d) : \sum_{i=1}^d \log \pi_\theta(s_i | s_{<i}) + \lambda \cdot V_\phi(s_1, \ldots, s_d) \right\}
+\end{equation}
+
+where the scoring combines the LLM log-probability (fluency) with a value model estimate (correctness). This is effectively ToT-BFS with a learned value function rather than a prompted one.
+
+\subsection{Iterative Refinement and Self-Correction}
+\label{iterative-refinement-and-self-correction}
+
+Rather than exploring \emph{breadth} (multiple parallel chains), iterative refinement invests compute in \emph{depth} --- repeatedly improving a single solution:
+
+\begin{equation}
+y^{(t+1)} = \text{LLM}\!\left(\text{``Improve this solution:''}, y^{(t)}, \text{``Errors found:''}, e^{(t)}\right)
+\end{equation}
+
+where $e^{(t)}$ may come from:
+
+\begin{itemize}
+  \item \textbf{Self-verification}: Ask the model to check its own answer
+  \item \textbf{External verification}: Run code, check math symbolically
+  \item \textbf{Critic model}: A separate model identifies errors
+\end{itemize}
+
+Notable methods: \textbf{Self-Refine}~\cite{madaan2023selfrefine} (iterative self-feedback), \textbf{Reflexion}~\cite{shinn2023reflexion} (verbal RL via reflections stored in memory), and \textbf{LATS}~\cite{zhou2024lats} (tree search + reflection-based pruning).
+
+\subsection{Method Comparison and Selection Guide}
+\label{method-comparison-and-selection-guide}
+
+\begin{table}[ht!]
+\centering
+\caption{Comprehensive comparison of test-time scaling methods.}
+{\footnotesize
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{Method} & \textbf{Structure} & \textbf{LLM Calls} & \textbf{Parallelizable} & \textbf{Needs RM?} & \textbf{Best For} \\
+\midrule
+CoT~\cite{wei2022chain} & Chain & 1 & N/A & No & Easy--medium problems \\
+Self-Consistency~\cite{wang2023selfconsistency} & Parallel chains & $N$ & \checkmark{} Fully & No (majority vote) & Math with discrete answers \\
+Best-of-N + ORM & Parallel chains & $N$ + 1 & \checkmark{} Fully & Yes (ORM) & General tasks with good RM \\
+Best-of-N + PRM & Parallel chains & $N$ + $N{\cdot}K$ & \checkmark{} Fully & Yes (PRM) & Complex multi-step reasoning \\
+ToT~\cite{yao2024tree} & Tree (BFS/DFS) & $O(kbd)$ & Partial & LLM-as-judge & Structured search problems \\
+GoT~\cite{besta2024graph} & DAG & $O(kbd)$ & Partial & LLM-as-judge & Decomposable problems \\
+MCTS~\cite{kocsis2006bandit} & Tree + values & $O(N_{\text{sim}} \cdot d)$ & Partial & Yes (value net) & Hard proofs, coding \\
+Self-Refine~\cite{madaan2023selfrefine} & Linear (iterative) & $2T$ & No & Self-critic & Open-ended generation \\
+LATS~\cite{zhou2024lats} & Tree + reflection & $O(N \cdot d)$ & Partial & LLM-as-judge & Agent tasks \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{keybox}[When to Use Which Method]
+\begin{itemize}
+  \item \textbf{Budget $<$ 5$\times$ base cost}: Use CoT or Self-Consistency. Maximum bang for the buck.
+  \item \textbf{Budget 5--50$\times$}: Use Best-of-N with PRM (if you have a good reward model) or ToT-BFS with $b=3, k=2$.
+  \item \textbf{Budget 50--500$\times$}: Use MCTS with a trained value function. This is the regime where DeepSeek-R1 and OpenAI o1 operate --- long reasoning chains with implicit tree search.
+  \item \textbf{Parallelism required}: Self-Consistency and Best-of-N are fully parallel; ToT/MCTS require sequential depth expansion.
+  \item \textbf{No reward model available}: Use Self-Consistency (majority vote) or ToT with LLM-as-judge evaluation.
+  \item \textbf{Decomposable problems}: GoT excels when the problem has natural sub-problems (sorting, multi-document synthesis, code with modules).
+\end{itemize}
+\end{keybox}
+
+\begin{intuitionbox}[The Implicit Test-Time Scaling in Reasoning Models]
+Modern reasoning models (DeepSeek-R1~\cite{deepseek2025r1}, OpenAI o1/o3~\cite{openai2024o1, openai2025o3}) perform \textbf{implicit test-time scaling} via long chain-of-thought generation. Their ``thinking'' tokens serve a function analogous to MCTS rollouts: the model explores multiple approaches, backtracks (``Wait, let me reconsider...''), verifies intermediate steps, and allocates more tokens to harder sub-problems. The key insight of R1/o1 training is that GRPO/RL teaches the model to perform this implicit search \emph{within a single generation}, eliminating the need for external orchestration (ToT prompts, MCTS infrastructure). The model becomes its own search algorithm.
+\end{intuitionbox}
+
+\section{DeepSeek-R1}
+\label{subsec:deepseek_r1}
+
+DeepSeek-R1~\cite{deepseek2025r1} is the first fully open-source large reasoning model to match or exceed OpenAI o1 on major benchmarks. Its training pipeline is technically transparent and has become the de facto reference implementation for RL-based reasoning.
+
+\subsection{Two-Stage Training Pipeline}
+\label{two-stage-training-pipeline}
+
+\paragraph{Stage 1: Cold-Start Supervised Fine-Tuning}
+\label{stage-1-cold-start-supervised-fine-tuning}
+
+The base model (DeepSeek-V3) is first fine-tuned on a small, carefully curated dataset of long chain-of-thought examples. This ``cold start'' phase serves two purposes:
+
+\begin{enumerate}
+  \item \textbf{Format initialization}: The model learns to produce reasoning in the \texttt{<think>...</think>} format before emitting a final answer.
+  \item \textbf{Stability}: Without cold-start SFT, pure RL from scratch on the base model produces unstable training dynamics and degenerate outputs (e.g., language mixing, repetitive loops).
+\end{enumerate}
+
+The cold-start dataset contains only $\sim$thousands of examples, deliberately kept small to avoid over-constraining the reasoning style that RL will later discover.
+
+\paragraph{Stage 2: GRPO-Based Reinforcement Learning}
+\label{stage-2-grpo-based-reinforcement-learning}
+
+After cold-start SFT, the model undergoes large-scale RL using Group Relative Policy Optimization (GRPO). The full GRPO objective as used in R1 is described in Section~\ref{subsubsec:grpo_r1_math}.
+
+\newpage
+\begin{keybox}[R1 Training Pipeline Summary]
+\begin{enumerate}
+  \item \textbf{Base model}: DeepSeek-V3 (671B MoE, 37B active parameters)
+  \item \textbf{Cold-start SFT}: $\sim$thousands of long-CoT examples, format: \texttt{<think>...</think><answer>...</answer>}
+  \item \textbf{RL phase}: GRPO with verifiable rewards on math + code problems
+  \item \textbf{Rejection sampling}: Generate multiple solutions, keep correct ones
+  \item \textbf{SFT on RL outputs}: Fine-tune on high-quality RL-generated chains
+  \item \textbf{Final RL}: Second RL phase for alignment + helpfulness
+\end{enumerate}
+\end{keybox}
+
+\subsection{Reward Design: Accuracy and Format Rewards}
+\label{reward-design-accuracy-and-format-rewards}
+
+A key design choice in R1 is the \textbf{absence of a process reward model}. Instead, R1 uses two simple, automatically computable rewards:
+
+\paragraph{Accuracy Reward}
+\label{accuracy-reward}
+
+For math problems with verifiable answers: 
+\begin{equation}
+    r_{\text{acc}}(y, y^*) = \begin{cases} 1 & \text{if } \texttt{verify}(y, y^*) = \texttt{True} \\ 0 & \text{otherwise} \end{cases}
+\end{equation}
+ where $y$ is the model’s final answer (extracted from \texttt{<answer>} tags) and $y^*$ is the ground-truth answer. The \texttt{verify} function uses symbolic math comparison (e.g., SymPy) to handle equivalent forms.
+
+For code problems, the accuracy reward is determined by passing test cases: 
+\begin{equation}
+    r_{\text{acc}}^{\text{code}}(y, \mathcal{T}) = \frac{1}{|\mathcal{T}|} \sum_{t \in \mathcal{T}} \mathbf{1}[\texttt{execute}(y, t) = \texttt{expected}(t)]
+\end{equation}
+
+\paragraph{Format Reward}
+\label{format-reward}
+
+To enforce the \texttt{<think>...</think>} structure: 
+\begin{equation}
+    r_{\text{fmt}}(y) = \begin{cases} 1 & y \text{ has valid <think> and <answer> tags} \\ 0 & \text{otherwise} \end{cases}
+\end{equation}
+
+\paragraph{Combined Reward}
+\label{combined-reward}
+
+\begin{equation}
+    r(y, y^*) = r_{\text{acc}}(y, y^*) + \lambda_{\text{fmt}} \cdot r_{\text{fmt}}(y)
+\end{equation}
+ with $\lambda_{\text{fmt}} = 0.1$ in the original implementation (small enough not to dominate, large enough to prevent format collapse).
+
+\begin{warningbox}[No Process Reward Model]
+A notable and surprising finding of R1 is that \textbf{no process reward model (PRM) is needed}. Despite the long reasoning chains, outcome-only rewards are sufficient for RL to discover high-quality reasoning strategies. The authors hypothesize that the verifiable nature of math/code rewards provides sufficient signal, and that PRMs introduce their own failure modes (reward hacking at the step level). This contrasts with the approach taken by OpenAI (Section~\ref{subsec:openai_o1}).
+\end{warningbox}
+
+\subsection{GRPO Formulation for R1}
+\label{subsubsec:grpo_r1_math}
+
+GRPO~\cite{shao2024deepseekmath} is a policy gradient method that avoids training a separate value network by estimating advantages from a \emph{group} of sampled responses. For a question $q$, GRPO samples $G$ responses $\{y_1, y_2, \ldots, y_G\}$ from the current policy $\pi_\theta$ and computes advantages relative to the group mean.
+
+\paragraph{Group Sampling and Advantage Normalization}
+\label{group-sampling-and-advantage-normalization}
+
+Given question $q$, sample $G$ outputs: 
+\begin{equation}
+    \{y_i\}_{i=1}^G \sim \pi_\theta(\cdot \mid q)
+\end{equation}
+
+Compute rewards $\{r_i\}_{i=1}^G$ using the reward function from Eq.~[eq:r1\_combined\_reward]. The normalized advantage for response $i$ is: 
+\begin{equation}
+    \hat{A}_i = \frac{r_i - \mu_r}{\sigma_r + \epsilon}
+\end{equation}
+ where $\mu_r = \frac{1}{G}\sum_{i=1}^G r_i$, $\sigma_r = \sqrt{\frac{1}{G}\sum_{i=1}^G (r_i - \mu_r)^2}$, and $\epsilon = 10^{-8}$ for numerical stability.
+
+\paragraph{GRPO Objective}
+\label{grpo-objective}
+
+The GRPO objective clips the probability ratio (as in PPO) and adds a KL penalty against a reference policy $\pi_{\text{ref}}$:
+
+\begin{multline}
+\mathcal{L}_{\text{GRPO}}(\theta) = -\mathbb{E}_{q \sim \mathcal{D},\, \{y_i\} \sim \pi_\theta(\cdot|q)} \Bigg[ \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|y_i|} \sum_{t=1}^{|y_i|} \\
+\min\!\left( \rho_{i,t}\, \hat{A}_i,\; \text{clip}(\rho_{i,t}, 1{-}\varepsilon, 1{+}\varepsilon)\, \hat{A}_i \right) - \beta\, \mathbb{D}_{\mathrm{KL}}\!\left[\pi_\theta \,\|\, \pi_{\text{ref}}\right] \Bigg]
+\label{eq:grpo_full}
+\end{multline}
+
+where:
+
+\begin{itemize}
+  \item $\rho_{i,t} = \dfrac{\pi_\theta(y_{i,t} \mid q, y_{i,<t})}{\pi_{\theta_{\text{old}}}(y_{i,t} \mid q, y_{i,<t})}$ is the per-token probability ratio
+  \item $\varepsilon \in \{0.1, 0.2\}$ is the PPO clipping parameter
+  \item $\beta > 0$ controls the KL penalty strength
+  \item $|y_i|$ is the length of response $i$ (length normalization prevents bias toward short responses)
+\end{itemize}
+
+\paragraph{KL Penalty Formulation}
+\label{kl-penalty-formulation}
+
+The KL divergence term is computed token-by-token: 
+\begin{equation}
+    \mathbb{D}_{\mathrm{KL}}\!\left[\pi_\theta \,\|\, \pi_{\text{ref}}\right] = \mathbb{E}_{y \sim \pi_\theta(\cdot|q)} \left[ \sum_{t=1}^{|y|} \log \frac{\pi_\theta(y_t \mid q, y_{<t})}{\pi_{\text{ref}}(y_t \mid q, y_{<t})} \right]
+\end{equation}
+
+In practice, R1 uses an unbiased estimator of the KL that avoids computing $\pi_{\text{ref}}$ at every step by using the approximation: 
+\begin{equation}
+    \mathbb{D}_{\mathrm{KL}}\!\left[\pi_\theta \,\|\, \pi_{\text{ref}}\right] \approx \frac{\pi_{\text{ref}}(y_t \mid q, y_{<t})}{\pi_\theta(y_t \mid q, y_{<t})} - \log \frac{\pi_{\text{ref}}(y_t \mid q, y_{<t})}{\pi_\theta(y_t \mid q, y_{<t})} - 1
+\end{equation}
+ which is always non-negative and equals zero when $\pi_\theta = \pi_{\text{ref}}$.
+
+\begin{examplebox}[GRPO in Practice: Group Size and Stability]
+In R1’s training, $G = 8$ responses are sampled per question. This is a critical hyperparameter:
+
+\begin{itemize}
+  \item Too small ($G=2$): High variance in advantage estimates; training is noisy.
+  \item Too large ($G=32$): Computational cost scales linearly; diminishing returns.
+  \item $G=8$: Empirically found to balance variance reduction and compute cost.
+\end{itemize}
+
+The group sampling also provides a natural \textbf{curriculum signal}: as training progresses, the model’s average reward $\mu_r$ increases, and the variance $\sigma_r$ decreases. Problems where all $G$ responses are correct (or all wrong) contribute zero gradient, naturally focusing learning on problems at the frontier of the model’s capability.
+\end{examplebox}
+
+\subsection{Distillation: The R1-Distill Series}
+\label{distillation-the-r1-distill-series}
+
+A major practical contribution of R1 is demonstrating that \textbf{reasoning capabilities can be distilled into much smaller models} via supervised fine-tuning on R1-generated chains. The R1-Distill series (1.5B, 7B, 8B, 14B, 32B, 70B parameters) is trained by:
+
+\begin{enumerate}
+  \item Generating long-CoT solutions to a large problem set using R1 (671B)
+  \item Filtering to keep only correct solutions
+  \item Fine-tuning smaller base models (Qwen2.5, Llama-3) on these solutions
+\end{enumerate}
+
+\begin{keybox}[Distillation vs. RL for Small Models]
+A striking finding: \textbf{distillation outperforms RL training from scratch on small models}. DeepSeek-R1-Distill-Qwen-7B achieves higher MATH benchmark scores than a 7B model trained with GRPO directly. This suggests that:
+
+\begin{itemize}
+  \item Small models lack the capacity to discover reasoning strategies via RL exploration
+  \item But they \emph{can} learn to imitate reasoning strategies discovered by larger models
+  \item The bottleneck for small models is \emph{exploration}, not \emph{representation}
+\end{itemize}
+\end{keybox}
+
+The distillation approach raises an important question about the nature of reasoning: is the small model truly ``reasoning,'' or is it pattern-matching on the surface form of reasoning chains? Empirically, distilled models show some generalization to novel problem types, suggesting genuine internalization of reasoning strategies rather than pure memorization.
+
+\section{OpenAI o1/o3 Series}
+\label{subsec:openai_o1}
+
+OpenAI’s o1~\cite{openai2024o1} (released September 2024) and subsequent o3/o4-mini~\cite{openai2025o3} models represent the commercial frontier of reasoning model development. While full technical details remain proprietary, the published system cards, technical reports, and empirical observations provide substantial insight into the methodology.
+
+\subsection{Chain-of-Thought RL with Hidden Reasoning Tokens}
+\label{chain-of-thought-rl-with-hidden-reasoning-tokens}
+
+The defining architectural choice of o1 is the use of \textbf{hidden reasoning tokens}: the model generates an internal chain-of-thought (called a ``reasoning trace'' or ``thinking tokens'') that is not shown to the user. Only the final answer is returned. This design has several implications:
+
+\begin{itemize}
+  \item \textbf{No format constraints}: The hidden reasoning can use any format, including scratchpad notation, pseudocode, or even non-English reasoning.
+  \item \textbf{No reward hacking on style}: Since users never see the reasoning, there is no pressure to make it look ``good'' rather than be useful.
+  \item \textbf{Proprietary protection}: The reasoning process is not exposed, preventing direct imitation.
+\end{itemize}
+
+The training procedure is described as ``training models to reason using RL,'' with the RL objective applied to the complete (hidden reasoning + final answer) sequence, rewarded only on the quality of the final answer.
+
+\subsection{Process Reward Models vs.~Outcome Reward Models}
+\label{process-reward-models-vs.-outcome-reward-models}
+
+OpenAI’s approach is believed to use \textbf{Process Reward Models (PRMs)}~\cite{lightman2023lets} in addition to outcome rewards, in contrast to DeepSeek-R1’s outcome-only approach. This inference is based on OpenAI’s published PRM research (PRM800K dataset, ``Let’s Verify Step by Step'') and the o1 system card’s description of RL training on reasoning chains, though the exact o1/o3 training recipe has not been publicly disclosed.
+
+\paragraph{Outcome Reward Model (ORM)}
+\label{outcome-reward-model-orm}
+
+An ORM scores the complete response $(q, y)$: 
+\begin{equation}
+    R_{\text{ORM}}(q, y) \in [0, 1]
+\end{equation}
+ For verifiable tasks (math, code), this reduces to exact-match verification. For open-ended tasks, a learned reward model is used.
+
+\paragraph{Process Reward Model (PRM)}
+\label{process-reward-model-prm}
+
+A PRM assigns a reward to each reasoning step $s_k$ in the chain $y = (s_1, s_2, \ldots, s_K)$: 
+\begin{equation}
+    R_{\text{PRM}}(q, y) = \sum_{k=1}^{K} \gamma^{K-k} \cdot r_k(q, s_1, \ldots, s_k)
+\end{equation}
+ where $r_k \in [0,1]$ is the step-level reward and $\gamma \in (0,1]$ is a discount factor. The step-level reward $r_k$ estimates the probability that the partial solution $(s_1, \ldots, s_k)$ leads to a correct final answer: 
+\begin{equation}
+    r_k(q, s_1, \ldots, s_k) = P(\text{correct final answer} \mid q, s_1, \ldots, s_k)
+\end{equation}
+
+\begin{intuitionbox}[PRM vs. ORM: The Credit Assignment Tradeoff]
+\textbf{ORM} provides clean, unambiguous rewards but suffers from severe credit assignment problems: a single wrong step early in a 50-step chain receives the same zero reward as a completely random response.
+
+\textbf{PRM} provides dense rewards that directly address credit assignment, but introduces new challenges:
+
+\begin{itemize}
+  \item \textbf{Training data}: Step-level labels require human annotation or automated generation (Math-Shepherd, Section~\ref{subsubsec:prm_methods}).
+  \item \textbf{Reward hacking}: Models can learn to produce steps that \emph{look} correct to the PRM without actually being correct.
+  \item \textbf{Distribution shift}: PRMs trained on one distribution of reasoning chains may not generalize to the novel chains produced by RL.
+\end{itemize}
+
+The empirical evidence suggests PRMs are beneficial for \emph{search} (selecting among candidate solutions) but their benefit for \emph{training} is less clear.
+\end{intuitionbox}
+
+\subsection{Inference-Time Compute Scaling}
+\label{inference-time-compute-scaling}
+
+The o1 technical report demonstrates a clear scaling law: \textbf{more thinking tokens monotonically improve performance} on hard reasoning tasks. This is operationalized through a ``thinking budget'' parameter that controls the maximum number of hidden reasoning tokens.
+
+Let $T$ be the thinking token budget. The empirical scaling law observed is approximately: 
+\begin{equation}
+    \text{Pass@1}(T) \approx a - b \cdot T^{-c}
+\end{equation}
+ for constants $a, b, c > 0$, where $a$ represents the asymptotic accuracy ceiling and $c$ characterizes the rate of improvement. For AIME 2024, o1 with full thinking budget achieves $\sim$83\% accuracy, compared to $\sim$13\% for GPT-4o (which uses no extended thinking).
+
+\subsection{Training Compute vs.~Test-Time Compute}
+\label{training-compute-vs.-test-time-compute}
+
+A fundamental insight from the o1/o3 series is the \textbf{compute equivalence principle}: there exists a tradeoff curve between training compute $C_{\text{train}}$ and test-time compute $C_{\text{test}}$ such that points on the curve achieve similar performance:
+
+\begin{equation}
+    \text{Performance}(C_{\text{train}}, C_{\text{test}}) = g\!\left(\alpha C_{\text{train}}^{p} + \beta C_{\text{test}}^{q}\right)
+\end{equation}
+
+Empirically, $p \approx q$ for reasoning tasks, suggesting that training and test-time compute are roughly substitutable. This has profound implications for deployment: a smaller, cheaper model with extended thinking can match a larger model on hard problems, at the cost of higher latency.
+
+\subsection{o3 and o4-mini Architecture Insights}
+\label{o3-and-o4-mini-architecture-insights}
+
+While o3 and o4-mini details remain largely proprietary, several observations have emerged:
+
+\begin{itemize}
+  \item \textbf{o3}: Substantially larger thinking budgets than o1; achieves near-human performance on ARC-AGI (87.5\% with high compute). Believed to use more sophisticated search strategies during inference.
+  \item \textbf{o4-mini}: Demonstrates that \emph{smaller} models with RL-trained reasoning can be highly competitive. Achieves 93\% on AIME 2025 with extended thinking, suggesting that model size is less important than reasoning capability for math.
+  \item \textbf{Tool use}: o3/o4-mini integrate tool use (code execution, web search) into the reasoning process, allowing the model to verify intermediate steps programmatically.
+\end{itemize}
+
+\section{QwQ and Qwen Reasoning Models}
+\label{subsec:qwq_qwen}
+
+Alibaba’s Qwen team has developed a series of reasoning models (QwQ-32B~\cite{qwen2024qwq}, Qwen3~\cite{qwen2025qwen3}) that represent the open-source frontier alongside DeepSeek-R1. Their approach differs in several key respects.
+
+\subsection{Multi-Stage RL Pipeline}
+\label{multi-stage-rl-pipeline}
+
+The Qwen reasoning pipeline uses a more elaborate multi-stage approach:
+
+\begin{enumerate}
+  \item \textbf{Base pretraining}: Qwen2.5 base model with strong mathematical and coding capabilities
+  \item \textbf{SFT on diverse reasoning}: Fine-tuning on a broad mixture of reasoning tasks (math, code, science, logic)
+  \item \textbf{Rejection sampling fine-tuning (RFT)}: Generate $N$ solutions per problem, keep correct ones, fine-tune
+  \item \textbf{RL phase 1}: GRPO on math and code with verifiable rewards
+  \item \textbf{RL phase 2}: Broader RL including instruction following and safety
+\end{enumerate}
+
+\subsection{Rejection Sampling + RL Combination}
+\label{rejection-sampling-rl-combination}
+
+A key innovation in the Qwen approach is the \textbf{iterative combination of rejection sampling and RL}:
+
+\begin{enumerate}
+  \item \textbf{Initialize}: Policy $\pi_0$ from SFT model.
+  \item \textbf{Rejection Sampling}: Sample $N$ solutions: $\{y_i\}_{i=1}^N \sim \pi_{k-1}(\cdot \mid q)$. Keep correct solutions: $\mathcal{Y}^+(q) = \{y_i : r(y_i, y^*) = 1\}$.
+  \item \textbf{SFT update}: $\pi_k^{\text{SFT}} \leftarrow \text{SFT}(\pi_{k-1}, \bigcup_q \mathcal{Y}^+(q))$
+  \item \textbf{RL update}: $\pi_k \leftarrow \text{GRPO}(\pi_k^{\text{SFT}}, \mathcal{D})$
+  \item \textbf{Repeat} steps 2--4 for $K$ iterations to obtain final policy $\pi_K$.
+\end{enumerate}
+
+The rejection sampling step provides high-quality positive examples that anchor the policy, while RL explores beyond the current distribution. This combination is more stable than pure RL and more capable than pure SFT.
+
+\subsection{Tool-Integrated Reasoning}
+\label{tool-integrated-reasoning}
+
+QwQ-32B and Qwen3 models support \textbf{tool-integrated reasoning}: the model can invoke external tools (Python interpreter, search engine, calculator) during its reasoning chain. This is implemented via special tokens:
+
+\begin{lstlisting}[style=pythonstyle, caption={Tool-integrated reasoning format in QwQ}]
+<think>
+Let me solve this step by step.
+First, I'll compute the eigenvalues of the matrix.
+
+<tool_call>
+{"name": "python", "arguments": {"code": "import numpy as np\nA = np.array([[2,1],[1,3]])\neigenvalues = np.linalg.eigvals(A)\nprint(eigenvalues)"}}
+</tool_call>
+
+<tool_response>
+[1.38196601 3.61803399]
+</tool_response>
+
+The eigenvalues are approximately 1.382 and 3.618.
+These are (5 +/- sqrt5)/2, which are the golden ratio and its conjugate...
+</think>
+<answer>The eigenvalues are (5 +/- sqrt5)/2</answer>
+\end{lstlisting}
+
+The RL training reward is computed on the final answer, but the model learns to use tools strategically because tool use improves the probability of reaching the correct answer.
+
+\section{Key Methods with Mathematical Foundations}
+\label{subsec:reasoning_methods}
+
+\subsection{Monte Carlo Tree Search for Reasoning}
+\label{subsubsec:mcts_reasoning}
+
+Monte Carlo Tree Search (MCTS) provides a principled framework for reasoning as tree search. In the AlphaProof~\cite{alphaproof2024} and related systems, MCTS is applied over reasoning steps rather than game moves.
+
+\paragraph{State and Action Space}
+\label{state-and-action-space}
+
+\begin{itemize}
+  \item \textbf{State} $s_k$: The partial reasoning chain $(q, r_1, r_2, \ldots, r_k)$ where $r_i$ are reasoning steps
+  \item \textbf{Action} $a$: The next reasoning step (a sentence or paragraph)
+  \item \textbf{Terminal state}: A state containing a final answer
+  \item \textbf{Reward}: $R(s_{\text{terminal}}) = r_{\text{acc}}$ (Eq.~[eq:r1\_accuracy\_reward])
+\end{itemize}
+
+\paragraph{Value Function for Partial Solutions}
+\label{value-function-for-partial-solutions}
+
+A value function $V(s_k)$ estimates the probability of reaching a correct answer from partial state $s_k$: 
+\begin{equation}
+    V(s_k) = P(\text{correct answer} \mid s_k) \approx \frac{1}{M} \sum_{m=1}^{M} R(\text{rollout}_m(s_k))
+\end{equation}
+ where $\text{rollout}_m(s_k)$ is a Monte Carlo rollout from $s_k$ to a terminal state using the current policy.
+
+\paragraph{UCB Exploration}
+\label{ucb-exploration}
+
+Node selection uses the Upper Confidence Bound (UCB) formula adapted for reasoning: 
+\begin{equation}
+    \text{UCB}(s_k, a) = Q(s_k, a) + c_{\text{puct}} \cdot \pi_\theta(a \mid s_k) \cdot \frac{\sqrt{N(s_k)}}{1 + N(s_k, a)}
+\end{equation}
+ where:
+
+\begin{itemize}
+  \item $Q(s_k, a) = \frac{1}{N(s_k,a)} \sum_{\text{visits}} V(s_{k+1})$ is the mean value of child states
+  \item $\pi_\theta(a \mid s_k)$ is the policy prior (language model probability of step $a$)
+  \item $N(s_k)$ is the visit count of state $s_k$
+  \item $N(s_k, a)$ is the visit count of the $(s_k, a)$ edge
+  \item $c_{\text{puct}}$ is the exploration constant
+\end{itemize}
+
+\paragraph{MCTS-Guided Training}
+\label{mcts-guided-training}
+
+MCTS can be used to generate high-quality training data: 
+\begin{equation}
+    \mathcal{L}_{\text{MCTS}}(\theta) = -\sum_{k} \sum_{a} \pi_{\text{MCTS}}(a \mid s_k) \log \pi_\theta(a \mid s_k)
+\end{equation}
+ where $\pi_{\text{MCTS}}(a \mid s_k) \propto N(s_k, a)^{1/\tau}$ is the MCTS policy (visit count distribution with temperature $\tau$).
+
+\subsection{Process Reward Models}
+\label{subsubsec:prm_methods}
+
+\paragraph{Math-Shepherd: Automated PRM Training}
+\label{math-shepherd-automated-prm-training}
+
+Math-Shepherd~\cite{wang2024mathshepherd} proposes an automated method for training PRMs without human step-level annotations. The key insight is to use \textbf{outcome-based estimation}: a step $s_k$ is labeled as correct if there exists a completion from $s_k$ that reaches the correct answer.
+
+Formally, for a partial solution $(s_1, \ldots, s_k)$: 
+\begin{equation}
+    \hat{r}_k = \mathbf{1}\!\left[\exists\, (s_{k+1}, \ldots, s_K) : \text{verify}(s_K, y^*) = 1\right]
+\end{equation}
+
+In practice, this is estimated by sampling $M$ completions from $s_k$ and checking if any are correct: 
+\begin{equation}
+    \hat{r}_k \approx \mathbf{1}\!\left[\sum_{m=1}^{M} \text{verify}(\text{complete}_m(s_k), y^*) > 0\right]
+\end{equation}
+
+The PRM is then trained with binary cross-entropy: 
+\begin{equation}
+    \mathcal{L}_{\text{PRM}}(\phi) = -\sum_{k=1}^{K} \left[ \hat{r}_k \log r_\phi(s_k) + (1-\hat{r}_k) \log(1 - r_\phi(s_k)) \right]
+\end{equation}
+
+\paragraph{PRM for Best-of-N Selection}
+\label{prm-for-best-of-n-selection}
+
+A primary application of PRMs is \textbf{best-of-N selection}: generate $N$ candidate solutions and select the one with the highest PRM score: 
+\begin{equation}
+    y^* = \arg\max_{y \in \{y_1, \ldots, y_N\}} R_{\text{PRM}}(q, y)
+\end{equation}
+
+This is more effective than majority voting (which uses ORM) because PRM can distinguish between solutions that reach the same answer via different quality reasoning paths.
+
+\subsection{Outcome Reward Models and Majority Voting}
+\label{outcome-reward-models-and-majority-voting}
+
+\paragraph{Majority Voting (Self-Consistency)}
+\label{majority-voting-self-consistency}
+
+The simplest form of test-time compute scaling is majority voting~\cite{wang2023selfconsistency}: generate $N$ solutions and return the most common answer: 
+\begin{equation}
+    y^* = \arg\max_{a} \sum_{i=1}^{N} \mathbf{1}[y_i = a]
+\end{equation}
+
+Under the assumption that each solution is independently correct with probability $p > 0.5$, the probability that majority voting is correct is: 
+\begin{equation}
+    P(\text{majority correct}) = \sum_{k=\lceil N/2 \rceil}^{N} \binom{N}{k} p^k (1-p)^{N-k} \xrightarrow{N \to \infty} 1
+\end{equation}
+
+\paragraph{Weighted Majority Voting with ORM}
+\label{weighted-majority-voting-with-orm}
+
+An ORM can improve majority voting by weighting votes by confidence: 
+\begin{equation}
+    y^* = \arg\max_{a} \sum_{i=1}^{N} R_{\text{ORM}}(q, y_i) \cdot \mathbf{1}[y_i = a]
+\end{equation}
+
+\subsection{Self-Play for Reasoning}
+\label{self-play-for-reasoning}
+
+Self-play methods generate training data by having the model play both the \emph{generator} and \emph{verifier} roles.
+
+\paragraph{STaR: Self-Taught Reasoner}
+\label{star-self-taught-reasoner}
+
+STaR~\cite{zelikman2022star} bootstraps reasoning capabilities iteratively:
+
+\begin{enumerate}
+  \item Generate reasoning chains for a problem set
+  \item Keep chains that lead to correct answers (rejection sampling)
+  \item Fine-tune on kept chains
+  \item Repeat with the improved model
+\end{enumerate}
+
+The key insight is that the model can \emph{rationalize} correct answers: even if it cannot solve a problem from scratch, it can generate a plausible reasoning chain given the answer, which can then be used as training data.
+
+\paragraph{Self-Play RL}
+\label{self-play-rl}
+
+In self-play RL for reasoning, the model generates both problems and solutions: 
+\begin{equation}
+    \mathcal{L}_{\text{self-play}}(\theta) = \mathbb{E}_{q \sim \pi_\theta^{\text{gen}}} \mathbb{E}_{y \sim \pi_\theta^{\text{solve}}(\cdot|q)} \left[ r(y, y^*) \right]
+\end{equation}
+ where $\pi_\theta^{\text{gen}}$ generates problems and $\pi_\theta^{\text{solve}}$ solves them. The generator is rewarded for producing problems that are challenging but solvable.
+
+\subsection{Reinforcement Learning from Verifiable Rewards (RLVR)}
+\label{subsubsec:rlvr}
+
+RLVR~\cite{lambert2024tulu3} is a framework that uses \textbf{ground-truth verification} as the reward signal, applicable to any domain where correctness can be automatically checked.
+
+\paragraph{Verifiable Domains}
+\label{verifiable-domains}
+
+\begin{itemize}
+  \item \textbf{Mathematics}: Symbolic verification via SymPy, Lean, or Isabelle
+  \item \textbf{Code}: Unit test execution
+  \item \textbf{Formal logic}: Proof checking
+  \item \textbf{Factual QA}: Database lookup
+  \item \textbf{Games}: Win/loss outcome
+\end{itemize}
+
+\paragraph{RLVR Objective}
+\label{rlvr-objective}
+
+\begin{equation}
+    \mathcal{L}_{\text{RLVR}}(\theta) = -\mathbb{E}_{(q, y^*) \sim \mathcal{D}} \mathbb{E}_{y \sim \pi_\theta(\cdot|q)} \left[ \text{verify}(y, y^*) \right] + \beta \mathbb{D}_{\mathrm{KL}}\!\left[\pi_\theta \,\|\, \pi_{\text{ref}}\right]
+\end{equation}
+
+The key advantage of RLVR over RLHF is the \textbf{absence of reward model error}: since the reward is computed by a deterministic verifier rather than a learned model, there is no reward hacking against a flawed reward model. The only failure mode is if the model finds solutions that pass verification but are not genuinely correct (e.g., exploiting test case weaknesses in code evaluation).
+
+\begin{examplebox}[RLVR for Code: Reward Hacking Challenges]
+In code generation, the verifier is a test suite. A model trained with RLVR can learn to:
+
+\begin{itemize}
+  \item \textbf{Hardcode test outputs}: Return the expected output for each test input without implementing the actual algorithm
+  \item \textbf{Exploit weak tests}: Pass all provided tests while failing on edge cases
+\end{itemize}
+
+Mitigations include: using large, diverse test suites; including adversarial test cases; using execution-based rewards that penalize hardcoding (e.g., checking that the solution runs in $O(n \log n)$ time).
+\end{examplebox}
+
+\subsection{Journey Learning}
+\label{journey-learning}
+
+Journey Learning~\cite{qin2024o1journey} proposes training on the \textbf{full reasoning trajectory}, including failed attempts and corrections, rather than only successful final solutions.
+
+\paragraph{Motivation}
+\label{motivation-dup4}
+
+Standard rejection sampling discards failed attempts. But failed attempts contain valuable information:
+
+\begin{itemize}
+  \item Which approaches don’t work (negative examples)
+  \item How to recognize and recover from errors (correction patterns)
+  \item The structure of the problem space (exploration data)
+\end{itemize}
+
+\paragraph{Journey Learning Objective}
+\label{journey-learning-objective}
+
+Given a trajectory $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T)$ that may include backtracking: 
+\begin{equation}
+    \mathcal{L}_{\text{journey}}(\theta) = -\sum_{t=0}^{T} w_t \log \pi_\theta(a_t \mid s_t)
+\end{equation}
+ where the weights $w_t$ are designed to emphasize:
+
+\begin{itemize}
+  \item Steps that lead to eventual success ($w_t > 1$)
+  \item Correction steps after errors ($w_t > 1$)
+  \item Steps in failed branches ($w_t < 1$, but $> 0$)
+\end{itemize}
+
+\subsection{Quiet-STaR: Reasoning at Every Token}
+\label{quiet-star-reasoning-at-every-token}
+
+Quiet-STaR~\cite{zelikman2024quietstar} extends the reasoning paradigm to \textbf{every token position}: rather than generating a reasoning chain only before the final answer, the model generates a ``thought'' at every token position.
+
+\paragraph{Formulation}
+\label{formulation}
+
+For each token position $t$, the model generates a hidden thought $z_t$ before predicting the next token $x_{t+1}$: 
+\begin{equation}
+    P(x_{t+1} \mid x_{\leq t}) = \mathbb{E}_{z_t \sim \pi_\theta(\cdot | x_{\leq t})} \left[ \pi_\theta(x_{t+1} \mid x_{\leq t}, z_t) \right]
+\end{equation}
+
+In practice, this is approximated by mixing the predictions with and without the thought: 
+\begin{equation}
+    P(x_{t+1} \mid x_{\leq t}) = \alpha \cdot \pi_\theta(x_{t+1} \mid x_{\leq t}, z_t) + (1-\alpha) \cdot \pi_\theta(x_{t+1} \mid x_{\leq t})
+\end{equation}
+
+\paragraph{Training with REINFORCE}
+\label{training-with-reinforce}
+
+Since the thought $z_t$ is a discrete latent variable, the gradient is estimated using REINFORCE: 
+\begin{equation}
+    \nabla_\theta \mathcal{L}_{\text{QS}} = \mathbb{E}_{z_t} \left[ \nabla_\theta \log \pi_\theta(z_t \mid x_{\leq t}) \cdot \left( \log P(x_{t+1} \mid x_{\leq t}, z_t) - b_t \right) \right]
+\end{equation}
+ where $b_t$ is a baseline (e.g., the no-thought prediction $\log \pi_\theta(x_{t+1} \mid x_{\leq t})$).
+
+\begin{warningbox}[Computational Cost of Quiet-STaR]
+Quiet-STaR increases inference cost by a factor of $L_z + 1$ where $L_z$ is the thought length, applied at \emph{every} token position. For a sequence of length $T$ with thoughts of length $L_z = 8$, this is a $9\times$ increase in compute. This makes Quiet-STaR impractical for long sequences without significant engineering optimizations (e.g., speculative decoding for thoughts, caching).
+\end{warningbox}
+
+\section{Scaling Laws for Reasoning}
+\label{subsec:reasoning_scaling}
+
+Recent work~\cite{snell2024scaling, wu2024empirical} has established that test-time compute scales predictably with reasoning performance, extending the classical scaling laws~\cite{kaplan2020scaling} into the inference regime.
+
+\subsection{Training Compute vs.~Test-Time Compute Tradeoff}
+\label{training-compute-vs.-test-time-compute-tradeoff}
+
+The fundamental scaling question for reasoning models is: \textbf{given a fixed total compute budget $C_{\text{total}} = C_{\text{train}} + N \cdot C_{\text{test}}$ (where $N$ is the number of queries), how should compute be allocated?}
+
+Let $\mathcal{A}(C_{\text{train}}, C_{\text{test}})$ denote the accuracy of a model trained with $C_{\text{train}}$ FLOPs and given $C_{\text{test}}$ inference FLOPs per query. Empirically:
+
+\begin{equation}
+    \mathcal{A}(C_{\text{train}}, C_{\text{test}}) \approx 1 - \exp\!\left(-a \cdot C_{\text{train}}^{\alpha} \cdot C_{\text{test}}^{\beta}\right)
+\end{equation}
+
+for constants $a, \alpha, \beta > 0$. The optimal allocation for a fixed total budget $C_{\text{total}}$ satisfies the condition that marginal return per FLOP is equalized between training and inference: 
+\begin{equation}
+    \frac{\partial \mathcal{A}}{\partial C_{\text{train}}} = \frac{1}{N} \cdot \frac{\partial \mathcal{A}}{\partial C_{\text{test}}}
+\end{equation}
+
+Intuitively: one FLOP of training benefits all $N$ queries, while one FLOP of test-time benefits only one query. At the optimum, the per-query marginal value of test-time compute is $N$ times larger than training compute (because training is amortized). Applying this to Eq.~[eq:reasoning\_scaling\_law] gives the optimal training compute fraction: 
+\begin{equation}
+    \frac{C_{\text{train}}^*}{C_{\text{total}}} = \frac{\alpha}{\alpha + \beta}
+\end{equation}
+
+For the specific budget structure $C_{\text{total}} = C_{\text{train}} + N \cdot C_{\text{test}}$, this fraction is independent of $N$ under the multiplicative accuracy model. However, in practice $\alpha$ and $\beta$ are problem-dependent: for high-volume deployments (large $N$), even small improvements in the base model dominate, favoring training investment. For low-volume, high-stakes queries (small $N$), test-time compute is more cost-effective.
+
+\subsection{When to Invest in Longer Chains vs.~Better Base Models}
+\label{when-to-invest-in-longer-chains-vs.-better-base-models}
+
+\begin{keybox}[Reasoning Chain Length vs. Model Capacity]
+The optimal reasoning chain length $L^*$ for a model of capacity $C$ on a problem of difficulty $D$ satisfies: 
+\begin{equation}
+    L^* \propto \frac{D}{C^{\gamma}}
+\end{equation}
+ for some $\gamma > 0$. This implies:
+
+\begin{itemize}
+  \item \textbf{Hard problems} require longer chains regardless of model size
+  \item \textbf{Larger models} require shorter chains for the same problem difficulty
+  \item \textbf{Diminishing returns}: Beyond $L^*$, additional tokens provide no benefit and may hurt (overthinking)
+\end{itemize}
+\end{keybox}
+
+The ``overthinking'' phenomenon---where models with very long reasoning chains perform \emph{worse} than those with moderate chains---has been empirically observed and is attributed to:
+
+\begin{itemize}
+  \item Accumulation of errors in long chains (error propagation)
+  \item Distraction from the main solution path
+  \item Overconfidence in incorrect intermediate conclusions
+\end{itemize}
+
+\subsection{Optimal Token Budget Allocation}
+\label{optimal-token-budget-allocation}
+
+For a model with a fixed token budget $B$, the allocation between ``thinking'' tokens $T_{\text{think}}$ and ``answering'' tokens $T_{\text{answer}}$ should satisfy: 
+\begin{equation}
+    T_{\text{think}}^* = \arg\max_{T} \mathcal{A}(T, B - T)
+\end{equation}
+
+Empirically, the optimal split is problem-dependent:
+
+\begin{itemize}
+  \item \textbf{Simple problems}: $T_{\text{think}}^* / B \approx 0.3$ (30\% thinking)
+  \item \textbf{Hard problems}: $T_{\text{think}}^* / B \approx 0.8$ (80\% thinking)
+  \item \textbf{Very hard problems}: $T_{\text{think}}^* / B \approx 0.95$ (95\% thinking, minimal answer)
+\end{itemize}
+
+This motivates \textbf{adaptive thinking budgets}: allocating more tokens to harder problems, which can be estimated by the model’s uncertainty on initial solution attempts.
+
+\section{Comparison of Reasoning Models}
+\label{subsec:reasoning_comparison}
+
+\begin{table}[ht!]
+\centering
+\caption{Comparison of training methodologies for reasoning models.}
+\begin{tabular}{@{}lp{2.1cm}p{2.1cm}p{2.1cm}p{2.1cm}p{2.1cm}p{2.1cm}@{}}
+\toprule
+\textbf{Method} & \textbf{PRM} & \textbf{ORM} & \textbf{MCTS} & \textbf{Distill} & \textbf{Tool} & \textbf{Open} \\
+\midrule
+OpenAI o1/o3 & \checkmark{} & \checkmark{} & Unknown & -- & \checkmark{} & $\times$ \\
+DeepSeek-R1 & $\times$ & \checkmark{} & $\times$ & \checkmark{} & $\times$ & \checkmark{} \\
+QwQ / Qwen3 & Partial & \checkmark{} & $\times$ & $\times$ & \checkmark{} & \checkmark{} \\
+AlphaProof & \checkmark{} & \checkmark{} & \checkmark{} & -- & \checkmark{} & $\times$ \\
+Math-Shepherd & \checkmark{} & \checkmark{} & $\times$ & -- & $\times$ & \checkmark{} \\
+STaR / Quiet-STaR & $\times$ & \checkmark{} & $\times$ & -- & $\times$ & \checkmark{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Summary and Open Problems}
+\label{subsec:reasoning_summary}
+
+The field of RL for reasoning models has advanced remarkably rapidly. Several key lessons have emerged:
+
+\begin{enumerate}
+  \item \textbf{Verifiable rewards are sufficient}: For domains with ground-truth verification (math, code), outcome-only rewards are sufficient for RL to discover sophisticated reasoning strategies, without requiring process reward models.
+  \item \textbf{Test-time compute is a new axis}: Reasoning models introduce a new dimension of scaling---inference compute---that is roughly substitutable with training compute for hard reasoning tasks.
+  \item \textbf{Distillation is highly effective}: Large reasoning models can transfer their capabilities to much smaller models via supervised fine-tuning on generated chains, often outperforming direct RL training of small models.
+  \item \textbf{Emergent meta-cognition}: RL training on reasoning tasks produces emergent self-correction and verification behaviors that were not explicitly trained.
+\end{enumerate}
+
+\begin{questionbox}[Open Problems in RL for Reasoning]
+Several fundamental questions remain open:
+
+\begin{itemize}
+  \item \textbf{Generalization}: Do reasoning capabilities trained on math/code transfer to other domains (scientific reasoning, planning, social reasoning)?
+  \item \textbf{Faithfulness}: Are the generated reasoning chains causally responsible for the final answer, or are they post-hoc rationalizations?
+  \item \textbf{Optimal search}: What is the optimal search strategy during inference---beam search, MCTS, or something else?
+  \item \textbf{Reward design}: For domains without ground-truth verifiers, how can we design reliable reward signals for reasoning?
+  \item \textbf{Overthinking}: How can models learn to allocate the \emph{right} amount of thinking---neither too little nor too much?
+  \item \textbf{Compositional reasoning}: Can RL-trained reasoning models solve problems that require composing multiple distinct reasoning skills?
+\end{itemize}
+\end{questionbox}
+
+The development of reasoning models represents a paradigm shift: from language models that \emph{know} things to language models that can \emph{figure things out}. The RL methods described in this section are the primary engine driving this shift, and their continued development is likely to be a central focus of AI research in the coming years.
+
