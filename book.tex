@@ -2,9 +2,25 @@
 
 % Encoding and fonts
 % NOTE: fontspec removed for arXiv/pdflatex compatibility
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+% --- Disabled for XeLaTeX (Unicode native; needed for CJK support) ---
+% \usepackage[T1]{fontenc}
+% \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
+
+% --- CJK (Chinese) support via xeCJK for XeLaTeX ---
+% Falls back gracefully if invoked under pdflatex (preamble will fail then,
+% so this branch assumes XeLaTeX. The Makefile already uses xelatex.)
+\usepackage{xeCJK}
+\setCJKmainfont{Songti SC}[AutoFakeBold=2.5, AutoFakeSlant=0.15]
+\setCJKsansfont{PingFang SC}
+\setCJKmonofont{STFangsong}
+% Allow line-breaking around CJK ↔ Latin/punctuation
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+% Loosen line-breaking to avoid Overfull \hbox with long Chinese paragraphs
+\setlength{\emergencystretch}{5em}
+\tolerance=2000
+\hbadness=2000
 
 % Page layout
 \usepackage[margin=0.85in,top=0.75in,bottom=0.75in]{geometry}
@@ -55,7 +71,8 @@
 % --- Running headers ---
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[C]{\small\itshape H. Roitman \enspace --- \enspace The Hitchhiker's Guide to Agentic AI: From Foundations to Systems}
+% \fancyhead[C]{\small\itshape H. Roitman \enspace --- \enspace The Hitchhiker's Guide to Agentic AI: From Foundations to Systems}
+\fancyhead[C]{\small\itshape H. Roitman \enspace --- \enspace 智能体 AI 漫游指南：从基础到系统}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
@@ -158,7 +175,8 @@
 \DeclareMathOperator{\rank}{rank}
 
 % --- Title ---
-\title{\textbf{The Hitchhiker's Guide to Agentic AI}\\[0.5em]\Large From Foundations to Systems}
+% \title{\textbf{The Hitchhiker's Guide to Agentic AI}\\[0.5em]\Large From Foundations to Systems}
+\title{\textbf{智能体 AI 漫游指南}\\[0.5em]\Large 从基础到系统}
 \author{Haggai Roitman}
 \date{2026}
 
@@ -167,9 +185,11 @@
 \begin{titlepage}
 \centering
 \vfill
-{\Huge\bfseries The Hitchhiker's Guide to Agentic AI\par}
+% {\Huge\bfseries The Hitchhiker's Guide to Agentic AI\par}
+{\Huge\bfseries 智能体 AI 漫游指南\par}
 \vspace{0.5cm}
-{\Large From Foundations to Systems\par}
+% {\Large From Foundations to Systems\par}
+{\Large 从基础到系统\par}
 \vspace{2cm}
 \includegraphics[width=0.55\textwidth]{figures/hitchhiker_logo.jpg}\\[2cm]
 {\Large Haggai Roitman\par}
@@ -183,235 +203,332 @@
 \newpage
 ~\vfill
 \begin{center}
-{\large\itshape To my beloved wife Janna and daughters Inbar and Einav.}
+% {\large\itshape To my beloved wife Janna and daughters Inbar and Einav.}
+{\large\itshape 献给我深爱的妻子 Janna，以及女儿 Inbar 与 Einav。}
 \end{center}
 \vfill
 \newpage
 
 \tableofcontents
 
-\chapter*{Disclaimer}
-\addcontentsline{toc}{chapter}{Disclaimer}
+\chapter*{免责声明}
+\addcontentsline{toc}{chapter}{免责声明}
 \label{disclaimer}
 
-This document is an independent survey and educational resource prepared solely by the author. The views, opinions, and conclusions expressed herein are those of the author alone and do not necessarily reflect the views of any employer, organization, or institution with which the author is or has been affiliated.
+% This document is an independent survey and educational resource prepared solely by the author. The views, opinions, and conclusions expressed herein are those of the author alone and do not necessarily reflect the views of any employer, organization, or institution with which the author is or has been affiliated.
+本文档是作者独立撰写的综述与教育资源。文中表达的观点、意见与结论仅代表作者本人，并不必然反映作者目前或曾经服务的任何雇主、组织或机构的立场。
 
-This work does not contain any proprietary, confidential, or trade-secret information. All referenced material is drawn from publicly available sources, including peer-reviewed publications, open-access preprints, official documentation, and open-source repositories.
+% This work does not contain any proprietary, confidential, or trade-secret information. All referenced material is drawn from publicly available sources, including peer-reviewed publications, open-access preprints, official documentation, and open-source repositories.
+本作品不包含任何专有、机密或商业秘密信息。所有引用材料均取自公开来源，包括同行评审出版物、开放获取的预印本、官方文档以及开源代码仓库。
 
-The content is provided ``as is'' without warranty of any kind, express or implied. The author makes no representations regarding the accuracy, completeness, or suitability of the information for any particular purpose. Readers should independently verify any claims, formulas, or implementation details before applying them in production systems.
+% The content is provided ``as is'' without warranty of any kind, express or implied. The author makes no representations regarding the accuracy, completeness, or suitability of the information for any particular purpose. Readers should independently verify any claims, formulas, or implementation details before applying them in production systems.
+本内容按"原样"提供，不附带任何明示或暗示的保证。作者不就信息对任何特定用途的准确性、完整性或适用性作出任何陈述。读者在将任何论断、公式或实现细节应用于生产系统之前，应当独立核实。
 
-\textbf{Feedback welcome.} If you find any mistakes, inaccuracies, or have suggestions for improvement, you are encouraged to send feedback to \texttt{[first\_name]r@gmail.com}.
+% \textbf{Feedback welcome.} If you find any mistakes, inaccuracies, or have suggestions for improvement, you are encouraged to send feedback to \texttt{[first\_name]r@gmail.com}.
+\textbf{欢迎反馈。}如果您发现任何错误、不准确之处或有改进建议，欢迎将反馈发送至 \texttt{[first\_name]r@gmail.com}。
 
-\textbf{AI Disclosure.} Large language models were used as a research and drafting aid. All content was edited and verified by the author on a best-effort basis.
+% \textbf{AI Disclosure.} Large language models were used as a research and drafting aid. All content was edited and verified by the author on a best-effort basis.
+\textbf{AI 使用披露。}本书使用大语言模型作为研究与起草辅助工具。所有内容均由作者尽最大努力进行了编辑与核实。
 
-\textbf{License.} This work is licensed under the \textbf{Creative Commons Attribution-ShareAlike 4.0 International License} (CC~BY-SA~4.0). You are free to share (copy and redistribute) and adapt (remix, transform, and build upon) this material for any purpose, including commercially, provided you give appropriate credit, provide a link to the license, indicate if changes were made, and distribute any derivative works under the same license. Full license text: \href{https://creativecommons.org/licenses/by-sa/4.0/}{https://creativecommons.org/licenses/by-sa/4.0/}.
+% \textbf{License.} This work is licensed under the \textbf{Creative Commons Attribution-ShareAlike 4.0 International License} (CC~BY-SA~4.0). You are free to share (copy and redistribute) and adapt (remix, transform, and build upon) this material for any purpose, including commercially, provided you give appropriate credit, provide a link to the license, indicate if changes were made, and distribute any derivative works under the same license. Full license text: \href{https://creativecommons.org/licenses/by-sa/4.0/}{https://creativecommons.org/licenses/by-sa/4.0/}.
+\textbf{许可证。}本作品采用 \textbf{Creative Commons Attribution-ShareAlike 4.0 International License}（CC~BY-SA~4.0）授权。您可以自由分享（复制与再分发）及改编（混编、转换、在其基础上创作）本材料，可用于任何目的（包括商业用途），前提是给予适当的署名、提供许可证的链接、指明是否做了修改，并以相同许可证分发任何衍生作品。完整许可证文本：\href{https://creativecommons.org/licenses/by-sa/4.0/}{https://creativecommons.org/licenses/by-sa/4.0/}。
 
-\chapter*{About the Author}
-\addcontentsline{toc}{chapter}{About the Author}
+\textbf{翻译声明。}本中文版由 \textbf{Jiancong Zhu}（\href{https://github.com/Chasing1020}{@Chasing1020}）借助大语言模型辅助翻译完成，并经人工审校。翻译过程中保留原文的论述结构、技术内容与引用关系。本中文译本作为原作的衍生作品，同样依据 \textbf{Creative Commons Attribution-ShareAlike 4.0 International License}（CC~BY-SA~4.0）发布；任何对本译本的再分发或改编必须保留对原作者 Haggai Roitman 与原作的署名，并以相同许可证授权。译本仓库与勘误：\href{https://github.com/Chasing1020/agentic-ai-guide-zh}{github.com/Chasing1020/agentic-ai-guide-zh}；如发现翻译错误或表达不当，欢迎通过 \href{https://github.com/Chasing1020/agentic-ai-guide-zh/issues}{GitHub Issue} 或 \texttt{chasing1020@gmail.com} 反馈以便修订。
+
+\chapter*{关于作者}
+\addcontentsline{toc}{chapter}{关于作者}
 \label{about-the-author}
 
-\textbf{Haggai Roitman} has spent over two decades at the intersection of AI research and large-scale production systems. His work bridges theory and practice---from publishing foundational research to shipping systems that serve millions of users.
+% \textbf{Haggai Roitman} has spent over two decades at the intersection of AI research and large-scale production systems. His work bridges theory and practice---from publishing foundational research to shipping systems that serve millions of users.
+\textbf{Haggai Roitman} 在 AI 研究与大规模生产系统的交叉点上耕耘了二十余年。他的工作贯通理论与实践——从发表基础性研究，到交付服务数百万用户的系统。
 
-His research interests span information retrieval, recommender systems, natural language processing, large language models, reinforcement learning for LLMs, and agentic AI. He has authored more than 100 peer-reviewed publications and holds approximately 100 patents. He earned his BSc (\emph{Cum Laude}) and PhD from the Technion --- Israel Institute of Technology.
+% His research interests span information retrieval, recommender systems, natural language processing, large language models, reinforcement learning for LLMs, and agentic AI. He has authored more than 100 peer-reviewed publications and holds approximately 100 patents. He earned his BSc (\emph{Cum Laude}) and PhD from the Technion --- Israel Institute of Technology.
+他的研究兴趣涵盖信息检索、推荐系统、自然语言处理、大语言模型、面向 LLM 的强化学习以及智能体 AI。他已发表逾 100 篇同行评审论文，并拥有约 100 项专利。他在 Technion——以色列理工学院取得本科（\emph{Cum Laude} 优等）与博士学位。
 
-When not thinking about gradient flows and KV caches, he can be found behind a set of turntables, mixing progressive trance and deep house.
+% When not thinking about gradient flows and KV caches, he can be found behind a set of turntables, mixing progressive trance and deep house.
+当他不在思考梯度流与 KV 缓存时，可以在打碟机前找到他——在那里他混音 progressive trance 与 deep house。
 
-\chapter*{Preface}
-\addcontentsline{toc}{chapter}{Preface}
+\chapter*{前言}
+\addcontentsline{toc}{chapter}{前言}
 \label{preface}
 
-\section*{Why This Guide Exists}
+\section*{为什么要写这本指南}
 \label{why-this-guide-exists}
 
-Building intelligent AI systems in 2026 requires mastering an extraordinary breadth of knowledge --- from how transformers process language internally, through the hardware and systems that make training possible, the optimization techniques that make it efficient, the reinforcement learning algorithms that teach models to reason and align with human intent, all the way to multi-agent architectures that coordinate autonomous systems at scale.
+% Building intelligent AI systems in 2026 requires mastering an extraordinary breadth of knowledge --- from how transformers process language internally, through the hardware and systems that make training possible, the optimization techniques that make it efficient, the reinforcement learning algorithms that teach models to reason and align with human intent, all the way to multi-agent architectures that coordinate autonomous systems at scale.
+在 2026 年构建智能 AI 系统，需要掌握极其广阔的知识——从 Transformer 在内部如何处理语言，到使训练成为可能的硬件与系统，再到让训练高效的优化技术、教会模型推理并与人类意图对齐的强化学习算法，乃至大规模协调自主系统的多智能体架构。
 
-This knowledge is scattered across hundreds of papers, blog posts, GitHub repositories, and tribal knowledge within a handful of labs. This guide exists because \textbf{practitioners need a single, unified reference} that covers the entire stack --- not just the theory, but the implementation details that make things actually work.
+% This knowledge is scattered across hundreds of papers, blog posts, GitHub repositories, and tribal knowledge within a handful of labs. This guide exists because \textbf{practitioners need a single, unified reference} that covers the entire stack --- not just the theory, but the implementation details that make things actually work.
+这些知识散落在数百篇论文、博客文章、GitHub 仓库，以及少数实验室内部的"部落知识"之中。本指南之所以存在，是因为\textbf{从业者需要一份覆盖整套技术栈的统一参考}——不仅是理论，更是让事情真正跑起来的实现细节。
 
-\section*{A Personal Journey to Agentic AI}
+\section*{我个人走向智能体 AI 的旅程}
 \label{a-personal-journey-to-agentic-ai}
 
-My fascination with intelligent agents began two decades ago, when I still studied for my first degree in information systems engineering. I took courses on Agent-Oriented Software Engineering (AOSE)~\cite{wooldridge2000gaia} and learned to build multi-agent systems using JADE~\cite{bellifemine2007jade} (Java Agent DEvelopment Framework)---a FIPA-compliant~\cite{fipa2002acl} platform where agents communicated via structured protocols, negotiated over shared resources, and coordinated autonomously. Around the same time, Berners-Lee, Hendler, and Lassila’s seminal paper ``The Semantic Web''~\cite{bernerslee2001semantic} painted a vision of machine-readable knowledge that agents could reason over. These two threads---autonomous agent architectures and semantic knowledge representation---planted a seed that has guided my career ever since. One early project that crystallized this vision was an attempt to build a \emph{shopping agent}---developed with OntoBuilder~\cite{gal2006ontobuilder} under the guidance of my respected future academic advisor Prof.~Avigdor Gal---a system that could automatically fill product search queries and orders across different heterogeneous websites, understanding their varied schemas through ontology matching and mapping. The Semantic Web promised that such agents would thrive in a world of structured, machine-readable data. In practice, the brittleness of hand-crafted ontologies, the messiness of real-world product data, and the lack of robust natural language understanding made the vision perpetually ``five years away.''
+% My fascination with intelligent agents began two decades ago, when I still studied for my first degree in information systems engineering. I took courses on Agent-Oriented Software Engineering (AOSE)~\cite{wooldridge2000gaia} and learned to build multi-agent systems using JADE~\cite{bellifemine2007jade} (Java Agent DEvelopment Framework)---a FIPA-compliant~\cite{fipa2002acl} platform where agents communicated via structured protocols, negotiated over shared resources, and coordinated autonomously. Around the same time, Berners-Lee, Hendler, and Lassila’s seminal paper ``The Semantic Web''~\cite{bernerslee2001semantic} painted a vision of machine-readable knowledge that agents could reason over. These two threads---autonomous agent architectures and semantic knowledge representation---planted a seed that has guided my career ever since. One early project that crystallized this vision was an attempt to build a \emph{shopping agent}---developed with OntoBuilder~\cite{gal2006ontobuilder} under the guidance of my respected future academic advisor Prof.~Avigdor Gal---a system that could automatically fill product search queries and orders across different heterogeneous websites, understanding their varied schemas through ontology matching and mapping. The Semantic Web promised that such agents would thrive in a world of structured, machine-readable data. In practice, the brittleness of hand-crafted ontologies, the messiness of real-world product data, and the lack of robust natural language understanding made the vision perpetually ``five years away.''
+我对智能体（agent）的迷恋始于二十年前，那时我还在攻读信息系统工程的本科学位。我选修了面向智能体的软件工程（Agent-Oriented Software Engineering, AOSE）~\cite{wooldridge2000gaia} 课程，并学习如何用 JADE~\cite{bellifemine2007jade}（Java Agent DEvelopment Framework）构建多智能体系统——这是一个遵循 FIPA~\cite{fipa2002acl} 标准的平台，智能体之间通过结构化协议通信、就共享资源协商，并自主协作。与此同时，Berners-Lee、Hendler 与 Lassila 发表的奠基性论文《The Semantic Web》~\cite{bernerslee2001semantic} 描绘了一种机器可读知识的愿景，让智能体能够在其上推理。这两条线索——自主智能体架构与语义知识表示——种下了一颗种子，此后一直引导着我的职业生涯。一个早期项目让这一愿景具体化：在我未来尊敬的学术导师 Prof.~Avigdor Gal 的指导下，我们尝试用 OntoBuilder~\cite{gal2006ontobuilder} 构建一个\emph{购物智能体}——一个能够在不同异构网站上自动填写商品搜索查询与订单的系统，通过本体匹配与映射来理解它们各异的 schema。Semantic Web 承诺，在一个结构化、机器可读的世界里，这类智能体将大放异彩。然而在实践中，手工本体的脆弱性、真实商品数据的混乱，以及缺乏稳健的自然语言理解，让这个愿景永远停留在"还有五年"。
 
-Over the following years, I tracked each wave of AI progress as it arrived: neural networks and heuristic search for combinatorial optimization; deep learning and representation learning; information retrieval and personalization at scale; and most recently, the revolution of large language models. Each wave brought powerful new tools, but the dream remained the same: systems that \emph{understand}, \emph{reason}, and \emph{act} autonomously in complex environments.
+% Over the following years, I tracked each wave of AI progress as it arrived: neural networks and heuristic search for combinatorial optimization; deep learning and representation learning; information retrieval and personalization at scale; and most recently, the revolution of large language models. Each wave brought powerful new tools, but the dream remained the same: systems that \emph{understand}, \emph{reason}, and \emph{act} autonomously in complex environments.
+在随后的岁月里，我亲历了 AI 进步的每一次浪潮：用于组合优化的神经网络与启发式搜索；深度学习与表征学习；大规模信息检索与个性化；以及最近的大语言模型革命。每一波浪潮都带来强大的新工具，但梦想始终未变：构建能在复杂环境中自主\emph{理解}、\emph{推理}与\emph{行动}的系统。
 
-What makes 2024--2026 remarkable is that these threads have finally converged. LLMs provide the language understanding and generation; reinforcement learning teaches them to reason and align with human intent; tool-use protocols (MCP) give them hands to act in the world; and agent orchestration frameworks provide the coordination layer that JADE envisioned twenty years ago---now powered by foundation models instead of hand-coded ontologies. This guide is, in many ways, the reference I wish I had at each step of that journey.
+% What makes 2024--2026 remarkable is that these threads have finally converged. LLMs provide the language understanding and generation; reinforcement learning teaches them to reason and align with human intent; tool-use protocols (MCP) give them hands to act in the world; and agent orchestration frameworks provide the coordination layer that JADE envisioned twenty years ago---now powered by foundation models instead of hand-coded ontologies. This guide is, in many ways, the reference I wish I had at each step of that journey.
+2024--2026 年之所以非凡，是因为这些线索终于汇合在一起。LLM 提供语言理解与生成能力；强化学习教会它们推理并与人类意图对齐；工具使用协议（Model Context Protocol, MCP）赋予它们在世界中行动的"手"；智能体编排框架提供了二十年前 JADE 曾设想过的协作层——只是现在由基础模型驱动，而非手工编写的本体。在很多意义上，本指南正是我希望自己在那段旅程的每一步都能拥有的参考。
 
-\section*{The Landscape in 2026}
+\section*{2026 年的全景}
 \label{the-landscape-in-2026}
 
-The journey to today’s agentic AI systems spans three decades of compounding breakthroughs across architecture, training, and deployment:
+% The journey to today’s agentic AI systems spans three decades of compounding breakthroughs across architecture, training, and deployment:
+通向今天智能体 AI 系统的旅程，横跨三十年间在架构、训练与部署上不断累积的突破：
 
 \begin{enumerate}
-  \item \textbf{Architectural foundations (2017--2020)}: The Transformer~\cite{vaswani2017attention} introduced self-attention as a universal sequence-processing primitive. Scaling laws revealed that larger models trained on more data reliably improve. GPT-2 and GPT-3 demonstrated that decoder-only transformers, scaled sufficiently, become capable few-shot learners.
-  \item \textbf{Systems and efficiency (2020--2023)}: Flash Attention~\cite{dao2022flashattention} made training 2--4$\times$ faster by eliminating memory bottlenecks. LoRA~\cite{hu2022lora} enabled fine-tuning 70B+ models on a single node. Mixture-of-Experts (MoE) decoupled model capacity from compute cost. Inference engines like vLLM brought throughput within reach of real-time applications.
-  \item \textbf{Alignment via RL (2022--2024)}: RLHF~\cite{ouyang2022training} transformed capable-but-unhelpful base models into useful assistants --- the recipe behind ChatGPT. DPO~\cite{rafailov2023direct} collapsed the reward model and RL loop into a single supervised loss, democratizing alignment. Variants proliferated: KTO~\cite{ethayarajh2024kto}, IPO~\cite{azar2024general}, ORPO~\cite{hong2024orpo}, GRPO~\cite{shao2024deepseekmath}.
-  \item \textbf{Reasoning and autonomy (2024--2026)}: DeepSeek-R1~\cite{deepseek2025r1} and OpenAI’s o1/o3 demonstrated that RL could teach \emph{reasoning itself} --- models spontaneously discover chain-of-thought, backtracking, and self-verification. Simultaneously, the Model Context Protocol (MCP) standardized tool access, Agent-to-Agent (A2A) enabled inter-agent communication, and production-grade orchestration frameworks matured.
+  % \item \textbf{Architectural foundations (2017--2020)}: The Transformer~\cite{vaswani2017attention} introduced self-attention as a universal sequence-processing primitive. Scaling laws revealed that larger models trained on more data reliably improve. GPT-2 and GPT-3 demonstrated that decoder-only transformers, scaled sufficiently, become capable few-shot learners.
+  \item \textbf{架构基础（2017--2020）}：Transformer~\cite{vaswani2017attention} 把 self-attention 引入为一种通用的序列处理原语。Scaling Laws 揭示：用更多数据训练的更大模型会稳定地变好。GPT-2 与 GPT-3 证明，仅 decoder 结构的 Transformer 在足够规模化之后，会成为有能力的 few-shot learner。
+  % \item \textbf{Systems and efficiency (2020--2023)}: Flash Attention~\cite{dao2022flashattention} made training 2--4$\times$ faster by eliminating memory bottlenecks. LoRA~\cite{hu2022lora} enabled fine-tuning 70B+ models on a single node. Mixture-of-Experts (MoE) decoupled model capacity from compute cost. Inference engines like vLLM brought throughput within reach of real-time applications.
+  \item \textbf{系统与效率（2020--2023）}：Flash Attention~\cite{dao2022flashattention} 通过消除显存瓶颈让训练加速 2--4$\times$。LoRA~\cite{hu2022lora} 让在单个节点上微调 70B+ 模型成为可能。专家混合（Mixture-of-Experts, MoE）将模型容量与算力成本解耦。vLLM 这类推理引擎把吞吐量带到了实时应用可触及的范围。
+  % \item \textbf{Alignment via RL (2022--2024)}: RLHF~\cite{ouyang2022training} transformed capable-but-unhelpful base models into useful assistants --- the recipe behind ChatGPT. DPO~\cite{rafailov2023direct} collapsed the reward model and RL loop into a single supervised loss, democratizing alignment. Variants proliferated: KTO~\cite{ethayarajh2024kto}, IPO~\cite{azar2024general}, ORPO~\cite{hong2024orpo}, GRPO~\cite{shao2024deepseekmath}.
+  \item \textbf{基于 RL 的对齐（2022--2024）}：RLHF~\cite{ouyang2022training} 把"有能力但不实用"的 base 模型变成了真正有用的助手——这正是 ChatGPT 背后的配方。DPO~\cite{rafailov2023direct} 把 reward 模型与 RL 循环压缩成单一的监督 loss，降低了对齐的门槛。变体随之涌现：KTO~\cite{ethayarajh2024kto}、IPO~\cite{azar2024general}、ORPO~\cite{hong2024orpo}、GRPO~\cite{shao2024deepseekmath}。
+  % \item \textbf{Reasoning and autonomy (2024--2026)}: DeepSeek-R1~\cite{deepseek2025r1} and OpenAI’s o1/o3 demonstrated that RL could teach \emph{reasoning itself} --- models spontaneously discover chain-of-thought, backtracking, and self-verification. Simultaneously, the Model Context Protocol (MCP) standardized tool access, Agent-to-Agent (A2A) enabled inter-agent communication, and production-grade orchestration frameworks matured.
+  \item \textbf{推理与自主（2024--2026）}：DeepSeek-R1~\cite{deepseek2025r1} 与 OpenAI 的 o1/o3 证明：RL 可以教会模型\emph{推理本身}——模型自发地发现思维链（Chain-of-Thought，CoT）、回溯与自我验证。与此同时，Model Context Protocol (MCP) 统一了工具访问、智能体到智能体（Agent-to-Agent, A2A）使智能体间通信成为可能，生产级编排框架也走向成熟。
 \end{enumerate}
 
-\section*{Who This Guide Is For}
+\section*{本指南的目标读者}
 \label{who-this-guide-is-for}
 
-This document is written for \textbf{practitioners who build things}:
+% This document is written for \textbf{practitioners who build things}:
+本文档是为\textbf{真正动手做东西的从业者}而写：
 
 \begin{itemize}
-  \item \textbf{ML engineers} who need to understand transformer internals, training infrastructure, optimization, and why things diverge.
-  \item \textbf{Applied researchers} evaluating architectures, fine-tuning strategies, and RL methods for their specific domains.
-  \item \textbf{Agent developers} building production systems who need orchestration patterns, memory architectures, tool integration (MCP), and multi-agent coordination (A2A).
-  \item \textbf{Systems engineers} responsible for training infrastructure, GPU clusters, distributed training, and inference deployment.
-  \item \textbf{Technical leaders} making architectural and resourcing decisions across the full stack.
+  % \item \textbf{ML engineers} who need to understand transformer internals, training infrastructure, optimization, and why things diverge.
+  \item \textbf{ML 工程师}：需要理解 Transformer 内部机制、训练基础设施、优化方法，以及为何训练会发散。
+  % \item \textbf{Applied researchers} evaluating architectures, fine-tuning strategies, and RL methods for their specific domains.
+  \item \textbf{应用研究者}：为其特定领域评估架构、微调策略与 RL 方法。
+  % \item \textbf{Agent developers} building production systems who need orchestration patterns, memory architectures, tool integration (MCP), and multi-agent coordination (A2A).
+  \item \textbf{Agent 开发者}：构建生产系统，需要编排模式、记忆架构、工具集成（MCP）以及多智能体协作（A2A）。
+  % \item \textbf{Systems engineers} responsible for training infrastructure, GPU clusters, distributed training, and inference deployment.
+  \item \textbf{系统工程师}：负责训练基础设施、GPU 集群、分布式训练与推理部署。
+  % \item \textbf{Technical leaders} making architectural and resourcing decisions across the full stack.
+  \item \textbf{技术负责人}：需要在全栈层面做出架构与资源决策。
 \end{itemize}
 
-We assume familiarity with neural networks and basic probability. \textbf{No prior LLM, RL, or systems knowledge is required} --- the guide builds from first principles.
+% We assume familiarity with neural networks and basic probability. \textbf{No prior LLM, RL, or systems knowledge is required} --- the guide builds from first principles.
+我们假设读者熟悉神经网络与基础概率论。\textbf{不要求事先具备 LLM、RL 或系统方面的知识}——本指南从第一原理构建。
 
-\section*{What You Will Gain}
+\section*{你将获得什么}
 \label{what-you-will-gain}
 
-After reading this guide, you will be able to:
+% After reading this guide, you will be able to:
+读完本指南后，你将能够：
 
 \begin{itemize}
-  \item \textbf{Understand LLM internals} --- attention mechanisms, positional encodings, MoE routing, Flash Attention, and why architectural choices matter for downstream capability.
-  \item \textbf{Reason about systems} --- GPU memory budgets, distributed training strategies (FSDP, tensor/pipeline parallelism), inference optimization, and production deployment with vLLM.
-  \item \textbf{Train and fine-tune efficiently} --- LoRA/QLoRA, quantization, knowledge distillation, optimizer selection, and learning rate scheduling.
-  \item \textbf{Align models with human preferences} --- implement RLHF/DPO/GRPO/KTO pipelines, debug reward hacking and mode collapse, choose the right algorithm among 20+ methods.
-  \item \textbf{Build reasoning models} --- understand how DeepSeek-R1, o1/o3, and QwQ discover chain-of-thought through RL without explicit demonstrations.
-  \item \textbf{Architect agentic systems} --- select orchestration patterns, design memory, integrate tools via MCP, coordinate agents via A2A, evaluate with production benchmarks.
-  \item \textbf{Evaluate rigorously} --- apply appropriate metrics, benchmarks, and LLM-as-Judge patterns for both model quality and agent capability.
+  % \item \textbf{Understand LLM internals} --- attention mechanisms, positional encodings, MoE routing, Flash Attention, and why architectural choices matter for downstream capability.
+  \item \textbf{理解 LLM 内部机制}——注意力机制、位置编码、MoE 路由、Flash Attention，以及架构选择为何会影响下游能力。
+  % \item \textbf{Reason about systems} --- GPU memory budgets, distributed training strategies (FSDP, tensor/pipeline parallelism), inference optimization, and production deployment with vLLM.
+  \item \textbf{对系统进行推理}——GPU 显存预算、分布式训练策略（FSDP、张量/流水线并行）、推理优化，以及用 vLLM 进行生产部署。
+  % \item \textbf{Train and fine-tune efficiently} --- LoRA/QLoRA, quantization, knowledge distillation, optimizer selection, and learning rate scheduling.
+  \item \textbf{高效训练与微调}——LoRA/QLoRA、量化、知识蒸馏、优化器选择以及学习率调度。
+  % \item \textbf{Align models with human preferences} --- implement RLHF/DPO/GRPO/KTO pipelines, debug reward hacking and mode collapse, choose the right algorithm among 20+ methods.
+  \item \textbf{将模型与人类偏好对齐}——实现 RLHF/DPO/GRPO/KTO 流水线、调试 reward hacking 与 mode collapse，并在 20+ 种方法中选出合适的算法。
+  % \item \textbf{Build reasoning models} --- understand how DeepSeek-R1, o1/o3, and QwQ discover chain-of-thought through RL without explicit demonstrations.
+  \item \textbf{构建推理模型}——理解 DeepSeek-R1、o1/o3 与 QwQ 如何在没有显式示范的情况下，通过 RL 发现思维链。
+  % \item \textbf{Architect agentic systems} --- select orchestration patterns, design memory, integrate tools via MCP, coordinate agents via A2A, evaluate with production benchmarks.
+  \item \textbf{构建智能体系统的架构}——选择编排模式、设计记忆、通过 MCP 集成工具、通过 A2A 协调智能体，并以生产级基准进行评估。
+  % \item \textbf{Evaluate rigorously} --- apply appropriate metrics, benchmarks, and LLM-as-Judge patterns for both model quality and agent capability.
+  \item \textbf{严谨地做评估}——对模型质量与智能体能力应用合适的指标、基准与 LLM-as-Judge 模式。
 \end{itemize}
 
-\section*{How This Guide Is Organized}
+\section*{本指南的组织方式}
 \label{how-this-guide-is-organized}
 
-The guide spans 29 chapters organized in five parts:
+% The guide spans 29 chapters organized in five parts:
+本指南共 29 章，按六个部分组织：
 
 \begin{enumerate}
-  \item \textbf{Part I --- Foundations} (Chapters 1--3): LLM architecture and optimization (transformers, attention, positional encodings, Flash Attention, LoRA, MoE), systems foundations (GPU hierarchies, distributed training, vLLM), and classical RL theory (MDPs, policy gradients, actor-critic).
-  \item \textbf{Part II --- RL Methods for LLMs} (Chapters 4--12): The complete RL-for-LLMs toolkit. RL foundations for language models, then full mathematical treatment of PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO), reward model training, SFT best practices, system architecture at scale, and agentic training with trajectory-level RL.
-  \item \textbf{Part III --- Reasoning} (Chapter 13): Large reasoning models --- DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
-  \item \textbf{Part IV --- Evaluation} (Chapter 14): Comprehensive LLM evaluation methodology --- metrics, LLM-as-Judge, human annotation, benchmark suites, contamination detection, and agentic evaluation.
-  \item \textbf{Part V --- Agentic AI} (Chapters 15--26): The complete agentic stack --- introduction to agentic AI, RAG and retrieval, memory systems, orchestration and context management, design patterns, agentic environments and benchmarks, Model Context Protocol (MCP), agent skills, Agent-to-Agent communication (A2A), multi-agent systems, development frameworks, and agentic UI.
-  \item \textbf{Part VI --- Assessment \& Reference} (Chapters 27--29): 108 detailed quiz questions with comprehensive answers spanning all topics, a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics, and a conclusion with future directions.
+  % \item \textbf{Part I --- Foundations} (Chapters 1--3): LLM architecture and optimization (transformers, attention, positional encodings, Flash Attention, LoRA, MoE), systems foundations (GPU hierarchies, distributed training, vLLM), and classical RL theory (MDPs, policy gradients, actor-critic).
+  \item \textbf{第一部分——基础}（第 1--3 章）：LLM 架构与优化（Transformer、attention、位置编码、Flash Attention、LoRA、MoE）、系统基础（GPU 层级、分布式训练、vLLM），以及经典 RL 理论（MDP、policy gradient、actor-critic）。
+  % \item \textbf{Part II --- RL Methods for LLMs} (Chapters 4--12): The complete RL-for-LLMs toolkit. RL foundations for language models, then full mathematical treatment of PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO), reward model training, SFT best practices, system architecture at scale, and agentic training with trajectory-level RL.
+  \item \textbf{第二部分——面向 LLM 的 RL 方法}（第 4--12 章）：完整的"面向 LLM 的 RL"工具箱。先介绍语言模型的 RL 基础，再完整地数学化处理 PPO、DPO、GRPO 与偏好优化变体（Online DPO、KTO、IPO、ORPO、SimPO）、reward 模型训练、SFT 最佳实践、大规模系统架构，以及基于轨迹级 RL 的智能体训练。
+  % \item \textbf{Part III --- Reasoning} (Chapter 13): Large reasoning models --- DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
+  \item \textbf{第三部分——推理}（第 13 章）：大型推理模型——DeepSeek-R1、OpenAI o1/o3/o4-mini、QwQ——RL 如何发现思维链、MCTS、过程奖励模型（Process Reward Model, PRM）与测试时算力扩展（Test-Time Scaling）。
+  % \item \textbf{Part IV --- Evaluation} (Chapter 14): Comprehensive LLM evaluation methodology --- metrics, LLM-as-Judge, human annotation, benchmark suites, contamination detection, and agentic evaluation.
+  \item \textbf{第四部分——评估}（第 14 章）：全面的 LLM 评估方法论——指标、LLM-as-Judge、人工标注、基准套件、污染检测，以及智能体评估。
+  % \item \textbf{Part V --- Agentic AI} (Chapters 15--26): The complete agentic stack --- introduction to agentic AI, RAG and retrieval, memory systems, orchestration and context management, design patterns, agentic environments and benchmarks, Model Context Protocol (MCP), agent skills, Agent-to-Agent communication (A2A), multi-agent systems, development frameworks, and agentic UI.
+  \item \textbf{第五部分——智能体 AI}（第 15--26 章）：完整的智能体技术栈——智能体 AI 简介、检索增强生成（Retrieval-Augmented Generation, RAG）与检索、记忆系统、编排与上下文管理、设计模式、智能体环境与基准、Model Context Protocol (MCP)、Agent Skills、Agent-to-Agent (A2A) 通信、多智能体系统、开发框架以及智能体 UI。
+  % \item \textbf{Part VI --- Assessment \& Reference} (Chapters 27--29): 108 detailed quiz questions with comprehensive answers spanning all topics, a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics, and a conclusion with future directions.
+  \item \textbf{第六部分——自测与参考}（第 27--29 章）：覆盖全部主题的 108 道详细测验题与完整解答；一章快速参考，整合关键公式、API 参考与失败模式诊断；以及关于未来方向的总结。
 \end{enumerate}
 
-The guide includes over 100 detailed quiz questions with comprehensive answers spanning all topics, plus a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics.
+% The guide includes over 100 detailed quiz questions with comprehensive answers spanning all topics, plus a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics.
+本指南包含 100+ 道详细测验题及覆盖所有主题的完整解答，并附带一章整合关键公式、API 参考与失败模式诊断的快速参考。
 
-\section*{Design Philosophy}
+\section*{设计哲学}
 \label{design-philosophy}
 
-Three principles guide this document:
+% Three principles guide this document:
+三条原则贯穿本文档：
 
 \begin{enumerate}
-  \item \textbf{Intuition first, formalism second}. Every equation is preceded by a plain-English explanation of what it means and why it matters.
-  \item \textbf{Implementation-aware}. Theory is useless without knowing how to make it work. We include code, hyperparameter tables, memory budgets, architecture diagrams, and debugging strategies throughout.
-  \item \textbf{Honest about what works}. We clearly state which approaches are production-tested and which are research explorations.
+  % \item \textbf{Intuition first, formalism second}. Every equation is preceded by a plain-English explanation of what it means and why it matters.
+  \item \textbf{先直觉、后形式化}。每一个方程之前，都会先用通俗语言解释它的含义与重要性。
+  % \item \textbf{Implementation-aware}. Theory is useless without knowing how to make it work. We include code, hyperparameter tables, memory budgets, architecture diagrams, and debugging strategies throughout.
+  \item \textbf{面向实现}。不知道如何让理论跑起来，理论就毫无用处。我们贯穿始终地提供代码、超参表、显存预算、架构图与调试策略。
+  % \item \textbf{Honest about what works}. We clearly state which approaches are production-tested and which are research explorations.
+  \item \textbf{对"什么有效"诚实相告}。我们会明确指出哪些方法经过生产验证，哪些仍处于研究探索阶段。
 \end{enumerate}
 
-\section*{Scope and Deliberate Omissions}
+\section*{范围与有意省略}
 \label{scope-and-deliberate-omissions}
 
-This guide focuses on \textbf{text-in, text-out language models} and the RL, systems, and agentic infrastructure built around them. Several important areas are intentionally excluded:
+% This guide focuses on \textbf{text-in, text-out language models} and the RL, systems, and agentic infrastructure built around them. Several important areas are intentionally excluded:
+本指南聚焦于\textbf{文本输入、文本输出的语言模型}，以及围绕它们构建的 RL、系统与智能体基础设施。有几个重要领域被有意排除：
 
 \begin{itemize}
-  \item \textbf{Multimodal models} (vision--language, audio, video). Multimodal architectures introduce distinct training pipelines (contrastive pre-training, cross-modal alignment, modality-specific encoders), data curation challenges, and evaluation protocols that each merit book-length treatment. Including them would double the scope without deepening the RL and agentic core that unifies this guide.
-  \item \textbf{Domain-specific deployments} (healthcare, legal, finance, scientific discovery). Domain adaptation introduces regulatory constraints, specialized evaluation, and data-access issues that are orthogonal to the general methods presented here. The algorithms and architectures we cover \emph{are} the building blocks practitioners adapt to these domains, but the adaptation details are better served by dedicated references.
-  \item \textbf{Personalization and recommendation systems.} Personalization relies on user modeling, collaborative filtering, and interaction-history architectures that form a parallel research tradition. While LLMs are increasingly used \emph{within} recommender systems, the core techniques (sequential models, bandit-based exploration, cold-start handling) are sufficiently distinct to warrant separate coverage.
+  % \item \textbf{Multimodal models} (vision--language, audio, video). Multimodal architectures introduce distinct training pipelines (contrastive pre-training, cross-modal alignment, modality-specific encoders), data curation challenges, and evaluation protocols that each merit book-length treatment. Including them would double the scope without deepening the RL and agentic core that unifies this guide.
+  \item \textbf{多模态模型}（视觉--语言、音频、视频）。多模态架构引入了独特的训练流水线（对比预训练、跨模态对齐、模态专用编码器）、数据精选挑战与评估协议，每一项都值得用一本书的篇幅来讨论。将其纳入只会让范围翻倍，却无法加深贯穿本指南的 RL 与智能体核心。
+  % \item \textbf{Domain-specific deployments} (healthcare, legal, finance, scientific discovery). Domain adaptation introduces regulatory constraints, specialized evaluation, and data-access issues that are orthogonal to the general methods presented here. The algorithms and architectures we cover \emph{are} the building blocks practitioners adapt to these domains, but the adaptation details are better served by dedicated references.
+  \item \textbf{特定领域部署}（医疗、法律、金融、科学发现）。领域适配带来监管约束、专门评估与数据访问问题，这些都与本文呈现的通用方法正交。我们覆盖的算法与架构\emph{正是}从业者向这些领域适配时所使用的构建模块，但适配细节交由专门的参考文献会更合适。
+  % \item \textbf{Personalization and recommendation systems.} Personalization relies on user modeling, collaborative filtering, and interaction-history architectures that form a parallel research tradition. While LLMs are increasingly used \emph{within} recommender systems, the core techniques (sequential models, bandit-based exploration, cold-start handling) are sufficiently distinct to warrant separate coverage.
+  \item \textbf{个性化与推荐系统}。个性化依赖用户建模、协同过滤与交互历史架构，构成了一条平行的研究传统。尽管 LLM 越来越多地被\emph{用在}推荐系统中，但其核心技术（序列模型、基于 bandit 的探索、冷启动处理）足够独特，值得另行讨论。
 \end{itemize}
 
-By maintaining this boundary, we keep a single coherent thread---\emph{from architectural foundations and systems infrastructure, through the training algorithms that produce aligned and reasoning models, to the orchestration and deployment of autonomous agents}---without fragmenting the narrative across modalities and verticals.
+% By maintaining this boundary, we keep a single coherent thread---\emph{from architectural foundations and systems infrastructure, through the training algorithms that produce aligned and reasoning models, to the orchestration and deployment of autonomous agents}---without fragmenting the narrative across modalities and verticals.
+通过守住这条边界，我们得以保持一条连贯的主线——\emph{从架构基础与系统基础设施，到产出对齐与推理模型的训练算法，再到自主智能体的编排与部署}——而不至于因穿插不同模态与垂直行业而让叙事破碎。
 
---- \emph{Haggai Roitman, 2026}
+% --- \emph{Haggai Roitman, 2026}
+--- \emph{Haggai Roitman，2026}
 
-\chapter*{Introduction}
-\addcontentsline{toc}{chapter}{Introduction}
+\chapter*{引言}
+\addcontentsline{toc}{chapter}{引言}
 \label{introduction}
 
-\section*{The Big Picture}
+\section*{宏观图景}
 \label{the-big-picture}
 
-This guide takes you from \textbf{first principles to production systems}. It is written for practitioners --- researchers, engineers, and applied scientists --- who want to understand and build the full stack of modern AI: from transformer architectures and the hardware that runs them, through the training algorithms that align models with human intent and teach them to reason, to the agentic architectures that deploy them as autonomous systems.
+% This guide takes you from \textbf{first principles to production systems}. It is written for practitioners --- researchers, engineers, and applied scientists --- who want to understand and build the full stack of modern AI: from transformer architectures and the hardware that runs them, through the training algorithms that align models with human intent and teach them to reason, to the agentic architectures that deploy them as autonomous systems.
+本指南将带你\textbf{从第一原理走到生产系统}。它面向想要理解并构建现代 AI 完整技术栈的从业者——研究者、工程师与应用科学家：从 Transformer 架构与运行它们的硬件，到使模型与人类意图对齐并教会它们推理的训练算法，再到把模型作为自主系统部署出去的智能体架构。
 
-The core thesis is simple: \emph{building great AI systems requires understanding the entire pipeline, not just one layer}. An engineer debugging a training run needs to understand GPU memory hierarchies and optimizer dynamics. A fine-tuning practitioner needs to know when LoRA suffices and when full-parameter training is worth the cost. An agent developer needs to understand how the underlying model was trained. A technical leader evaluating frameworks needs to understand what trade-offs each one makes. This guide provides that complete picture.
+% The core thesis is simple: \emph{building great AI systems requires understanding the entire pipeline, not just one layer}. An engineer debugging a training run needs to understand GPU memory hierarchies and optimizer dynamics. A fine-tuning practitioner needs to know when LoRA suffices and when full-parameter training is worth the cost. An agent developer needs to understand how the underlying model was trained. A technical leader evaluating frameworks needs to understand what trade-offs each one makes. This guide provides that complete picture.
+核心论点很简单：\emph{构建优秀的 AI 系统需要理解整条流水线，而不仅是某一层}。调试训练过程的工程师需要理解 GPU 显存层级与优化器动力学。做微调的从业者要知道何时 LoRA 已足够、何时全参数训练值得这个成本。Agent 开发者需要理解底层模型是如何训练出来的。评估框架的技术负责人需要理解每个框架做出了怎样的权衡。本指南提供这幅完整的图景。
 
-\section*{The Road to Agentic AI: A Brief History}
+\section*{通往智能体 AI 之路：一段简史}
 \label{the-road-to-agentic-ai-a-brief-history}
 
-Today’s agentic AI systems did not emerge in a vacuum. They stand on decades of milestone systems --- each solving a narrower problem but collectively building the techniques, hardware, and ambition that made autonomous agents possible.
+% Today’s agentic AI systems did not emerge in a vacuum. They stand on decades of milestone systems --- each solving a narrower problem but collectively building the techniques, hardware, and ambition that made autonomous agents possible.
+今天的智能体 AI 系统并非凭空出现。它们站立在数十年间一系列里程碑式系统之上——每一个都解决了一个更窄的问题，但它们共同积累起的技术、硬件与雄心，最终让自主智能体成为可能。
 
 \begin{enumerate}
-  \item \textbf{Deep Blue (1997)}~\cite{campbell2002deep} --- IBM’s chess engine defeated world champion Garry Kasparov using brute-force search (200 million positions/second) with handcrafted evaluation functions. It proved machines could exceed human performance in well-defined adversarial domains, but generalized to nothing else.
-  \item \textbf{IBM Watson --- Jeopardy! (2011)}~\cite{ferrucci2010building} --- Watson combined information retrieval, NLP, and massive parallelism to defeat human champions at open-domain question answering. It demonstrated that AI could process unstructured text at scale, but required years of domain-specific engineering and couldn’t learn new domains without substantial human effort.
-  \item \textbf{AlexNet and the Deep Learning Revolution (2012)}~\cite{krizhevsky2012imagenet} --- Krizhevsky et al.’s CNN won ImageNet by a stunning margin, proving that deep neural networks trained on GPUs could learn representations from raw data. This single result triggered the modern deep learning era and the hardware investment that eventually made LLMs possible.
-  \item \textbf{AlphaGo (2016)}~\cite{silver2016mastering} --- DeepMind’s system defeated Go world champion Lee Sedol using deep RL (policy networks + value networks + Monte Carlo Tree Search). Unlike Deep Blue’s brute force, AlphaGo \emph{learned} to play --- demonstrating that RL could master domains where search alone was intractable ($10^{170}$ board states). AlphaGo Zero (2017)~\cite{silver2017mastering} later learned entirely from self-play, needing no human games at all.
-  \item \textbf{GPT-2/GPT-3 (2019--2020)}~\cite{brown2020language} --- OpenAI showed that scaling decoder-only transformers to billions of parameters produced emergent few-shot learning. GPT-3 (175B parameters) could perform tasks it was never explicitly trained for --- translation, arithmetic, code generation --- simply from in-context examples. The era of foundation models began.
-  \item \textbf{AlphaFold (2020)}~\cite{jumper2021alphafold} --- DeepMind solved the 50-year protein folding problem, predicting 3D protein structures with atomic accuracy. AlphaFold demonstrated that deep learning could crack fundamental scientific problems previously considered decades away. It also showcased the power of architecture innovation (attention over residue pairs) combined with massive compute.
-  \item \textbf{ChatGPT and RLHF (2022)}~\cite{ouyang2022training} --- InstructGPT/ChatGPT proved that a capable base model, when aligned via RLHF, becomes a genuinely useful assistant. This was the inflection point: AI went from a research tool to a consumer product used by hundreds of millions. The alignment techniques (reward models, PPO) became the template for all subsequent LLM post-training.
-  \item \textbf{GPT-4 and Multimodal Models (2023)}~\cite{openai2023gpt4} --- Multimodal capabilities (vision + language), longer contexts, and improved reasoning pushed LLMs toward general-purpose cognition. Tool use (code interpreter, web browsing) hinted at agentic capabilities.
-  \item \textbf{Reasoning Models (2024)}~\cite{deepseek2025r1} --- OpenAI’s o1 and DeepSeek-R1 showed that RL could teach models to \emph{reason}: chain-of-thought, backtracking, self-verification emerged spontaneously from reward signals alone. Models began solving competition-level mathematics and complex coding tasks.
-  \item \textbf{Agentic AI (2025--present)} --- The convergence point: LLMs with reasoning capabilities, equipped with standardized tool access (MCP), inter-agent communication (A2A), persistent memory, and sophisticated orchestration frameworks. Agents now autonomously write code, conduct research, manage workflows, and coordinate with other agents --- the subject of this guide.
+  % \item \textbf{Deep Blue (1997)}~\cite{campbell2002deep} --- IBM’s chess engine defeated world champion Garry Kasparov using brute-force search (200 million positions/second) with handcrafted evaluation functions. It proved machines could exceed human performance in well-defined adversarial domains, but generalized to nothing else.
+  \item \textbf{Deep Blue（1997）}~\cite{campbell2002deep}——IBM 的象棋引擎以暴力搜索（每秒 2 亿个局面）配合手工评估函数，击败了世界冠军 Garry Kasparov。它证明了机器在边界清晰的对抗性领域可以超越人类，但无法泛化到其他任何任务。
+  % \item \textbf{IBM Watson --- Jeopardy! (2011)}~\cite{ferrucci2010building} --- Watson combined information retrieval, NLP, and massive parallelism to defeat human champions at open-domain question answering. It demonstrated that AI could process unstructured text at scale, but required years of domain-specific engineering and couldn’t learn new domains without substantial human effort.
+  \item \textbf{IBM Watson —— Jeopardy!（2011）}~\cite{ferrucci2010building}——Watson 结合了信息检索、NLP 与大规模并行，在开放领域问答中战胜人类冠军。它表明 AI 能够在规模上处理非结构化文本，但需要多年针对领域的工程，且如果没有大量人力，便无法学习新领域。
+  % \item \textbf{AlexNet and the Deep Learning Revolution (2012)}~\cite{krizhevsky2012imagenet} --- Krizhevsky et al.’s CNN won ImageNet by a stunning margin, proving that deep neural networks trained on GPUs could learn representations from raw data. This single result triggered the modern deep learning era and the hardware investment that eventually made LLMs possible.
+  \item \textbf{AlexNet 与深度学习革命（2012）}~\cite{krizhevsky2012imagenet}——Krizhevsky 等人的 CNN 在 ImageNet 上以惊人的领先优势夺冠，证明了在 GPU 上训练的深度神经网络可以从原始数据中学到表征。仅此一个结果便引爆了现代深度学习时代，以及最终让 LLM 成为可能的硬件投入。
+  % \item \textbf{AlphaGo (2016)}~\cite{silver2016mastering} --- DeepMind’s system defeated Go world champion Lee Sedol using deep RL (policy networks + value networks + Monte Carlo Tree Search). Unlike Deep Blue’s brute force, AlphaGo \emph{learned} to play --- demonstrating that RL could master domains where search alone was intractable ($10^{170}$ board states). AlphaGo Zero (2017)~\cite{silver2017mastering} later learned entirely from self-play, needing no human games at all.
+  \item \textbf{AlphaGo（2016）}~\cite{silver2016mastering}——DeepMind 的系统用深度 RL（policy 网络 + value 网络 + 蒙特卡洛树搜索）击败了围棋世界冠军 Lee Sedol。与 Deep Blue 的暴力搜索不同，AlphaGo 是\emph{学会}下棋的——证明了 RL 能够攻克仅靠搜索无法处理的领域（$10^{170}$ 个棋盘状态）。随后 AlphaGo Zero（2017）~\cite{silver2017mastering} 完全通过自我对弈学习，根本不需要任何人类棋谱。
+  % \item \textbf{GPT-2/GPT-3 (2019--2020)}~\cite{brown2020language} --- OpenAI showed that scaling decoder-only transformers to billions of parameters produced emergent few-shot learning. GPT-3 (175B parameters) could perform tasks it was never explicitly trained for --- translation, arithmetic, code generation --- simply from in-context examples. The era of foundation models began.
+  \item \textbf{GPT-2/GPT-3（2019--2020）}~\cite{brown2020language}——OpenAI 表明，把 decoder-only Transformer 扩展到数十亿参数会涌现出 few-shot learning 能力。GPT-3（175B 参数）仅凭上下文示例，就能完成它从未被显式训练过的任务——翻译、算术、代码生成。基础模型的时代由此开始。
+  % \item \textbf{AlphaFold (2020)}~\cite{jumper2021alphafold} --- DeepMind solved the 50-year protein folding problem, predicting 3D protein structures with atomic accuracy. AlphaFold demonstrated that deep learning could crack fundamental scientific problems previously considered decades away. It also showcased the power of architecture innovation (attention over residue pairs) combined with massive compute.
+  \item \textbf{AlphaFold（2020）}~\cite{jumper2021alphafold}——DeepMind 解决了悬而未决 50 年的蛋白质折叠问题，以原子级精度预测蛋白质 3D 结构。AlphaFold 证明了深度学习能够攻克此前被认为距离我们还有数十年的根本性科学难题，同时也展示了"架构创新（在残基对上做 attention）+ 大规模算力"组合的威力。
+  % \item \textbf{ChatGPT and RLHF (2022)}~\cite{ouyang2022training} --- InstructGPT/ChatGPT proved that a capable base model, when aligned via RLHF, becomes a genuinely useful assistant. This was the inflection point: AI went from a research tool to a consumer product used by hundreds of millions. The alignment techniques (reward models, PPO) became the template for all subsequent LLM post-training.
+  \item \textbf{ChatGPT 与 RLHF（2022）}~\cite{ouyang2022training}——InstructGPT/ChatGPT 证明：一个有能力的 base 模型，在经过 RLHF 对齐后，会变成真正有用的助手。这是一个拐点：AI 从研究工具变成了被亿万用户使用的消费产品。其对齐技术（reward 模型、PPO）成为此后所有 LLM 后训练的模板。
+  % \item \textbf{GPT-4 and Multimodal Models (2023)}~\cite{openai2023gpt4} --- Multimodal capabilities (vision + language), longer contexts, and improved reasoning pushed LLMs toward general-purpose cognition. Tool use (code interpreter, web browsing) hinted at agentic capabilities.
+  \item \textbf{GPT-4 与多模态模型（2023）}~\cite{openai2023gpt4}——多模态能力（视觉 + 语言）、更长的上下文与更强的推理能力，把 LLM 推向通用认知。工具使用（代码解释器、浏览网页）已经初见智能体能力的端倪。
+  % \item \textbf{Reasoning Models (2024)}~\cite{deepseek2025r1} --- OpenAI’s o1 and DeepSeek-R1 showed that RL could teach models to \emph{reason}: chain-of-thought, backtracking, self-verification emerged spontaneously from reward signals alone. Models began solving competition-level mathematics and complex coding tasks.
+  \item \textbf{推理模型（2024）}~\cite{deepseek2025r1}——OpenAI 的 o1 与 DeepSeek-R1 表明，仅依靠 reward 信号，RL 就能教会模型\emph{推理}：思维链、回溯与自我验证自发地涌现。模型开始攻克竞赛级数学题与复杂编码任务。
+  % \item \textbf{Agentic AI (2025--present)} --- The convergence point: LLMs with reasoning capabilities, equipped with standardized tool access (MCP), inter-agent communication (A2A), persistent memory, and sophisticated orchestration frameworks. Agents now autonomously write code, conduct research, manage workflows, and coordinate with other agents --- the subject of this guide.
+  \item \textbf{智能体 AI（2025 至今）}——汇合点到来：具备推理能力的 LLM，配上标准化工具访问（MCP）、智能体间通信（A2A）、持久化记忆与成熟的编排框架。Agent 现在能够自主编写代码、开展研究、管理工作流，并与其他 Agent 协作——正是本指南的主题。
 \end{enumerate}
 
 \begin{intuitionbox}
-Each milestone shares a common arc: \textbf{architecture innovation} $+$ \textbf{scale} $+$ \textbf{learning signal} $=$ \textbf{breakthrough}. Deep Blue used handcrafted search. AlphaGo learned from self-play. GPT-3 learned from internet text. Today’s agentic systems learn from human feedback, verifiable rewards, and environment interaction. The learning signal has expanded from game outcomes to open-ended human preferences --- and the architectures have grown to match.
+% Each milestone shares a common arc: \textbf{architecture innovation} $+$ \textbf{scale} $+$ \textbf{learning signal} $=$ \textbf{breakthrough}. Deep Blue used handcrafted search. AlphaGo learned from self-play. GPT-3 learned from internet text. Today’s agentic systems learn from human feedback, verifiable rewards, and environment interaction. The learning signal has expanded from game outcomes to open-ended human preferences --- and the architectures have grown to match.
+每一个里程碑都共享一条共同的轨迹：\textbf{架构创新} $+$ \textbf{规模} $+$ \textbf{学习信号} $=$ \textbf{突破}。Deep Blue 用的是手工搜索；AlphaGo 从自我对弈中学习；GPT-3 从互联网文本中学习；今天的智能体系统则从人类反馈、可验证奖励与环境交互中学习。学习信号已经从博弈胜负扩展到开放式的人类偏好——架构也随之成长以与之匹配。
 \end{intuitionbox}
 
-This guide picks up the story at the foundation model era and carries it forward through alignment, reasoning, and autonomous agency.
+% This guide picks up the story at the foundation model era and carries it forward through alignment, reasoning, and autonomous agency.
+本指南从基础模型时代接续叙事，并把它推进到对齐、推理与自主智能体阶段。
 
-\section*{What You Should Expect}
+\section*{你将看到什么}
 \label{what-you-should-expect}
 
-\textbf{Part I: Foundations} (Chapters 1--3) builds the base knowledge the rest of the guide depends on. We start with how LLMs work internally --- the architecture decisions that determine capability --- then cover the hardware and systems that make training and inference possible, and finally introduce reinforcement learning from first principles.
+% \textbf{Part I: Foundations} (Chapters 1--3) builds the base knowledge the rest of the guide depends on. We start with how LLMs work internally --- the architecture decisions that determine capability --- then cover the hardware and systems that make training and inference possible, and finally introduce reinforcement learning from first principles.
+\textbf{第一部分：基础}（第 1--3 章）搭建本指南其余部分所依赖的基础知识。我们从 LLM 在内部如何工作开始——决定能力的架构决策——然后覆盖让训练与推理成为可能的硬件与系统，最后从第一原理引入强化学习。
 
 \begin{itemize}
-  \item \textbf{Chapter 1 --- LLM Architecture and Optimization}: Transformer internals (self-attention, multi-head attention, RoPE, GQA), Flash Attention, optimization methods (AdamW, learning rate schedules, gradient clipping), mixed precision, LoRA/QLoRA, quantization, knowledge distillation, and Mixture of Experts.
-  \item \textbf{Chapter 2 --- Systems Foundations}: GPU architecture (A100/H100/B200), memory hierarchies, NVLink/NVSwitch, distributed training (FSDP, DeepSpeed ZeRO, tensor/pipeline parallelism), and vLLM for high-throughput inference.
-  \item \textbf{Chapter 3 --- Introduction to RL}: MDPs, Bellman equations, TD learning, Q-learning, policy gradients (REINFORCE), actor-critic methods, GAE --- the algorithmic toolkit that underpins Part II.
+  % \item \textbf{Chapter 1 --- LLM Architecture and Optimization}: Transformer internals (self-attention, multi-head attention, RoPE, GQA), Flash Attention, optimization methods (AdamW, learning rate schedules, gradient clipping), mixed precision, LoRA/QLoRA, quantization, knowledge distillation, and Mixture of Experts.
+  \item \textbf{第 1 章——LLM 架构与优化}：Transformer 内部机制（self-attention、multi-head attention、RoPE、GQA）、Flash Attention、优化方法（AdamW、学习率调度、梯度裁剪）、混合精度、LoRA/QLoRA、量化、知识蒸馏与 Mixture of Experts。
+  % \item \textbf{Chapter 2 --- Systems Foundations}: GPU architecture (A100/H100/B200), memory hierarchies, NVLink/NVSwitch, distributed training (FSDP, DeepSpeed ZeRO, tensor/pipeline parallelism), and vLLM for high-throughput inference.
+  \item \textbf{第 2 章——系统基础}：GPU 架构（A100/H100/B200）、内存层级、NVLink/NVSwitch、分布式训练（FSDP、DeepSpeed ZeRO、张量/流水线并行），以及用于高吞吐推理的 vLLM。
+  % \item \textbf{Chapter 3 --- Introduction to RL}: MDPs, Bellman equations, TD learning, Q-learning, policy gradients (REINFORCE), actor-critic methods, GAE --- the algorithmic toolkit that underpins Part II.
+  \item \textbf{第 3 章——RL 简介}：MDP、Bellman 方程、TD 学习、Q-learning、policy gradient（REINFORCE）、actor-critic 方法、GAE——支撑第二部分的算法工具箱。
 \end{itemize}
 
-\textbf{Part II: RL Methods for LLMs} (Chapters 4--12) is the training and alignment core. Here you learn how to align, improve, and fine-tune language models --- from full mathematical derivations to working code.
+% \textbf{Part II: RL Methods for LLMs} (Chapters 4--12) is the training and alignment core. Here you learn how to align, improve, and fine-tune language models --- from full mathematical derivations to working code.
+\textbf{第二部分：面向 LLM 的 RL 方法}（第 4--12 章）是训练与对齐的核心。在这里你会学到如何对齐、改进与微调语言模型——从完整的数学推导到可运行的代码。
 
 \begin{itemize}
-  \item \textbf{Chapters 4--8}: Every major RL/preference algorithm with math, intuition, and TRL code --- PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO, Best-of-N).
-  \item \textbf{Chapters 9--10}: Reward model training (Bradley--Terry, scaling laws, reward hacking) and SFT best practices (data quality, curriculum, formatting).
-  \item \textbf{Chapters 11--12}: System architecture at scale (decoupled training, fault tolerance, GPU allocation) and LLM agentic training --- how to train agents end-to-end with trajectory-level RL.
+  % \item \textbf{Chapters 4--8}: Every major RL/preference algorithm with math, intuition, and TRL code --- PPO, DPO, GRPO, and preference optimization variants (Online DPO, KTO, IPO, ORPO, SimPO, Best-of-N).
+  \item \textbf{第 4--8 章}：每一个主流 RL / 偏好算法都配有数学推导、直觉解释与 TRL 代码——PPO、DPO、GRPO，以及偏好优化变体（Online DPO、KTO、IPO、ORPO、SimPO、Best-of-N）。
+  % \item \textbf{Chapters 9--10}: Reward model training (Bradley--Terry, scaling laws, reward hacking) and SFT best practices (data quality, curriculum, formatting).
+  \item \textbf{第 9--10 章}：Reward 模型训练（Bradley-Terry、scaling laws、reward hacking）与 SFT 最佳实践（数据质量、课程学习、格式化）。
+  % \item \textbf{Chapters 11--12}: System architecture at scale (decoupled training, fault tolerance, GPU allocation) and LLM agentic training --- how to train agents end-to-end with trajectory-level RL.
+  \item \textbf{第 11--12 章}：大规模系统架构（解耦训练、容错、GPU 分配）与 LLM 智能体训练——如何用轨迹级 RL 端到端训练 Agent。
 \end{itemize}
 
-\textbf{Part III: Reasoning} (Chapter 13) covers the frontier of model capability --- teaching LLMs to reason through multi-step problems.
+% \textbf{Part III: Reasoning} (Chapter 13) covers the frontier of model capability --- teaching LLMs to reason through multi-step problems.
+\textbf{第三部分：推理}（第 13 章）覆盖模型能力的前沿——教 LLM 解决多步问题。
 
 \begin{itemize}
-  \item \textbf{Chapter 13 --- RL for Large Reasoning Models}: DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
+  % \item \textbf{Chapter 13 --- RL for Large Reasoning Models}: DeepSeek-R1, OpenAI o1/o3/o4-mini, QwQ --- how RL discovers chain-of-thought, MCTS, process reward models, and test-time compute scaling.
+  \item \textbf{第 13 章——大型推理模型的 RL}：DeepSeek-R1、OpenAI o1/o3/o4-mini、QwQ——RL 如何发现思维链、MCTS、过程奖励模型与测试时算力扩展。
 \end{itemize}
 
-\textbf{Part IV: Evaluation} (Chapter 14) provides the methodology for measuring whether any of this actually works.
+% \textbf{Part IV: Evaluation} (Chapter 14) provides the methodology for measuring whether any of this actually works.
+\textbf{第四部分：评估}（第 14 章）提供测量"上面这些是否真的有效"的方法论。
 
 \begin{itemize}
-  \item \textbf{Chapter 14 --- LLM Evaluation}: Metrics (perplexity, pass@k, ELO), LLM-as-Judge patterns, contamination detection, benchmark suites, and agentic evaluation methodology.
+  % \item \textbf{Chapter 14 --- LLM Evaluation}: Metrics (perplexity, pass@k, ELO), LLM-as-Judge patterns, contamination detection, benchmark suites, and agentic evaluation methodology.
+  \item \textbf{第 14 章——LLM 评估}：指标（perplexity、pass@k、ELO）、LLM-as-Judge 模式、污染检测、基准套件，以及智能体评估方法论。
 \end{itemize}
 
-\textbf{Part V: Agentic AI} (Chapters 15--26) takes you from a trained model to a deployed autonomous system. This is the largest part, covering everything an agent needs to operate in the real world.
+% \textbf{Part V: Agentic AI} (Chapters 15--26) takes you from a trained model to a deployed autonomous system. This is the largest part, covering everything an agent needs to operate in the real world.
+\textbf{第五部分：智能体 AI}（第 15--26 章）带你从一个训练好的模型走向一个被部署出去的自主系统。这是篇幅最大的部分，覆盖了一个 Agent 在真实世界中运作所需的一切。
 
 \begin{itemize}
-  \item \textbf{Chapter 15 --- Introduction to Agentic AI}: What makes a system agentic, the spectrum from chatbots to autonomous agents, and the foundational concepts for the rest of Part V.
-  \item \textbf{Chapter 16 --- RAG}: Retrieval methods, chunking, embedding models, hybrid search, reranking, and production architectures.
-  \item \textbf{Chapter 17 --- Memory Systems}: Working, episodic, semantic, and procedural memory for persistent agent knowledge.
-  \item \textbf{Chapter 18 --- Orchestration}: ReAct, Plan-and-Execute, LLM Compiler, reflexion patterns, context management, and harness design.
-  \item \textbf{Chapter 19 --- Design Patterns}: Prompt chaining, routing, parallelization, evaluation-driven orchestration, and the simplicity principle.
-  \item \textbf{Chapter 20 --- Environments and Benchmarks}: WebArena, SWE-bench, OSWorld, GAIA --- evaluation environments for agentic capability.
-  \item \textbf{Chapter 21 --- Model Context Protocol (MCP)}: Architecture, transport layers, tool/resource/prompt primitives, security, and deployment.
-  \item \textbf{Chapter 22 --- Agent Skills}: Skill libraries, tool composition, and capability abstraction.
-  \item \textbf{Chapter 23 --- A2A Communication}: Google's Agent-to-Agent protocol --- Agent Cards, task lifecycle, streaming, enterprise patterns.
-  \item \textbf{Chapter 24 --- Multi-Agent Systems}: Hierarchical, debate, marketplace, and swarm architectures --- coordination at scale.
-  \item \textbf{Chapter 25 --- Development Frameworks}: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK --- comparative analysis with code.
-  \item \textbf{Chapter 26 --- Agentic UI}: Streaming interfaces, generative UI, canvas paradigms, tool visualization, human-in-the-loop patterns.
+  % \item \textbf{Chapter 15 --- Introduction to Agentic AI}: What makes a system agentic, the spectrum from chatbots to autonomous agents, and the foundational concepts for the rest of Part V.
+  \item \textbf{第 15 章——智能体 AI 简介}：是什么让一个系统具备"智能体性"，从聊天机器人到自主 Agent 的光谱，以及第五部分余下章节所需的基础概念。
+  % \item \textbf{Chapter 16 --- RAG}: Retrieval methods, chunking, embedding models, hybrid search, reranking, and production architectures.
+  \item \textbf{第 16 章——RAG}：检索方法、分块、Embedding 模型、混合检索、重排，以及生产架构。
+  % \item \textbf{Chapter 17 --- Memory Systems}: Working, episodic, semantic, and procedural memory for persistent agent knowledge.
+  \item \textbf{第 17 章——记忆系统}：用于 Agent 持久知识的工作记忆、情景记忆、语义记忆与程序性记忆。
+  % \item \textbf{Chapter 18 --- Orchestration}: ReAct, Plan-and-Execute, LLM Compiler, reflexion patterns, context management, and harness design.
+  \item \textbf{第 18 章——编排}：ReAct、Plan-and-Execute、LLM Compiler、reflexion 模式、上下文管理与 harness 设计。
+  % \item \textbf{Chapter 19 --- Design Patterns}: Prompt chaining, routing, parallelization, evaluation-driven orchestration, and the simplicity principle.
+  \item \textbf{第 19 章——设计模式}：prompt chaining、路由、并行化、评估驱动的编排，以及"简洁性原则"。
+  % \item \textbf{Chapter 20 --- Environments and Benchmarks}: WebArena, SWE-bench, OSWorld, GAIA --- evaluation environments for agentic capability.
+  \item \textbf{第 20 章——环境与基准}：WebArena、SWE-bench、OSWorld、GAIA——评估智能体能力的环境。
+  % \item \textbf{Chapter 21 --- Model Context Protocol (MCP)}: Architecture, transport layers, tool/resource/prompt primitives, security, and deployment.
+  \item \textbf{第 21 章——Model Context Protocol (MCP)}：架构、传输层，tool/resource/prompt 原语、安全与部署。
+  % \item \textbf{Chapter 22 --- Agent Skills}: Skill libraries, tool composition, and capability abstraction.
+  \item \textbf{第 22 章——Agent Skills}：技能库、工具组合与能力抽象。
+  % \item \textbf{Chapter 23 --- A2A Communication}: Google's Agent-to-Agent protocol --- Agent Cards, task lifecycle, streaming, enterprise patterns.
+  \item \textbf{第 23 章——A2A 通信}：Google 的 Agent-to-Agent 协议——Agent Cards、任务生命周期、流式通信与企业级模式。
+  % \item \textbf{Chapter 24 --- Multi-Agent Systems}: Hierarchical, debate, marketplace, and swarm architectures --- coordination at scale.
+  \item \textbf{第 24 章——多智能体系统}：层级式、辩论式、市场式与群体式架构——大规模协作。
+  % \item \textbf{Chapter 25 --- Development Frameworks}: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK --- comparative analysis with code.
+  \item \textbf{第 25 章——开发框架}：LangGraph、CrewAI、AutoGen、OpenAI Agents SDK、Google ADK——附代码的对比分析。
+  % \item \textbf{Chapter 26 --- Agentic UI}: Streaming interfaces, generative UI, canvas paradigms, tool visualization, human-in-the-loop patterns.
+  \item \textbf{第 26 章——智能体 UI}：流式界面、生成式 UI、canvas 范式、工具可视化与人机协同（Human-in-the-Loop）模式。
 \end{itemize}
 
-\section*{The Modern AI Pipeline}
+\section*{现代 AI 流水线}
 \label{the-modern-ai-pipeline}
 
-The full pipeline from base model to deployed agent:
+% The full pipeline from base model to deployed agent:
+从 base 模型到部署 Agent 的完整流水线：
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig_001_pipeline.png}
-\caption{The modern LLM development pipeline: from pre-trained base model through alignment and reasoning to autonomous agentic capability. Each stage maps to a part of this guide.}
+% \caption{The modern LLM development pipeline: from pre-trained base model through alignment and reasoning to autonomous agentic capability. Each stage maps to a part of this guide.}
+\caption{现代 LLM 开发流水线：从预训练 base 模型，经由对齐与推理，走向自主的智能体能力（The modern LLM development pipeline: from pre-trained base model through alignment and reasoning to autonomous agentic capability）。每一阶段对应本指南的一个部分。}
 \label{fig:pipeline}
 \end{figure}
 
