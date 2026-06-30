@@ -3,9 +3,9 @@ name: Build Book
 # Build book.pdf on every PR and push to main; publish to GitHub Releases on tag.
 #
 # Jobs:
-#   build        - compile book.pdf (runs on PR / push to main / tag)
-#   pr-artifact  - re-upload PDF under a PR-friendly name for reviewers
-#   release      - attach PDF to a GitHub Release when a v* tag is pushed
+#   build    - compile book.pdf and upload as workflow artifact
+#              (runs on PR / push to main / tag)
+#   release  - attach PDF to a GitHub Release when a v* tag is pushed
 #
 # Why a TeX Live container instead of xu-cheng/latex-action: the project's
 # Makefile deliberately runs the explicit `xelatex -> bibtex -> xelatex ->
@@ -59,33 +59,12 @@ jobs:
       - name: Compile book.pdf
         run: make
 
-      - name: Upload book.pdf for downstream jobs
+      - name: Upload book.pdf
         uses: actions/upload-artifact@v4
         with:
           name: book-pdf
           path: book.pdf
           if-no-files-found: error
-          retention-days: 14
-
-  pr-artifact:
-    # Re-expose the build artifact under a PR-numbered name so reviewers see
-    # a friendly filename in the Actions UI. Skipped on push events.
-    if: github.event_name == 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: book-pdf
-          path: .
-
-      - name: Rename for PR preview
-        run: mv book.pdf "agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}.pdf"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}
-          path: agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}.pdf
           retention-days: 14
 
   release:
