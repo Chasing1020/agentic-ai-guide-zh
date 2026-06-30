@@ -1,0 +1,111 @@
+name: Build Book
+
+# Build book.pdf on every PR and push to main; publish to GitHub Releases on tag.
+#
+# Jobs:
+#   build        - compile book.pdf (runs on PR / push to main / tag)
+#   pr-artifact  - re-upload PDF under a PR-friendly name for reviewers
+#   release      - attach PDF to a GitHub Release when a v* tag is pushed
+#
+# Why a TeX Live container instead of xu-cheng/latex-action: the project's
+# Makefile deliberately runs the explicit `xelatex -> bibtex -> xelatex ->
+# xelatex` sequence and avoids latexmk (see Makefile header). Using the
+# texlive/texlive image lets us call `make` directly so CI matches local
+# behaviour 1:1.
+#
+# Font handling: book.tex uses macOS-only CJK fonts (Songti SC / PingFang SC /
+# STFangsong). On the Linux runner we swap them in-place to Noto CJK before
+# compiling. The edit lives only in the runner's working tree and is never
+# committed, so local macOS builds are untouched.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: texlive/texlive:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Noto CJK fonts
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-cjk-extra
+          # Refresh fontconfig cache so XeLaTeX/fontspec can find the new fonts.
+          fc-cache -f
+
+      - name: Swap macOS CJK fonts to Noto CJK for Linux build
+        run: |
+          sed -i \
+            -e 's/\\setCJKmainfont{Songti SC}\[AutoFakeBold=2.5, AutoFakeSlant=0.15\]/\\setCJKmainfont{Noto Serif CJK SC}/' \
+            -e 's/\\setCJKsansfont{PingFang SC}/\\setCJKsansfont{Noto Sans CJK SC}/' \
+            -e 's/\\setCJKmonofont{STFangsong}/\\setCJKmonofont{Noto Sans Mono CJK SC}/' \
+            book.tex
+          # Fail loudly if any of the three substitutions silently missed
+          # (e.g. someone reformatted the preamble and the regex no longer
+          # matches). Without these guards we'd ship a broken PDF.
+          grep -q 'Noto Serif CJK SC' book.tex
+          grep -q 'Noto Sans CJK SC' book.tex
+          grep -q 'Noto Sans Mono CJK SC' book.tex
+
+      - name: Compile book.pdf
+        run: make
+
+      - name: Upload book.pdf for downstream jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-pdf
+          path: book.pdf
+          if-no-files-found: error
+          retention-days: 14
+
+  pr-artifact:
+    # Re-expose the build artifact under a PR-numbered name so reviewers see
+    # a friendly filename in the Actions UI. Skipped on push events.
+    if: github.event_name == 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: book-pdf
+          path: .
+
+      - name: Rename for PR preview
+        run: mv book.pdf "agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}.pdf"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}
+          path: agentic-ai-guide-zh-pr-${{ github.event.pull_request.number }}.pdf
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: book-pdf
+          path: .
+
+      - name: Rename PDF with tag
+        run: mv book.pdf "agentic-ai-guide-zh-${{ github.ref_name }}.pdf"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: agentic-ai-guide-zh-${{ github.ref_name }}.pdf
+          generate_release_notes: true
+          fail_on_unmatched_files: true
