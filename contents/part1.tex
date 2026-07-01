@@ -4853,8 +4853,7 @@ Broadcast & 权重同步（新 worker） & 完整模型大小 \\
 \section{vLLM——分页注意力与高吞吐推理}
 \label{vllm-pagedattention-and-high-throughput-inference}
 
-% vLLM~\cite{kwon2023efficient} introduced PagedAttention, which borrows the paging abstraction that operating systems use for RAM and applies it to the GPU's KV cache. During LLM inference, the \emph{KV cache} -- the stored key and val
-ue tensors for all previous tokens -- is the dominant memory consumer. Managing it efficiently is the central challenge of high-throughput inference.
+% vLLM~\cite{kwon2023efficient} introduced PagedAttention, which borrows the paging abstraction that operating systems use for RAM and applies it to the GPU's KV cache. During LLM inference, the \emph{KV cache} -- the stored key and value tensors for all previous tokens -- is the dominant memory consumer. Managing it efficiently is the central challenge of high-throughput inference.
 vLLM~\cite{kwon2023efficient} 引入了分页注意力（PagedAttention），它借鉴操作系统用于管理 RAM 的分页抽象，并将其应用于 GPU 的键值缓存（KV Cache）。在 LLM 推理过程中，\emph{KV cache}——存储了所有先前 token 的 key 和 value 张量——是最大的内存消耗者。高效管理 KV cache 是高吞吐推理的核心挑战。
 
 \subsection{KV cache 碎片化问题}
