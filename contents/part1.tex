@@ -4438,7 +4438,7 @@ TPU v5e & Google & 16 GB & 197 TF & 1.6 TB/s & ICI 1.6 TB/s & 仅云端；JAX/XL
   % \item \textbf{Training 70B+ models}: H100/B200 nodes with NVLink (need fast interconnect for tensor parallelism). Minimum 8$\times$H100 per instance.
   \item \textbf{训练 70B+ 模型}：带 NVLink 的 H100/B200 节点（张量并行需要快速互联）。每个实例至少 8$\times$H100。
   % \item \textbf{Inference (latency-sensitive)}: H100/H200 for high BW; MI300X for memory-bound (huge KV caches).
-  \item \textbf{推理（延迟敏感）}：H100/H200 适合高带宽场景；MI300X 适合内存绑定（Memory-Bound）场景（巨大的键值缓存（KV Cache））。
+  \item \textbf{推理（延迟敏感）}：H100/H200 适合高带宽场景；MI300X 适合内存密集（Memory-Bound）场景（巨大的键值缓存（KV Cache））。
   % \item \textbf{Fine-tuning 7B--13B}: A100-80GB is cost-effective. Single GPU with LoRA.
   \item \textbf{微调 7B--13B 模型}：A100-80GB 性价比高。用 LoRA 单卡即可。
   % \item \textbf{Budget}: A100-40GB or even A10 (24GB) for LoRA on 7B models.
@@ -4527,7 +4527,7 @@ NVMe SSD & TB 级 & 7 GB/s & $\sim$100 $\mu$s & 主机存储 \\
 
 \begin{intuitionbox}[为何各层级差距如此巨大]
 % Each level of the hierarchy is roughly \textbf{10$\times$ slower and 100--1000$\times$ larger} than the one above it. The A100 has 312 TFLOP/s of BF16 tensor-core throughput but only 2 TB/s of HBM bandwidth. That means for every byte loaded from HBM you can do $312 \times 10^{12} / (2 \times 10^{12}) \approx 156$ floating-point operations before the next byte arrives. If your kernel does fewer than 156 FLOPs per byte, it is \emph{memory-bound} -- the compute units are idle waiting for data.
-内存层级中每一级大约比上一级\textbf{慢 10$\times$，大 100--1000$\times$}。A100 有 312 TFLOP/s 的 BF16 tensor-core 吞吐，但 HBM 带宽只有 2 TB/s。这意味着从 HBM 每加载一字节，你可以在下一字节到达之前完成 $312 \times 10^{12} / (2 \times 10^{12}) \approx 156$ 次浮点运算。如果你的内核每字节运算少于 156 FLOPs，它就是\emph{内存绑定（Memory-Bound）}的——计算单元在空等数据。
+内存层级中每一级大约比上一级\textbf{慢 10$\times$，大 100--1000$\times$}。A100 有 312 TFLOP/s 的 BF16 tensor-core 吞吐，但 HBM 带宽只有 2 TB/s。这意味着从 HBM 每加载一字节，你可以在下一字节到达之前完成 $312 \times 10^{12} / (2 \times 10^{12}) \approx 156$ 次浮点运算。如果你的内核每字节运算少于 156 FLOPs，它就是\emph{内存密集（Memory-Bound）}的——计算单元在空等数据。
 \end{intuitionbox}
 
 \paragraph{寄存器。}
@@ -4575,7 +4575,7 @@ I = \frac{\text{FLOPs}}{\text{从 HBM 访问的字节数}}
   \quad \text{(FLOPs / Byte)}
 \]
 % A kernel is \textbf{memory-bound} when $I < I_{\text{ridge}}$ and \textbf{compute-bound} when $I > I_{\text{ridge}}$, where
-当 $I < I_{\text{ridge}}$ 时内核是\textbf{内存绑定（Memory-Bound）}的，当 $I > I_{\text{ridge}}$ 时则是\textbf{计算绑定（Compute-Bound）}的，其中
+当 $I < I_{\text{ridge}}$ 时内核是\textbf{内存密集（Memory-Bound）}的，当 $I > I_{\text{ridge}}$ 时则是\textbf{计算密集（Compute-Bound）}的，其中
 \[
 I_{\text{ridge}} = \frac{\text{峰值 FLOP/s}}{\text{峰值带宽}}
   = \frac{312 \times 10^{12}}{2 \times 10^{12}} = 156 \text{ FLOP/Byte (A100 BF16)}
@@ -4585,7 +4585,7 @@ I_{\text{ridge}} = \frac{\text{峰值 FLOP/s}}{\text{峰值带宽}}
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/fig_017_fig17.png}
-\caption{A100 BF16 的 Roofline 模型（Roofline Model）。Attention 深陷于内存绑定区间；大型 GEMM（FFN 层）则是计算绑定的。}
+\caption{A100 BF16 的 Roofline 模型（Roofline Model）。Attention 深陷于内存密集区间；大型 GEMM（FFN 层）则是计算密集的。}
 \end{figure}
 
 \begin{examplebox}[Attention 的算术强度]
@@ -4623,7 +4623,7 @@ I = \frac{8.6 \times 10^9}{138 \times 10^6} \approx 62 \text{ FLOP/Byte}
 \]
 
 % This is $62/156 = 40\%$ of the A100 ridge point --- \textbf{firmly memory-bound}. The GPU is 60\% idle waiting for memory.
-这是 A100 脊点的 $62/156 = 40\%$——\textbf{明确属于内存绑定}。GPU 有 60\% 的时间在等内存空转。
+这是 A100 脊点的 $62/156 = 40\%$——\textbf{明确属于内存密集}。GPU 有 60\% 的时间在等内存空转。
 
 % \textbf{Flash Attention fix}: By never materializing the $n \times n$ matrix (tiling $Q, K, V$ in SRAM), Flash Attention reduces HBM traffic to just reading $Q, K, V$ and writing $O$: $4 \times n \times d \times 2 = 4$ MB. Each byte loaded is reused in $O(n)$ computations (every query attends to every key), so:
 \textbf{Flash Attention 解决方案}：通过永远不物化 $n \times n$ 矩阵（在 SRAM 中对 $Q, K, V$ 分块），Flash Attention 把 HBM 流量降至仅读取 $Q, K, V$ 并写入 $O$：$4 \times n \times d \times 2 = 4$ MB。每个加载的字节被复用于 $O(n)$ 次计算（每个 query 都要 attend 所有 key），因此：
@@ -4632,10 +4632,10 @@ I = \frac{4n^2 d}{4 \cdot n \cdot d \cdot 2} = \frac{n}{2} = \frac{4096}{2} = 20
 \]
 
 % This is $13\times$ above the ridge point (156) --- \textbf{deeply compute-bound}. The GPU hits its peak 312 TFLOPS, needing only $312\text{T}/2048 \approx 152$ GB/s of bandwidth (7.6\% of HBM capacity). Memory is no longer the bottleneck.
-这比脊点（156）高出 $13\times$——\textbf{深度计算绑定}。GPU 跑满峰值 312 TFLOPS，只需要 $312\text{T}/2048 \approx 152$ GB/s 带宽（HBM 容量的 7.6\%）。内存不再是瓶颈。
+这比脊点（156）高出 $13\times$——\textbf{深度计算密集}。GPU 跑满峰值 312 TFLOPS，只需要 $312\text{T}/2048 \approx 152$ GB/s 带宽（HBM 容量的 7.6\%）。内存不再是瓶颈。
 \end{examplebox}
 
-\subsection{Attention 是内存绑定的；FFN 是计算绑定的}
+\subsection{Attention 是内存密集的；FFN 是计算密集的}
 \label{attention-is-memory-bound-ffn-is-compute-bound}
 
 \begin{intuitionbox}[Transformer 中的两种区间]
@@ -4644,9 +4644,9 @@ I = \frac{4n^2 d}{4 \cdot n \cdot d \cdot 2} = \frac{n}{2} = \frac{4096}{2} = 20
 
 \begin{itemize}
   % \item \textbf{Attention:} Operates on $n \times d$ tensors. The $QK^T$ product is $O(n^2 d)$ FLOPs but requires $O(n^2)$ memory for the attention scores. At long sequences, memory traffic dominates -- attention is \emph{memory-bound}.
-  \item \textbf{Attention：}作用于 $n \times d$ 张量。$QK^T$ 乘积是 $O(n^2 d)$ FLOPs，但注意力分数需要 $O(n^2)$ 内存。在长序列下，内存流量占主导地位——attention 是\emph{内存绑定（Memory-Bound）}的。
+  \item \textbf{Attention：}作用于 $n \times d$ 张量。$QK^T$ 乘积是 $O(n^2 d)$ FLOPs，但注意力分数需要 $O(n^2)$ 内存。在长序列下，内存流量占主导地位——attention 是\emph{内存密集（Memory-Bound）}的。
   % \item \textbf{FFN (MLP):} Two large linear layers with weight matrices of shape $[d_{\text{model}}, 4d_{\text{model}}]$. These are large GEMMs with high arithmetic intensity -- FFN is \emph{compute-bound}.
-  \item \textbf{FFN（MLP）：}两个大型线性层，权重矩阵形状为 $[d_{\text{model}}, 4d_{\text{model}}]$。这些是高算术强度的大型 GEMM——FFN 是\emph{计算绑定（Compute-Bound）}的。
+  \item \textbf{FFN（MLP）：}两个大型线性层，权重矩阵形状为 $[d_{\text{model}}, 4d_{\text{model}}]$。这些是高算术强度的大型 GEMM——FFN 是\emph{计算密集（Compute-Bound）}的。
 \end{itemize}
 
 % This is why Flash Attention (memory optimization) helps attention but not FFN, while quantization (reducing weight size) helps FFN more than attention.
@@ -4679,7 +4679,7 @@ A100 在 108 个 SM 中共有 \textbf{432 个 Tensor Cores}（每个 SM 4 个，
 
 \begin{warningbox}[Tensor Core 陷阱]
 % Tensor Cores only help if your kernel is \emph{compute-bound}. If you are running a small batch (batch size 1, inference), the GEMM tiles are tiny, Tensor Core utilization is low, and you are back in the memory-bound regime. This is why inference engines batch requests aggressively.
-只有当你的内核是\emph{计算绑定（Compute-Bound）}时，Tensor Cores 才有用。如果你跑的是小 batch（batch size 1 的推理），GEMM 分块很小，Tensor Core 利用率很低，你又回到内存绑定区间。这就是为什么推理引擎要激进地对请求进行 batch。
+只有当你的内核是\emph{计算密集（Compute-Bound）}时，Tensor Cores 才有用。如果你跑的是小 batch（batch size 1 的推理），GEMM 分块很小，Tensor Core 利用率很低，你又回到内存密集区间。这就是为什么推理引擎要激进地对请求进行 batch。
 \end{warningbox}
 
 \subsection{通信架构——NVLink、InfiniBand 与 PCIe}
@@ -5113,9 +5113,9 @@ vLLM 将 PagedAttention 封装在一整套服务栈中：连续批处理（Conti
   \item 如果超出预算：\textbf{抢占}优先级最低的运行中序列（把 KV 换出到 CPU 或之后重新计算）。
 \end{enumerate}
   % \item \textbf{Prefill} (first iteration for a request): The entire prompt is processed in one forward pass. KV cache is computed for all prompt tokens and stored in allocated blocks. This is compute-bound (large batch of tokens).
-  \item \textbf{Prefill}（请求的第一次迭代）：整个 prompt 在一次前向传播中被处理。所有 prompt token 的 KV cache 被计算并存入已分配的块。这是计算绑定（Compute-Bound）的（大批 token）。
+  \item \textbf{Prefill}（请求的第一次迭代）：整个 prompt 在一次前向传播中被处理。所有 prompt token 的 KV cache 被计算并存入已分配的块。这是计算密集（Compute-Bound）的（大批 token）。
   % \item \textbf{Decode} (subsequent iterations): One new token generated per sequence per step. All running sequences are batched together (continuous batching). This is memory-bound (reads full KV cache, generates 1 token).
-  \item \textbf{Decode}（后续迭代）：每条序列每步生成一个新 token。所有运行中的序列被一起 batch（连续批处理）。这是内存绑定（Memory-Bound）的（读取完整 KV cache，生成 1 个 token）。
+  \item \textbf{Decode}（后续迭代）：每条序列每步生成一个新 token。所有运行中的序列被一起 batch（连续批处理）。这是内存密集（Memory-Bound）的（读取完整 KV cache，生成 1 个 token）。
   % \item \textbf{Block Allocation}: After each decode step, if the last block for a sequence is full, the Block Manager allocates a new physical block and maps it to the next logical block.
   \item \textbf{块分配}：每个 decode 步后，如果某条序列的最后一个块已满，Block Manager 分配一个新的物理块并将其映射到下一逻辑块。
   % \item \textbf{Completion}: When a sequence hits EOS or max length, it's removed from \texttt{running}. Its physical blocks are freed immediately $\rightarrow$ available for other sequences. Response is streamed back to client.
