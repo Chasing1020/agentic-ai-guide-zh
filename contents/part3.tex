@@ -465,7 +465,7 @@ a^* = \arg\max_a \left[ Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqr
 \centering\small
 % \caption{Tree-of-Thoughts vs.~Monte Carlo Tree Search for reasoning.}
 \caption{面向推理的 Tree-of-Thoughts 与 Monte Carlo Tree Search 对比。}
-\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\noindent\begin{tabularx}{\linewidth}{@{}l Z{0.92} Z{1.08}@{}}
 \toprule
 \textbf{维度} & \textbf{ToT} & \textbf{MCTS} \\
 \midrule
@@ -523,7 +523,7 @@ y^{(t+1)} = \text{LLM}\!\left(\text{``Improve this solution:''}, y^{(t)}, \text{
 % \caption{Comprehensive comparison of test-time scaling methods.}
 \caption{测试时扩展方法的综合比较。}
 {\footnotesize
-\begin{tabular}{@{}llllll@{}}
+\noindent\begin{tabularx}{\linewidth}{@{}Z{1.05} l l l l Z{0.95}@{}}
 \toprule
 \textbf{方法} & \textbf{结构} & \textbf{LLM 调用} & \textbf{可并行} & \textbf{需要 RM？} & \textbf{最适用于} \\
 \midrule
@@ -537,7 +537,7 @@ MCTS~\cite{kocsis2006bandit} & 树 + 价值 & $O(N_{\text{sim}} \cdot d)$ & 部�
 Self-Refine~\cite{madaan2023selfrefine} & 线性（迭代） & $2T$ & 否 & 自我评判 & 开放式生成 \\
 LATS~\cite{zhou2024lats} & 树 + 反思 & $O(N \cdot d)$ & 部分 & LLM 作判官 & Agent 任务 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 }
 \end{table}
 
@@ -1359,7 +1359,7 @@ Quiet-STaR 将推理成本提升为 $L_z + 1$ 倍（$L_z$ 为思考长度），�
 \begin{table}[ht!]
 \centering\small
 \caption{推理模型训练方法对比。}
-\begin{tabularx}{\textwidth}{@{}lXXXXXX@{}}
+\noindent\begin{tabularx}{\linewidth}{@{}l Z{1} Z{1} Z{1} Z{1} Z{1} Z{1}@{}}
 \toprule
 \textbf{方法} & \textbf{PRM} & \textbf{ORM} & \textbf{MCTS} & \textbf{蒸馏} & \textbf{工具} & \textbf{开源} \\
 \midrule

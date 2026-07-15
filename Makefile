@@ -16,7 +16,7 @@ MAIN  := book
 TEX   := $(MAIN).tex
 PDF   := $(MAIN).pdf
 BIB   := $(MAIN).bib
-PARTS := $(wildcard parts/*.tex)
+PARTS := $(wildcard contents/*.tex)
 
 # Files latex regenerates each run; safe to delete pre-build.
 INTERMEDIATES := \

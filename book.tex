@@ -13,7 +13,7 @@
 \usepackage{xeCJK}
 \setCJKmainfont{Songti SC}[AutoFakeBold=2.5, AutoFakeSlant=0.15]
 \setCJKsansfont{PingFang SC}
-\setCJKmonofont{STFangsong}
+\setCJKmonofont{Songti SC}
 % Allow line-breaking around CJK ↔ Latin/punctuation
 \XeTeXlinebreaklocale "zh"
 \XeTeXlinebreakskip = 0pt plus 1pt
@@ -43,6 +43,10 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{longtable}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{Z}[1]{>{\hsize=#1\hsize\linewidth=\hsize}X}
 
 % Code listings
 \usepackage{listings}
