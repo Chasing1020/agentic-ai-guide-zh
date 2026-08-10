@@ -2410,8 +2410,8 @@ AWQ 识别出 top 1\% 的“显著”通道（在校准数据上始终具有较�
 \end{tabular}
 \end{center}
 
-% \emph{\textbf{Review:} Chapters~12 and~18 (LLM Agentic Training; Agent Design Patterns).}
-\emph{\textbf{复习：}第 12 章与第 18 章（LLM Agent 训练；Agent 设计模式）。}
+% \emph{\textbf{Review:} Chapters~12 and~20 (LLM Agentic Training; Agent Design Patterns).}
+\emph{\textbf{复习：}第 12 章与第 20 章（LLM Agent 训练；Agent 设计模式）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: Why is GRPO preferred over PPO for a research agent?]
@@ -2473,8 +2473,8 @@ R = 0.5 \cdot R_{\text{tests}} + 0.2 \cdot R_{\text{quality}} + 0.2 \cdot R_{\te
   \item \textbf{效率作弊}：Agent 跳过推理步骤以最大化效率奖励。\emph{修复}：先满足最低质量阈值，再给效率奖励。
 \end{enumerate}
 
-% \emph{\textbf{Review:} Chapters~9, 12, and~19 (Reward Model Training; LLM Agentic Training; Agentic Environments).}
-\emph{\textbf{复习：}第 9、12、19 章（Reward 模型训练；LLM Agent 训练；Agent 环境）。}
+% \emph{\textbf{Review:} Chapters~9, 12, and~21 (Reward Model Training; LLM Agentic Training; Agentic Environments).}
+\emph{\textbf{复习：}第 9、12、21 章（Reward 模型训练；LLM Agent 训练；Agent 环境）。}
 \end{questionbox}
 
 \section{列表式 Reward 与高级 RM 问题}
@@ -2732,8 +2732,8 @@ $K$ 因子控制更新幅度（$K$ 越大对近期结果反应越敏感）。
 % \textbf{Intuition}: If 50/200 samples pass ($c=50$, $n=200$), pass@1 $\approx 0.25$, pass@10 $\approx 0.94$. The estimator counts what fraction of $k$-sized draws would contain at least one success.
 \textbf{直觉}：若 50/200 个样本通过（$c=50$，$n=200$），pass@1 $\approx 0.25$，pass@10 $\approx 0.94$。该估计器统计大小为 $k$ 的抽取中至少包含一个成功的比例。
 
-% \emph{\textbf{Review:} Chapters~14 and~19 (LLM Evaluation; Agentic Environments).}
-\emph{\textbf{复习：}第 14 章与第 19 章（LLM 评估；Agent 环境）。}
+% \emph{\textbf{Review:} Chapters~14 and~21 (LLM Evaluation; Agentic Environments).}
+\emph{\textbf{复习：}第 14 章与第 21 章（LLM 评估；Agent 环境）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How do you detect and mitigate benchmark contamination?]
@@ -2833,8 +2833,8 @@ $K$ 因子控制更新幅度（$K$ 越大对近期结果反应越敏感）。
 % \textbf{MemGPT analogy}: Working = hot (in-context), Episodic/Semantic = warm (vector store), Procedural = cold (archived policies). The agent itself decides when to page information in/out.
 \textbf{MemGPT 类比}：工作记忆 = 热（在上下文），情景/语义记忆 = 温（向量库），程序性记忆 = 冷（归档的 Policy）。Agent 自身决定何时换入/换出信息。
 
-% \emph{\textbf{Review:} Chapter~16 (Agentic Memory Systems).}
-\emph{\textbf{复习：}第 16 章（Agent 记忆系统）。}
+% \emph{\textbf{Review:} Chapter~17 (Agentic Memory Systems).}
+\emph{\textbf{复习：}第 17 章（Agent 记忆系统）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How does temporal decay work in memory retrieval and why is it important?]
@@ -2867,7 +2867,7 @@ $K$ 因子控制更新幅度（$K$ 越大对近期结果反应越敏感）。
 % \textbf{Decay rate tuning}: $\lambda$ depends on domain. Customer service: high decay (preferences change fast). Legal/medical: low decay (facts persist). Can be learned via RL.
 \textbf{衰减率调优}：$\lambda$ 取决于领域。客户服务：高衰减（偏好变化快）。法律/医疗：低衰减（事实持久）。可通过 RL 学习。
 
-\emph{\textbf{复习：}第 16 章（Agent 记忆系统）。}
+\emph{\textbf{复习：}第 17 章（Agent 记忆系统）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How can RL be used to train memory operations?]
@@ -2907,7 +2907,7 @@ $K$ 因子控制更新幅度（$K$ 越大对近期结果反应越敏感）。
 % \textbf{Challenge}: Delayed reward --- storing information now may only help 100 steps later. Requires long-horizon credit assignment (GAE with high $\lambda$).
 \textbf{挑战}：延迟 Reward——现在存储的信息可能 100 步后才有用。需要长期信用分配（高 $\lambda$ 的 GAE）。
 
-\emph{\textbf{复习：}第 12 章与第 16 章（LLM Agent 训练；Agent 记忆系统）。}
+\emph{\textbf{复习：}第 12 章与第 17 章（LLM Agent 训练；Agent 记忆系统）。}
 \end{questionbox}
 
 \section{Agent 编排问题}
@@ -2957,8 +2957,8 @@ C = S + M + T + H + R \leq L
 % \textbf{Pre-flight check}: Always count tokens BEFORE calling the LLM. Never discover overflow at inference time.
 \textbf{飞行前检查}：调用 LLM 之前始终先统计 token 数。绝不要在推理时才发现溢出。
 
-% \emph{\textbf{Review:} Chapter~17 (Agent Harness -- Context Management and Orchestration).}
-\emph{\textbf{复习：}第 17 章（Agent Harness——上下文管理与编排）。}
+% \emph{\textbf{Review:} Chapter~18 (Agent Harness -- Context Management and Orchestration).}
+\emph{\textbf{复习：}第 18 章（Agent Harness——上下文管理与编排）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: Compare ReAct vs Plan-and-Execute orchestration patterns]
@@ -3007,8 +3007,8 @@ C = S + M + T + H + R \leq L
   \item \textbf{混合}：高层做规划，在每个规划步内用 ReAct（LangGraph 推荐模式）
 \end{itemize}
 
-% \emph{\textbf{Review:} Chapters~17 and~18 (Agent Harness; Agent Design Patterns).}
-\emph{\textbf{复习：}第 17 章与第 18 章（Agent Harness；Agent 设计模式）。}
+% \emph{\textbf{Review:} Chapters~18 and~20 (Agent Harness; Agent Design Patterns).}
+\emph{\textbf{复习：}第 18 章与第 20 章（Agent Harness；Agent 设计模式）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How do you detect and prevent infinite loops in agent execution?]
@@ -3047,7 +3047,7 @@ C = S + M + T + H + R \leq L
 % \textbf{Best practice}: Combine max iterations (safety net) + hash-based detection (early intervention) + graceful escalation (preserve user trust).
 \textbf{最佳实践}：组合最大迭代（安全网）+ 基于哈希的检测（早期干预）+ 优雅升级（维护用户信任）。
 
-\emph{\textbf{复习：}第 17 章与第 18 章（Agent Harness；Agent 设计模式）。}
+\emph{\textbf{复习：}第 18 章与第 20 章（Agent Harness；Agent 设计模式）。}
 \end{questionbox}
 
 \newpage
@@ -3082,8 +3082,8 @@ C = S + M + T + H + R \leq L
 % \textbf{Analogy}: USB standardized peripheral connections. Before USB: every device had a proprietary connector. After USB: one port fits all. MCP does the same for agent-tool connections.
 \textbf{类比}：USB 标准化了外设连接。USB 之前：每种设备都有专有接口。USB 之后：一个口适配所有。MCP 对 Agent–工具连接做了同样的事。
 
-% \emph{\textbf{Review:} Chapter~20 (Model Context Protocol).}
-\emph{\textbf{复习：}第 20 章（模型上下文协议）。}
+% \emph{\textbf{Review:} Chapter~22 (Model Context Protocol).}
+\emph{\textbf{复习：}第 22 章（模型上下文协议）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What are MCP’s four core primitives and when do you use each?]
@@ -3120,7 +3120,7 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
   \item \textbf{Prompts} 是元数据（可复用模板），不是执行。它们帮助 Agent 构造更好的工具调用。
 \end{itemize}
 
-\emph{\textbf{复习：}第 20 章（模型上下文协议）。}
+\emph{\textbf{复习：}第 22 章（模型上下文协议）。}
 \end{questionbox}
 
 \section{Agent 通信（A2A）问题}
@@ -3165,8 +3165,8 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Architecture}: A2A sits at the \emph{inter-agent} layer; MCP sits at the \emph{agent-tool} layer. A complete system uses both: A2A for coordination between agents and MCP for each agent’s tool access.
 \textbf{架构}：A2A 位于\emph{Agent 间}层；MCP 位于\emph{Agent–工具}层。完整系统两者并用：A2A 用于 Agent 间协调，MCP 用于每个 Agent 的工具访问。
 
-% \emph{\textbf{Review:} Chapters~20 and~22 (MCP; Agent-to-Agent Communication).}
-\emph{\textbf{复习：}第 20 章与第 22 章（MCP；Agent 到 Agent 通信）。}
+% \emph{\textbf{Review:} Chapters~22 and~24 (MCP; Agent-to-Agent Communication).}
+\emph{\textbf{复习：}第 22 章与第 24 章（MCP；Agent 到 Agent 通信）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What is the Contract Net Protocol and how does it apply to LLM agents?]
@@ -3207,8 +3207,8 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Limitation for LLMs}: LLMs often overestimate their capabilities (hallucinate confidence). Bids should incorporate track record (historical success rate on similar tasks) not just self-reported confidence.
 \textbf{LLM 的局限}：LLM 常常高估自身能力（幻觉置信度）。投标应纳入历史记录（相似任务的历史成功率），而不仅是自报置信度。
 
-% \emph{\textbf{Review:} Chapters~22 and~23 (A2A; Multi-Agent Systems).}
-\emph{\textbf{复习：}第 22 章与第 23 章（A2A；多 Agent 系统）。}
+% \emph{\textbf{Review:} Chapters~24 and~25 (A2A; Multi-Agent Systems).}
+\emph{\textbf{复习：}第 24 章与第 25 章（A2A；多 Agent 系统）。}
 \end{questionbox}
 
 \section{多 Agent 系统问题}
@@ -3254,8 +3254,8 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Decision framework}: Use centralized if you need predictability and auditability. Use decentralized if you need resilience and creativity. Use hierarchical for large ($>$10 agent) systems.
 \textbf{决策框架}：需要可预测性和可审计性时用中心化。需要弹性和创造性时用去中心化。大型（$>$10 个 Agent）系统用层次化。
 
-% \emph{\textbf{Review:} Chapter~23 (Multi-Agent Systems).}
-\emph{\textbf{复习：}第 23 章（多 Agent 系统）。}
+% \emph{\textbf{Review:} Chapter~25 (Multi-Agent Systems).}
+\emph{\textbf{复习：}第 25 章（多 Agent 系统）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What is CTDE and why is it important for training multi-agent LLM systems?]
@@ -3282,7 +3282,7 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Practical challenge}: Full CTDE requires all agents to train simultaneously with shared state --- expensive for LLMs. Approximations: train agents in rounds (freeze others and train one) or use population-based training with periodic synchronization.
 \textbf{实际挑战}：完整 CTDE 要求所有 Agent 在共享状态下同时训练——对 LLM 而言代价昂贵。近似方法：分轮训练 Agent（冻结其余 Agent 训练一个），或使用具有周期同步的种群训练。
 
-\emph{\textbf{复习：}第 23 章（多 Agent 系统）。}
+\emph{\textbf{复习：}第 25 章（多 Agent 系统）。}
 \end{questionbox}
 
 \section{Agent 开发框架问题}
@@ -3326,8 +3326,8 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Choose none (custom) when}: You need maximum performance/control; don’t want framework lock-in; or have non-standard orchestration patterns.
 \textbf{都不选（自定义）当}：需要最大性能/控制；不希望被框架锁定；或有非标准的编排模式。
 
-% \emph{\textbf{Review:} Chapter~24 (Agent Development Frameworks).}
-\emph{\textbf{复习：}第 24 章（Agent 开发框架）。}
+% \emph{\textbf{Review:} Chapter~26 (Agent Development Frameworks).}
+\emph{\textbf{复习：}第 26 章（Agent 开发框架）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How do you test and evaluate an agent system in production?]
@@ -3388,8 +3388,8 @@ Sampling & 服务器 $\to$ 客户端 & 请求 LLM 生成 & 服务器请求 LLM �
 % \textbf{Key metric}: \textbf{Task Success Rate} (TSR) --- fraction of tasks the agent completes correctly without human intervention.
 \textbf{关键指标}：\textbf{任务成功率}（Task Success Rate, TSR）——Agent 在无人干预下正确完成任务的比例。
 
-% \emph{\textbf{Review:} Chapters~14 and~24 (LLM Evaluation; Agent Development Frameworks).}
-\emph{\textbf{复习：}第 14 章与第 24 章（LLM 评估；Agent 开发框架）。}
+% \emph{\textbf{Review:} Chapters~14 and~26 (LLM Evaluation; Agent Development Frameworks).}
+\emph{\textbf{复习：}第 14 章与第 26 章（LLM 评估；Agent 开发框架）。}
 \end{questionbox}
 
 \section{Agent 环境问题}
@@ -3431,7 +3431,7 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Challenges}: Partial observability (can’t always tell if you’re closer to goal); stochastic environments (page content changes); reward hacking (agent finds shortcuts that satisfy reward but not user intent).
 \textbf{挑战}：部分可观察（无法总是判断是否更接近目标）；随机环境（页面内容会变）；Reward hacking（Agent 找到满足 Reward 但不满足用户意图的捷径）。
 
-\emph{\textbf{复习：}第 12 章与第 19 章（LLM Agent 训练；Agent 环境）。}
+\emph{\textbf{复习：}第 12 章与第 21 章（LLM Agent 训练；Agent 环境）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What makes SWE-bench a particularly challenging agent benchmark?]
@@ -3461,8 +3461,8 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Key insight for training}: SWE-bench exposes the gap between ``coding ability'' (writing correct functions) and ``software engineering ability'' (understanding systems; navigating codebases; making minimal changes). RL training on SWE-bench-style environments teaches agents exploration and planning strategies not just code generation.
 \textbf{对训练的关键洞见}：SWE-bench 揭示了“编程能力”（编写正确函数）与“软件工程能力”（理解系统；导航代码库；做最小改动）之间的差距。在 SWE-bench 风格环境上的 RL 训练教会 Agent 探索和规划策略，而不仅是代码生成。
 
-% \emph{\textbf{Review:} Chapter~19 (Agentic Environments and Benchmarks).}
-\emph{\textbf{复习：}第 19 章（Agent 环境与基准）。}
+% \emph{\textbf{Review:} Chapter~21 (Agentic Environments and Benchmarks).}
+\emph{\textbf{复习：}第 21 章（Agent 环境与基准）。}
 \end{questionbox}
 
 \section{Agent UI 框架问题}
@@ -3513,8 +3513,8 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{For agent training}: The UI paradigm affects the reward signal. Canvas UIs provide explicit edit feedback (user modifies the artifact) which can be used for online learning.
 \textbf{对 Agent 训练而言}：UI 范式影响 Reward 信号。画布式 UI 提供显式的编辑反馈（用户修改 artifact），可用于在线学习。
 
-% \emph{\textbf{Review:} Chapter~25 (Agentic UI Frameworks).}
-\emph{\textbf{复习：}第 25 章（Agent UI 框架）。}
+% \emph{\textbf{Review:} Chapter~27 (Agentic UI Frameworks).}
+\emph{\textbf{复习：}第 27 章（Agent UI 框架）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: How do you design approval gates for human-in-the-loop agent systems?]
@@ -3553,8 +3553,8 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Implementation}: Tool annotations (MCP’s \texttt{destructiveHint} and \texttt{readOnlyHint}) drive automatic gate assignment. Custom rules can override based on context.
 \textbf{实现}：工具注解（MCP 的 \texttt{destructiveHint} 和 \texttt{readOnlyHint}）驱动关卡的自动分配。自定义规则可根据上下文覆盖。
 
-% \emph{\textbf{Review:} Chapters~17 and~25 (Agent Harness; Agentic UI Frameworks).}
-\emph{\textbf{复习：}第 17 章与第 25 章（Agent Harness；Agent UI 框架）。}
+% \emph{\textbf{Review:} Chapters~18 and~27 (Agent Harness; Agentic UI Frameworks).}
+\emph{\textbf{复习：}第 18 章与第 27 章（Agent Harness；Agent UI 框架）。}
 \end{questionbox}
 
 \section{RAG 与 Agent 化 RAG 问题}
@@ -3588,8 +3588,8 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{In practice}: Hybrid (BM25 + dense + RRF) outperforms either alone on 85\%+ of benchmarks.
 \textbf{实践中}：混合（BM25 + 稠密 + RRF）在 85\%+ 的基准上优于单独使用任一种。
 
-% \emph{\textbf{Review:} Chapter~15 (Retrieval-Augmented Generation).}
-\emph{\textbf{复习：}第 15 章（检索增强生成）。}
+% \emph{\textbf{Review:} Chapter~16 (Retrieval-Augmented Generation).}
+\emph{\textbf{复习：}第 16 章（检索增强生成）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What is Agentic RAG and how does it differ from standard RAG?]
@@ -3630,8 +3630,8 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Trade-off}: Agentic RAG is more accurate on complex queries but adds latency (multiple LLM calls for routing/grading). Use standard RAG for simple factual lookups; agentic RAG for multi-hop or ambiguous queries.
 \textbf{权衡}：Agent 化 RAG 在复杂查询上更准确，但增加延迟（多次 LLM 调用用于路由/评分）。简单事实查询用标准 RAG；多跳或歧义查询用 Agent 化 RAG。
 
-% \emph{\textbf{Review:} Chapters~15 and~17 (RAG; Agent Harness).}
-\emph{\textbf{复习：}第 15 章与第 17 章（RAG；Agent Harness）。}
+% \emph{\textbf{Review:} Chapters~16 and~18 (RAG; Agent Harness).}
+\emph{\textbf{复习：}第 16 章与第 18 章（RAG；Agent Harness）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: Compare Self-RAG and CRAG approaches to improving retrieval quality]
@@ -3673,7 +3673,7 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Key difference}: Self-RAG embeds retrieval decisions into the LLM itself (requires training). CRAG is a pipeline approach that wraps around any LLM (no training needed). Self-RAG is more elegant; CRAG is more practical for production with existing models.
 \textbf{关键差异}：Self-RAG 把检索决策嵌入 LLM 自身（需要训练）。CRAG 是包裹在任意 LLM 周围的流水线方法（无需训练）。Self-RAG 更优雅；CRAG 在现有模型的生产环境中更实用。
 
-\emph{\textbf{复习：}第 15 章（检索增强生成）。}
+\emph{\textbf{复习：}第 16 章（检索增强生成）。}
 \end{questionbox}
 
 % \begin{questionbox}[Q: What is the lost-in-the-middle problem and how do you mitigate it?]
@@ -3705,7 +3705,7 @@ r_{\text{shaped}}(s, a, s') = r(s, a, s') + \gamma \Phi(s') - \Phi(s)
 % \textbf{Best practice}: Retrieve many (20+), re-rank to top 3--5, order by relevance (best first). This sidesteps the problem entirely for most use cases.
 \textbf{最佳实践}：检索很多（20+），重排序到 top 3--5，按相关性排序（最佳在前）。这在大多数用例中完全绕开此问题。
 
-\emph{\textbf{复习：}第 15 章（检索增强生成）。}
+\emph{\textbf{复习：}第 16 章（检索增强生成）。}
 \end{questionbox}
 
 \chapter{速查手册}
