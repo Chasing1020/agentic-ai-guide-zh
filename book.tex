@@ -90,6 +90,7 @@
 \usepackage{enumitem}
 \usepackage{pifont}
 \usepackage{microtype}
+\usepackage{multicol}
 
 % --- Color definitions ---
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -200,7 +201,7 @@
 \vspace{0.5cm}
 {\large 2026\par}
 \vfill
-{\normalsize Version 1.2.2\par}
+{\normalsize Version 1.3\par}
 \vspace{1cm}
 \end{titlepage}
 
@@ -342,8 +343,8 @@
 \section*{本指南的组织方式}
 \label{how-this-guide-is-organized}
 
-% The guide spans 29 chapters organized in five parts:
-本指南共 29 章，按六个部分组织：
+% The guide spans 30 chapters organized in six parts:
+本指南共 30 章，按六个部分组织：
 
 \begin{enumerate}
   % \item \textbf{Part I --- Foundations} (Chapters 1--3): LLM architecture and optimization (transformers, attention, positional encodings, FlashAttention, LoRA, MoE), systems foundations (GPU hierarchies, distributed training, vLLM), and classical RL theory (MDPs, policy gradients, actor-critic).
@@ -354,10 +355,10 @@
   \item \textbf{第三部分——推理}（第 13 章）：大型推理模型——DeepSeek-R1、OpenAI o1/o3/o4-mini、QwQ——RL 如何发现思维链、MCTS、过程奖励模型（Process Reward Model, PRM）与测试时算力扩展（Test-Time Scaling）。
   % \item \textbf{Part IV --- Evaluation} (Chapter 14): Comprehensive LLM evaluation methodology --- metrics, LLM-as-Judge, human annotation, benchmark suites, contamination detection, and agentic evaluation.
   \item \textbf{第四部分——评估}（第 14 章）：全面的 LLM 评估方法论——指标、LLM-as-Judge、人工标注、基准套件、污染检测，以及智能体评估。
-  % \item \textbf{Part V --- Agentic AI} (Chapters 15--26): The complete agentic stack --- introduction to agentic AI, RAG and retrieval, memory systems, orchestration and context management, design patterns, agentic environments and benchmarks, Model Context Protocol (MCP), agent skills, Agent-to-Agent communication (A2A), multi-agent systems, development frameworks, and agentic UI.
-  \item \textbf{第五部分——智能体 AI}（第 15--26 章）：完整的智能体技术栈——智能体 AI 简介、检索增强生成（Retrieval-Augmented Generation, RAG）与检索、记忆系统、编排与上下文管理、设计模式、智能体环境与基准、Model Context Protocol (MCP)、Agent Skills、Agent-to-Agent (A2A) 通信、多智能体系统、开发框架以及智能体 UI。
-  % \item \textbf{Part VI --- Assessment \& Reference} (Chapters 27--29): 108 detailed quiz questions with comprehensive answers spanning all topics, a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics, and a conclusion with future directions.
-  \item \textbf{第六部分——自测与参考}（第 27--29 章）：覆盖全部主题的 108 道详细测验题与完整解答；一章快速参考，整合关键公式、API 参考与失败模式诊断；以及关于未来方向的总结。
+  % \item \textbf{Part V --- Agentic AI} (Chapters 15--27): The complete agentic stack --- introduction to agentic AI, RAG and retrieval, memory systems, orchestration and context management, loop engineering, design patterns, agentic environments and benchmarks, Model Context Protocol (MCP), agent skills, Agent-to-Agent communication (A2A), multi-agent systems, development frameworks, and agentic UI.
+  \item \textbf{第五部分——智能体 AI}（第 15--27 章）：完整的智能体技术栈——智能体 AI 简介、检索增强生成（Retrieval-Augmented Generation, RAG）与检索、记忆系统、编排与上下文管理、循环工程（Loop Engineering）、设计模式、智能体环境与基准、Model Context Protocol (MCP)、Agent Skills、Agent-to-Agent (A2A) 通信、多智能体系统、开发框架以及智能体 UI。
+  % \item \textbf{Part VI --- Assessment \& Reference} (Chapters 28--30): 108 detailed quiz questions with comprehensive answers spanning all topics, a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics, and a conclusion with future directions.
+  \item \textbf{第六部分——自测与参考}（第 28--30 章）：覆盖全部主题的 108 道详细测验题与完整解答；一章快速参考，整合关键公式、API 参考与失败模式诊断；以及关于未来方向的总结。
 \end{enumerate}
 
 % The guide includes over 100 detailed quiz questions with comprehensive answers spanning all topics, plus a quick-reference chapter consolidating key equations, API references, and failure mode diagnostics.
@@ -398,6 +399,100 @@
 
 % --- \emph{Haggai Roitman, 2026}
 --- \emph{Haggai Roitman，2026}
+
+\section*{1.3 版新增内容}
+\label{whats-new-v13}
+
+% Version 1.3 adds nineteen new topics reflecting developments through mid-2026:
+1.3 版新增了十九个主题，反映截至 2026 年中的最新进展：
+
+\begin{description}
+  % \item[Chapter 1 --- LLM Architecture and Optimization:]~
+  \item[第 1 章——LLM 架构与优化：]~
+    \begin{itemize}
+      % \item \textbf{Muon optimizer} --- Newton--Schulz orthogonalization as an AdamW successor (adopted by GLM-5, Kimi K2, DeepSeek-V4).
+      \item \textbf{Muon 优化器}——用 Newton--Schulz 正交化作为 AdamW 的继任者（已被 GLM-5、Kimi K2、DeepSeek-V4 采用）。
+      % \item \textbf{Multi-head Latent Attention (MLA)} --- DeepSeek's KV-cache compression via low-rank latent projection.
+      \item \textbf{多头潜在注意力（Multi-head Latent Attention, MLA）}——DeepSeek 通过低秩潜投影压缩 KV 缓存。
+      % \item \textbf{FP8/FP4 training} --- next-generation mixed precision with per-tile micro-scaling.
+      \item \textbf{FP8/FP4 训练}——采用逐 tile 微缩放的下一代混合精度。
+      % \item \textbf{Auxiliary-loss-free MoE} --- adaptive bias-based load balancing replacing costly auxiliary losses.
+      \item \textbf{无辅助损失 MoE（Auxiliary-Loss-Free MoE）}——用基于自适应偏置的负载均衡取代昂贵的辅助损失。
+      % \item \textbf{Mid-training} --- the emerging stage between pre-training and SFT that prepares models for RL.
+      \item \textbf{中期训练（Mid-training）}——介于预训练与 SFT 之间、为模型进入 RL 做准备的新兴阶段。
+    \end{itemize}
+
+  % \item[Chapter 2 --- Systems Foundations:]~
+  \item[第 2 章——系统基础：]~
+    \begin{itemize}
+      % \item \textbf{Dynamo} --- NVIDIA's datacenter-scale inference orchestration framework.
+      \item \textbf{Dynamo}——NVIDIA 的数据中心级推理编排框架。
+    \end{itemize}
+
+  % \item[Chapter 11 --- System Architecture at Scale:]~
+  \item[第 11 章——大规模系统架构：]~
+    \begin{itemize}
+      % \item \textbf{Decoupled DiLoCo} --- Google's geo-distributed training with 236$\times$ bandwidth reduction.
+      \item \textbf{解耦 DiLoCo（Decoupled DiLoCo）}——Google 的地理分布式训练，带宽需求降低 236$\times$。
+      % \item \textbf{Miles} --- PyTorch-native RL post-training engine.
+      \item \textbf{Miles}——PyTorch 原生的 RL 后训练引擎。
+    \end{itemize}
+
+  % \item[Chapter 12 --- LLM Agentic Training:]~
+  \item[第 12 章——LLM 智能体训练：]~
+    \begin{itemize}
+      % \item \textbf{Interactive RL environments} --- NeMo Gym, RLFactory, and MOSAIC for agentic post-training.
+      \item \textbf{交互式 RL 环境（Interactive RL Environments）}——用于智能体后训练的 NeMo Gym、RLFactory 与 MOSAIC。
+      % \item \textbf{Training on real agent traces} --- using production trajectories as RL training signal.
+      \item \textbf{在真实 Agent 轨迹上训练}——把生产环境中的轨迹用作 RL 训练信号。
+    \end{itemize}
+
+  % \item[Chapter 13 --- RL for Large Reasoning Models:]~
+  \item[第 13 章——大型推理模型的 RL：]~
+    \begin{itemize}
+      % \item \textbf{Inference-time compute scaling laws} --- log-linear relationships and budget-aware prompting.
+      \item \textbf{推理时算力扩展定律（Inference-Time Compute Scaling Laws）}——对数线性关系与预算感知提示（budget-aware prompting）。
+      % \item \textbf{Latent reasoning} --- coconut-style continuous thought without token-level chain-of-thought.
+      \item \textbf{潜空间推理（Latent Reasoning）}——coconut 式的连续思维，无需 token 级思维链。
+      % \item \textbf{On-policy self-distillation} --- dense token-level supervision from the model's own privileged context, achieving RL-level reasoning at 10--100$\times$ lower compute.
+      \item \textbf{同策略自蒸馏（On-Policy Self-Distillation）}——从模型自身的特权上下文获取密集的 token 级监督，以低 10--100$\times$ 的算力达到 RL 级推理。
+    \end{itemize}
+
+  % \item[Chapter 17 --- Agentic Memory Systems:]~
+  \item[第 17 章——智能体记忆系统：]~
+    \begin{itemize}
+      % \item \textbf{Proactive memory architectures} --- Meta AI's behavioral-state decay and anticipatory retrieval.
+      \item \textbf{主动记忆架构（Proactive Memory Architectures）}——Meta AI 的行为状态衰减（behavioral-state decay）与预判式检索。
+    \end{itemize}
+
+  % \item[Chapter 19 --- Loop Engineering:]~
+  \item[第 19 章——循环工程：]~
+    \begin{itemize}
+      % \item \textbf{Context engineering} --- the discipline of optimizing what fills the context window (Lütke, Karpathy, Anthropic).
+      \item \textbf{上下文工程}——优化“用什么填满上下文窗口”的学科（Lütke、Karpathy、Anthropic）。
+    \end{itemize}
+
+  % \item[Chapter 21 --- Agentic Environments:]~
+  \item[第 21 章——智能体环境：]~
+    \begin{itemize}
+      % \item \textbf{UniClawBench and Terminal-Bench} --- 2026 benchmarks for robotic manipulation and long-horizon terminal tasks.
+      \item \textbf{UniClawBench 与 Terminal-Bench}——面向机器人操作与长时程终端任务的 2026 年基准。
+    \end{itemize}
+
+  % \item[Chapter 25 --- Multi-Agent Systems:]~
+  \item[第 25 章——多智能体系统：]~
+    \begin{itemize}
+      % \item \textbf{BDI-LLM self-evolving agents} --- belief--desire--intention architectures with learned plan libraries.
+      \item \textbf{BDI-LLM 自进化 Agent}——带可学习计划库的信念—愿望—意图（Belief--Desire--Intention, BDI）架构。
+    \end{itemize}
+
+  % \item[Chapter 26 --- Agent Development Frameworks:]~
+  \item[第 26 章——Agent 开发框架：]~
+    \begin{itemize}
+      % \item \textbf{NVIDIA OO Agents (NOOA)} --- object-oriented framework where agents are Python objects, methods are tools, and \texttt{...} bodies become LLM-driven loops.
+      \item \textbf{NVIDIA OO Agents (NOOA)}——面向对象框架：Agent 即 Python 对象，方法即工具，\texttt{...} 方法体成为由 LLM 驱动的循环。
+    \end{itemize}
+\end{description}
 
 \chapter*{引言}
 \addcontentsline{toc}{chapter}{引言}
@@ -492,8 +587,8 @@
   \item \textbf{第 14 章——LLM 评估}：指标（perplexity、pass@k、ELO）、LLM-as-Judge 模式、污染检测、基准套件，以及智能体评估方法论。
 \end{itemize}
 
-% \textbf{Part V: Agentic AI} (Chapters 15--26) takes you from a trained model to a deployed autonomous system. This is the largest part, covering everything an agent needs to operate in the real world.
-\textbf{第五部分：智能体 AI}（第 15--26 章）带你从一个训练好的模型走向一个被部署出去的自主系统。这是篇幅最大的部分，覆盖了一个 Agent 在真实世界中运作所需的一切。
+% \textbf{Part V: Agentic AI} (Chapters 15--27) takes you from a trained model to a deployed autonomous system. This is the largest part, covering everything an agent needs to operate in the real world.
+\textbf{第五部分：智能体 AI}（第 15--27 章）带你从一个训练好的模型走向一个被部署出去的自主系统。这是篇幅最大的部分，覆盖了一个 Agent 在真实世界中运作所需的一切。
 
 \begin{itemize}
   % \item \textbf{Chapter 15 --- Introduction to Agentic AI}: What makes a system agentic, the spectrum from chatbots to autonomous agents, and the foundational concepts for the rest of Part V.
@@ -504,22 +599,36 @@
   \item \textbf{第 17 章——记忆系统}：用于 Agent 持久知识的工作记忆、情景记忆、语义记忆与程序性记忆。
   % \item \textbf{Chapter 18 --- Orchestration}: ReAct, Plan-and-Execute, LLM Compiler, reflexion patterns, context management, and harness design.
   \item \textbf{第 18 章——编排}：ReAct、Plan-and-Execute、LLM Compiler、reflexion 模式、上下文管理与 harness 设计。
-  % \item \textbf{Chapter 19 --- Design Patterns}: Prompt chaining, routing, parallelization, evaluation-driven orchestration, and the simplicity principle.
-  \item \textbf{第 19 章——设计模式}：prompt chaining、路由、并行化、评估驱动的编排，以及“简洁性原则”。
-  % \item \textbf{Chapter 20 --- Environments and Benchmarks}: WebArena, SWE-bench, OSWorld, GAIA --- evaluation environments for agentic capability.
-  \item \textbf{第 20 章——环境与基准}：WebArena、SWE-bench、OSWorld、GAIA——评估智能体能力的环境。
-  % \item \textbf{Chapter 21 --- Model Context Protocol (MCP)}: Architecture, transport layers, tool/resource/prompt primitives, security, and deployment.
-  \item \textbf{第 21 章——Model Context Protocol (MCP)}：架构、传输层，tool/resource/prompt 原语、安全与部署。
-  % \item \textbf{Chapter 22 --- Agent Skills}: Skill libraries, tool composition, and capability abstraction.
-  \item \textbf{第 22 章——Agent Skills}：技能库、工具组合与能力抽象。
-  % \item \textbf{Chapter 23 --- A2A Communication}: Google's Agent-to-Agent protocol --- Agent Cards, task lifecycle, streaming, enterprise patterns.
-  \item \textbf{第 23 章——A2A 通信}：Google 的 Agent-to-Agent 协议——Agent Cards、任务生命周期、流式通信与企业级模式。
-  % \item \textbf{Chapter 24 --- Multi-Agent Systems}: Hierarchical, debate, marketplace, and swarm architectures --- coordination at scale.
-  \item \textbf{第 24 章——多智能体系统}：层级式、辩论式、市场式与群体式架构——大规模协作。
-  % \item \textbf{Chapter 25 --- Development Frameworks}: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Google ADK --- comparative analysis with code.
-  \item \textbf{第 25 章——开发框架}：LangGraph、CrewAI、AutoGen、OpenAI Agents SDK、Google ADK——附代码的对比分析。
-  % \item \textbf{Chapter 26 --- Agentic UI}: Streaming interfaces, generative UI, canvas paradigms, tool visualization, human-in-the-loop patterns.
-  \item \textbf{第 26 章——智能体 UI}：流式界面、生成式 UI、canvas 范式、工具可视化与人机协同（Human-in-the-Loop）模式。
+  % \item \textbf{Chapter 19 --- Loop Engineering}: Inference-time reinforcement learning, context engineering, adaptive orchestration loops, and loop-as-policy abstractions.
+  \item \textbf{第 19 章——循环工程（Loop Engineering）}：推理时强化学习、上下文工程（Context Engineering）、自适应编排循环，以及“循环即策略”（loop-as-policy）抽象。
+  % \item \textbf{Chapter 20 --- Design Patterns}: Prompt chaining, routing, parallelization, evaluation-driven orchestration, and the simplicity principle.
+  \item \textbf{第 20 章——设计模式}：prompt chaining、路由、并行化、评估驱动的编排，以及“简洁性原则”。
+  % \item \textbf{Chapter 21 --- Environments and Benchmarks}: WebArena, SWE-bench, OSWorld, GAIA --- evaluation environments for agentic capability.
+  \item \textbf{第 21 章——环境与基准}：WebArena、SWE-bench、OSWorld、GAIA——评估智能体能力的环境。
+  % \item \textbf{Chapter 22 --- Model Context Protocol (MCP)}: Architecture, transport layers, tool/resource/prompt primitives, security, and deployment.
+  \item \textbf{第 22 章——Model Context Protocol (MCP)}：架构、传输层，tool/resource/prompt 原语、安全与部署。
+  % \item \textbf{Chapter 23 --- Agent Skills}: Skill libraries, tool composition, and capability abstraction.
+  \item \textbf{第 23 章——Agent Skills}：技能库、工具组合与能力抽象。
+  % \item \textbf{Chapter 24 --- A2A Communication}: Google's Agent-to-Agent protocol --- Agent Cards, task lifecycle, streaming, enterprise patterns.
+  \item \textbf{第 24 章——A2A 通信}：Google 的 Agent-to-Agent 协议——Agent Cards、任务生命周期、流式通信与企业级模式。
+  % \item \textbf{Chapter 25 --- Multi-Agent Systems}: Hierarchical, debate, marketplace, and swarm architectures --- coordination at scale.
+  \item \textbf{第 25 章——多智能体系统}：层级式、辩论式、市场式与群体式架构——大规模协作。
+  % \item \textbf{Chapter 26 --- Development Frameworks}: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, NVIDIA OO Agents --- comparative analysis with code.
+  \item \textbf{第 26 章——开发框架}：LangGraph、CrewAI、AutoGen、OpenAI Agents SDK、NVIDIA OO Agents——附代码的对比分析。
+  % \item \textbf{Chapter 27 --- Agentic UI}: Streaming interfaces, generative UI, canvas paradigms, tool visualization, human-in-the-loop patterns.
+  \item \textbf{第 27 章——智能体 UI}：流式界面、生成式 UI、canvas 范式、工具可视化与人机协同（Human-in-the-Loop）模式。
+\end{itemize}
+
+% \textbf{Part VI: Assessment \& Reference} (Chapters 28--30) consolidates assessment material and provides quick-lookup references for practitioners.
+\textbf{第六部分：自测与参考}（第 28--30 章）整合自测材料，并为从业者提供快速查阅的参考。
+
+\begin{itemize}
+  % \item \textbf{Chapter 28 --- Quiz Questions \& Detailed Answers}: 108 questions spanning all topics --- architecture, RL, reasoning, agentic systems --- with comprehensive worked answers.
+  \item \textbf{第 28 章——测验题与详细解答}：覆盖全部主题——架构、RL、推理、智能体系统——的 108 道题，并配有完整的推导式解答。
+  % \item \textbf{Chapter 29 --- Quick Reference}: Key equations, API references, hyperparameter tables, and failure mode diagnostics in a compact lookup format.
+  \item \textbf{第 29 章——速查手册}：以紧凑的查阅格式呈现关键公式、API 参考、超参数表与失败模式诊断。
+  % \item \textbf{Chapter 30 --- Conclusion and Future Directions}: Where the field is heading --- open problems, emerging paradigms, and the road ahead.
+  \item \textbf{第 30 章——总结与未来方向}：领域将走向何方——开放问题、新兴范式与前路。
 \end{itemize}
 
 \section*{现代 AI 流水线}
@@ -537,6 +646,111 @@
 \end{figure}
 
 % --- Body split into parts/ ---
+\chapter*{缩略语表}
+\addcontentsline{toc}{chapter}{缩略语表}
+\label{glossary}
+
+% This guide uses many acronyms drawn from machine learning, systems engineering, and agent research. The following reference covers the most common ones; each entry appears in the chapter where the concept is first introduced in full.
+本指南使用了许多源自机器学习、系统工程与智能体研究的缩略语。以下速查表覆盖最常见的那些；每个条目都会在概念首次完整引入的章节中出现。
+
+\begin{multicols}{2}
+\small
+\begin{description}[style=nextline, leftmargin=2.2cm, labelwidth=2cm]
+
+\item[A2A] Agent-to-Agent（智能体到智能体通信协议）
+\item[AdamW] Adam with decoupled Weight decay（权重衰减解耦的 Adam）
+\item[BDI] Belief--Desire--Intention（信念—愿望—意图结构）
+\item[BERT] Bidirectional Encoder Representations from Transformers（Transformer 双向编码器表征）\textsuperscript{4}
+\item[BLEU] Bilingual Evaluation Understudy（双语评估替补，指标）
+\item[BPE] Byte-Pair Encoding（字节对编码）
+\item[BT] Bradley--Terry（偏好模型）
+\item[CoT] Chain of Thought（思维链）
+\item[CTDE] Centralized Training, Decentralized Execution（集中训练、分散执行）
+\item[CUDA] Compute Unified Device Architecture（统一计算设备架构）
+\item[DAG] Directed Acyclic Graph（有向无环图）
+\item[DAPO] Dynamic Adaptive Policy Optimization（动态自适应策略优化）
+\item[DDP] Distributed Data Parallel（分布式数据并行）
+\item[DiLoCo] Distributed Low-Communication（低通信分布式训练）
+\item[DP] Data Parallelism（数据并行）
+\item[DPO] Direct Preference Optimization（直接偏好优化）
+\item[DQN] Deep Q-Network（深度 Q 网络）
+\item[DRAM] Dynamic Random-Access Memory（动态随机存取存储器）
+\item[ELO] Elo rating system（以 Arpad Elo 命名的评分系统）
+\item[EOS] End of Sequence（序列结束，token）
+\item[FA] FlashAttention（注意力优化算法）\textsuperscript{1}
+\item[FFN] Feed-Forward Network（前馈网络）
+\item[FLOP] Floating-Point Operation（浮点操作）
+\item[FSDP] Fully Sharded Data Parallel（全分片数据并行）
+\item[GAE] Generalized Advantage Estimation（广义优势估计）
+\item[GAIA] General AI Assistants（通用 AI 助手，基准）
+\item[GEMM] General Matrix Multiplication（通用矩阵乘法）
+\item[GQA] Grouped Query Attention（分组查询注意力）
+\item[GRPO] Group Relative Policy Optimization（组相对策略优化）
+\item[HBM] High Bandwidth Memory（高带宽内存）
+\item[IPO] Identity Preference Optimization（恒等偏好优化）\textsuperscript{2}
+\item[KL] Kullback--Leibler（散度）
+\item[KTO] Kahneman--Tversky Optimization（Kahneman--Tversky 优化）\textsuperscript{2}
+\item[KV] Key--Value（键值，缓存）
+\item[LATS] Language Agent Tree Search（语言 Agent 树搜索）
+\item[LLM] Large Language Model（大语言模型）
+\item[LoRA] Low-Rank Adaptation（低秩适配）
+\item[LR] Learning Rate（学习率）
+\item[MCP] Model Context Protocol（模型上下文协议）
+\item[MCTS] Monte Carlo Tree Search（蒙特卡洛树搜索）
+\item[MDP] Markov Decision Process（马尔可夫决策过程）
+\item[MFU] Model FLOPS Utilization（模型算力利用率）
+\item[MHA] Multi-Head Attention（多头注意力）
+\item[MLA] Multi-head Latent Attention（多头潜在注意力）
+\item[MLP] Multi-Layer Perceptron（多层感知器）
+\item[MoE] Mixture of Experts（专家混合）
+\item[NOOA] NVIDIA Object-Oriented Agents（NVIDIA 面向对象智能体）
+\item[NLL] Negative Log-Likelihood（负对数似然）
+\item[OPSD] On-Policy Self-Distillation（同策略自蒸馏）
+\item[ORPO] Odds Ratio Preference Optimization（优势比偏好优化）\textsuperscript{2}
+\item[ORM] Outcome Reward Model（结果奖励模型）
+\item[PEFT] Parameter-Efficient Fine-Tuning（参数高效微调）
+\item[PP] Pipeline Parallelism（流水线并行）
+\item[PPO] Proximal Policy Optimization（近端策略优化）
+\item[PRM] Process Reward Model（过程奖励模型）
+\item[QLoRA] Quantized Low-Rank Adaptation（量化低秩适配）
+\item[RAG] Retrieval-Augmented Generation（检索增强生成）
+\item[ReAct] Reasoning + Acting（推理 + 行动，Agent 模式）
+\item[RL] Reinforcement Learning（强化学习）
+\item[RLHF] Reinforcement Learning from Human Feedback（基于人类反馈的强化学习）
+\item[RLVR] Reinforcement Learning with Verifiable Rewards（基于可验证奖励的强化学习）
+\item[RM] Reward Model（奖励模型）
+\item[RoPE] Rotary Position Embedding（旋转位置编码）
+\item[ROUGE] Recall-Oriented Understudy for Gisting Evaluation（面向摘要评估的召回导向替身，指标）
+\item[RRF] Reciprocal Rank Fusion（倒数排名融合）
+\item[SDK] Software Development Kit（软件开发工具包）
+\item[SFT] Supervised Fine-Tuning（监督微调）
+\item[SGD] Stochastic Gradient Descent（随机梯度下降法）
+\item[SM] Streaming Multiprocessor（流式多处理器）
+\item[SPLADE] SParse Lexical AnD Expansion（稀疏词法扩展）
+\item[SRAM] Static Random-Access Memory（静态随机存取存储器）
+\item[SSE] Server-Sent Events（服务器推送事件）
+\item[SWE-bench] Software Engineering Benchmark（软件工程基准）
+\item[TD] Temporal Difference（时序差分，学习）
+\item[TP] Tensor Parallelism（张量并行）
+\item[TRL] Transformer Reinforcement Learning（库）
+\item[UCB] Upper Confidence Bound（上置信界）
+\item[vLLM] vLLM（大语言模型推理与服务引擎）\textsuperscript{3}
+
+\end{description}
+\end{multicols}
+\smallskip
+{\footnotesize\noindent\textbf{译者注：}本表优先采用国家审定术语和项目官方名称；对新近论文、协议、项目及基准，尚无统一中文译名时，保留英文缩写和英文全称，中文仅作常译或暂译，不构成规范术语。\par}
+{\footnotesize
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\item[\textsuperscript{1}] FlashAttention / FA 暂无统一中文译名，保留为注意力优化算法。
+\item[\textsuperscript{2}] IPO、KTO 与 ORPO 暂无统一中文译名，ORPO 亦译“赔率比偏好优化”。
+\item[\textsuperscript{3}] vLLM 为大语言模型推理与服务引擎，原文中的简称 \emph{Virtual LLM} 并非项目主源确认的正式全称。
+\item[\textsuperscript{4}] BERT 的“表示/表征”两种译法并行。
+\end{itemize}}
+
+% --- Body split into parts/ ---
 \input{contents/part1}
 \input{contents/part2}
 \input{contents/part3}
@@ -544,7 +758,7 @@
 \input{contents/part5}
 \input{contents/part6}
 
-\bibliographystyle{unsrtnat}
+\bibliographystyle{plainnat}
 \bibliography{book}
 
 \end{document}

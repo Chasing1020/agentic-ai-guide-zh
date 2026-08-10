@@ -956,9 +956,9 @@ First, I'll compute the eigenvalues of the matrix.
 </tool_response>
 
 The eigenvalues are approximately 1.382 and 3.618.
-These are (5 +/- sqrt5)/2, which are the golden ratio and its conjugate...
+These are (5 +/- sqrt(5))/2, which are the golden ratio and its conjugate...
 </think>
-<answer>The eigenvalues are (5 +/- sqrt5)/2</answer>
+<answer>The eigenvalues are (5 +/- sqrt(5))/2</answer>
 \end{lstlisting}
 
 % The RL training reward is computed on the final answer, but the model learns to use tools strategically because tool use improves the probability of reaching the correct answer.
@@ -1373,6 +1373,216 @@ STaR / Quiet-STaR & $\times$ & \checkmark{} & $\times$ & -- & $\times$ & \checkm
 \end{tabularx}
 \end{table}
 
+% \section{Inference-Time Compute Scaling Laws}
+\section{推理时算力扩展定律}
+\label{sec:inference-time-scaling}
+
+% Training-time scaling laws (Chinchilla~\cite{hoffmann2022chinchilla}) are well-understood: model performance improves predictably with compute, data, and parameters. \textbf{Inference-time compute scaling} is the new frontier---the empirical finding that allocating more computation \emph{at test time} (longer reasoning chains, more search, iterative refinement) can solve problems that larger base models cannot.
+训练时扩展定律（Chinchilla~\cite{hoffmann2022chinchilla}）已被充分理解：模型性能随算力、数据与参数可预测地提升。\textbf{推理时算力扩展}则是新的前沿——这个实证发现表明，在\emph{测试时}投入更多计算（更长的推理链、更多的搜索、迭代式精化）可以解决更大的 base 模型也解决不了的问题。
+
+\begin{keybox}[核心发现：把测试时算力当作一条扩展轴]
+% \textbf{Snell et al.\ (2024)}~\cite{snell2024scaling} established that test-time compute can be more effective than scaling model parameters for hard reasoning tasks:
+\textbf{Snell 等人（2024）}~\cite{snell2024scaling} 证明：对于困难的推理任务，测试时算力可以比扩展模型参数更有效：
+\begin{itemize}
+  % \item Performance improves \textbf{log-linearly} with inference tokens: $\text{acc} \approx a \cdot \log(\text{tokens}) + b$.
+  \item 性能随推理 token 数\textbf{对数线性}提升：$\text{acc} \approx a \cdot \log(\text{tokens}) + b$。
+  % \item There exist \textbf{task-specific optimal token budgets} beyond which returns diminish sharply.
+  \item 存在\textbf{任务特定的最优 token 预算}，超过之后收益急剧递减。
+  % \item A smaller model with $k\times$ more inference compute can match a larger model trained with $k\times$ more parameters---at lower serving cost for rare hard queries.
+  \item 一个推理算力多 $k\times$ 的小模型可以匹敌训练参数多 $k\times$ 的大模型——而且对罕见的困难查询，服务成本更低。
+\end{itemize}
+% Empirical landmark: \textbf{o3} achieved \textbf{45.1\% on ARC-AGI} (a benchmark designed to resist pattern matching) by scaling inference-time search, far exceeding what model size alone could achieve.
+实证里程碑：\textbf{o3} 通过扩展推理时搜索，在 ARC-AGI（一个专门设计来抵抗模式匹配的基准）上取得 \textbf{45.1\%}，远远超出仅靠模型规模所能达到的水平。
+\end{keybox}
+
+% \subsection{The Overthinking Problem}
+\subsection{过度思考问题}
+\label{subsec:overthinking}
+
+% Inference-time scaling introduces a critical failure mode: \textbf{overthinking}. Reasoning models trained to generate long chains of thought continue generating tokens even when the answer is obvious, wasting compute and sometimes degrading accuracy by introducing spurious reasoning steps.
+推理时扩展引入了一个关键的失败模式：\textbf{过度思考（overthinking）}。被训练生成长思维链的推理模型即使在答案显而易见时也会继续生成 token，浪费算力，有时还会因引入虚假的推理步骤而降低准确率。
+
+\begin{warningbox}[过度思考：何时更多 token 反而有害]
+% Reasoning models exhibit a characteristic \textbf{U-shaped accuracy curve} as a function of token budget on easy problems:
+在简单问题上，推理模型的准确率随 token 预算呈现出一条典型的\textbf{U 形曲线}：
+\begin{enumerate}
+  % \item Short chains: insufficient reasoning, low accuracy.
+  \item 短链：推理不足，准确率低。
+  % \item Optimal chains: correct reasoning, peak accuracy.
+  \item 最优链：推理正确，准确率峰值。
+  % \item Excessively long chains: the model second-guesses correct answers, introduces errors, accuracy \emph{decreases}.
+  \item 过长的链：模型对正确答案反复自我怀疑、引入错误，准确率\emph{下降}。
+\end{enumerate}
+% This means that a fixed ``think as long as possible'' policy is suboptimal. Models need to learn \textbf{when to stop thinking}.
+这意味着固定的“想得越久越好”策略是次优的。模型需要学会\textbf{何时停止思考}。
+\end{warningbox}
+
+% \subsection{Efficient Reasoning Techniques}
+\subsection{高效推理技术}
+\label{subsec:efficient-reasoning}
+
+% Several approaches address the compute-quality trade-off in inference-time scaling:
+有几种方法应对推理时扩展中的算力—质量权衡：
+\begin{itemize}
+  % \item \textbf{Sketch-of-Thought}: Generate a compressed reasoning sketch before the full chain. Achieves \textbf{84\% token reduction} with minimal accuracy loss by separating planning from execution in the reasoning trace.
+  \item \textbf{思维草图（Sketch-of-Thought）}：在完整推理链之前先生成压缩的推理草图。通过在推理轨迹中把规划与执行分离，实现\textbf{84\% 的 token 削减}，准确率损失极小。
+  % \item \textbf{Budget-aware prompting}: Explicitly instruct the model with a token budget (``solve this in under 200 tokens''). Halves inference costs on benchmarks where problems have known difficulty.
+  \item \textbf{预算感知提示（budget-aware prompting）}：显式地给模型下达 token 预算指令（“用 200 个 token 以内解决”）。在问题难度已知的基准上，推理成本减半。
+  % \item \textbf{Shorter chains boost accuracy}: On some tasks, enforcing shorter reasoning chains improves accuracy by \textbf{34.5\%}---the model is forced to be more direct and avoids overthinking spirals.
+  \item \textbf{更短的链反而提升准确率}：在某些任务上，强制更短的推理链能把准确率提升 \textbf{34.5\%}——模型被迫更加直接，避开过度思考的螺旋。
+  % \item \textbf{Adaptive depth}: OpenAI's \texttt{reasoning\_effort} parameter (low/medium/high) routes queries to different token budgets based on estimated difficulty, providing a practical API for compute-quality trade-offs.
+  \item \textbf{自适应深度}：OpenAI 的 \texttt{reasoning\_effort} 参数（low/medium/high）根据估计难度把查询路由到不同的 token 预算，为算力—质量权衡提供了实用 API。
+\end{itemize}
+
+% \subsection{Connection to RL: Inference Compute as MDP Horizon}
+\subsection{与 RL 的联系：把推理算力视为 MDP 的时域}
+\label{subsec:inference-mdp-connection}
+
+\begin{intuitionbox}[MDP 框架中的推理时算力]
+% Inference-time compute scaling has a natural interpretation in the RL framework used throughout this book:
+推理时算力扩展在本书通篇使用的 RL 框架中有一个自然的解释：
+\begin{itemize}
+  % \item Each reasoning token is a \textbf{step in the MDP}.
+  \item 每个推理 token 都是\textbf{MDP 中的一步}。
+  % \item Allocating more inference compute = \textbf{longer horizon} with the same reward function.
+  \item 分配更多推理算力 = 在相同奖励函数下\textbf{更长的时域（horizon）}。
+  % \item The overthinking problem = \textbf{reward hacking} on a proxy (token count) rather than task success.
+  \item 过度思考问题 = 在代理指标（token 数）而非任务成功上的\textbf{reward hacking}。
+  % \item Efficient reasoning = learning an \textbf{optimal stopping policy} within the MDP.
+  \item 高效推理 = 在 MDP 内学习\textbf{最优停止策略}。
+\end{itemize}
+% This framing suggests that inference-time scaling laws are not merely empirical curiosities---they reflect fundamental properties of the RL optimization landscape. Models trained with RL on reasoning tasks are implicitly learning both \emph{what to think} and \emph{how long to think}.
+这一框架表明，推理时扩展定律并非仅仅是经验上的奇闻——它们反映了 RL 优化景观的根本性质。在推理任务上用 RL 训练的模型，隐式地同时在学习\emph{想什么}与\emph{想多久}。
+\end{intuitionbox}
+
+% \subsection{Latent Reasoning: Is the Chain the Computation?}
+\subsection{潜空间推理：思维链就是计算本身吗？}
+\label{sec:latent-reasoning}
+
+% A growing body of evidence challenges the assumption that chain-of-thought \emph{is} the reasoning:
+越来越多的证据挑战“思维链\emph{就是}推理本身”这一假设：
+\begin{itemize}
+  % \item \textbf{Reasoning Beyond Chain-of-Thought}~\cite{reasoning_latent2025}: Using Sparse Autoencoders to probe internal representations, this work identifies reasoning-specific features that activate \emph{before} the corresponding tokens are generated---suggesting the model ``knows the answer'' before writing the chain.
+  \item \textbf{超越思维链的推理（Reasoning Beyond Chain-of-Thought）}~\cite{reasoning_latent2025}：这项工作用稀疏自编码器（Sparse Autoencoder）探针检查内部表征，识别出在相应 token 生成\emph{之前}就被激活的推理专用特征——暗示模型在写下思维链之前就已经“知道答案”。
+  % \item \textbf{Thinking to Recall}~\cite{thinking_recall2026} (Google, COLM 2026): Demonstrates that generating a reasoning trace unlocks parametric knowledge that is otherwise effectively unreachable via direct prompting---but the trace itself may be a \emph{scaffold} rather than the computation.
+  \item \textbf{思考以回忆（Thinking to Recall）}~\cite{thinking_recall2026}（Google，COLM 2026）：证明生成推理轨迹能够解锁那些直接提示几乎无法触及的参数化知识——但轨迹本身可能只是\emph{脚手架}，而非计算本身。
+\end{itemize}
+
+\begin{intuitionbox}[把思维链视为通信协议]
+% The emerging view: chain-of-thought may function as a \emph{communication protocol} between the model's internal reasoning circuits and its output layer---a way to ``route'' through latent states that contain the answer---rather than being the algorithm itself. This has practical implications: (1)~verifying reasoning quality cannot rely solely on inspecting the chain, since the model may reason correctly with a misleading or post-hoc trace; (2)~future architectures may perform reasoning entirely in latent space, emitting only conclusions.
+新兴的观点是：思维链可能是模型内部推理回路与输出层之间的\emph{通信协议}——一种“路由”经过包含答案的潜状态的方式——而非算法本身。这具有实际含义：(1)~验证推理质量不能只靠检查思维链，因为模型可能带着一条具有误导性或事后生成的轨迹而正确推理；(2)~未来的架构可能完全在潜空间中完成推理，只输出结论。
+\end{intuitionbox}
+
+% \section{On-Policy Self-Distillation for Reasoning}
+\section{面向推理的同策略自蒸馏}
+\label{sec:on-policy-self-distillation}
+
+% The methods in this chapter—GRPO, process rewards, MCTS—share a fundamental limitation: \textbf{sparse feedback}. Reinforcement learning provides a fixed number of bits per episode regardless of sequence length. A 2000-token chain-of-thought that arrives at the wrong answer receives a single scalar penalty; the model does not learn \emph{which tokens} contributed to the failure. On-Policy Self-Distillation (OPSD)~\cite{zhao2026opsd} addresses this by providing \textbf{dense, token-level supervision} while retaining the on-policy property that makes RL effective.
+本章的方法——GRPO、过程奖励、MCTS——共享一个根本局限：\textbf{稀疏反馈}。无论序列多长，强化学习每回合只提供固定比特数的信息。一条 2000 token、最终得出错误答案的思维链只收到一个标量惩罚；模型学不到\emph{哪些 token} 导致了失败。同策略自蒸馏（On-Policy Self-Distillation, OPSD）~\cite{zhao2026opsd} 通过提供\textbf{密集的 token 级监督}、同时保留让 RL 有效的 on-policy 性质来解决这一问题。
+
+\begin{keybox}[同策略自蒸馏：核心思想]
+% A single LLM plays two roles simultaneously:
+同一个 LLM 同时扮演两个角色：
+\begin{itemize}
+  % \item \textbf{Teacher}: the same model conditioned on \emph{privileged information} (e.g., a verified solution or reasoning trace appended to the prompt).
+  \item \textbf{教师（Teacher）}：同一个模型，但以\emph{特权信息}为条件（例如把已验证的解答或推理轨迹附加到提示中）。
+  % \item \textbf{Student}: the model with only the original question as input, generating its own rollouts.
+  \item \textbf{学生（Student）}：模型只以原始问题为输入，生成自己的 rollout。
+\end{itemize}
+% Training minimizes the per-token divergence between the teacher's and student's distributions, evaluated on the \emph{student's own trajectories}. No separate, larger teacher model is required.
+训练最小化教师与学生分布之间的逐 token 散度，并在\emph{学生自己的轨迹}上评估。不需要额外、更大的教师模型。
+\end{keybox}
+
+% \subsection{The Training Objective}
+\subsection{训练目标}
+\label{subsec:opsd-objective}
+
+% Let $\pi_\theta$ denote the student policy (the model given only the question) and $\pi_\theta^+$ denote the teacher policy (the same model conditioned on privileged context such as a verified answer). For a trajectory $x = (x_1, \ldots, x_T)$ sampled from the student, the OPSD loss minimizes the per-token reverse KL divergence:
+令 $\pi_\theta$ 表示学生策略（只给定问题的模型），$\pi_\theta^+$ 表示教师策略（以特权上下文如已验证答案为条件的同一个模型）。对于从学生中采样的轨迹 $x = (x_1, \ldots, x_T)$，OPSD 损失最小化逐 token 的反向 KL 散度：
+\[
+\mathcal{L}_{\text{OPSD}}(\theta) = \mathbb{E}_{x \sim \pi_\theta}\left[\sum_{t=1}^{T} \text{KL}\!\left(\pi_\theta(\cdot \mid x_{<t}) \;\|\; \pi_\theta^+(\cdot \mid x_{<t})\right)\right]
+\]
+
+% In practice, this simplifies to the difference in log-probabilities evaluated on the sampled tokens:
+在实践中，这简化为在采样 token 上评估的对数概率之差：
+\[
+\mathcal{L}_{\text{OPSD}}(\theta) \approx \mathbb{E}_{x \sim \pi_\theta}\left[\sum_{t=1}^{T} \log \pi_\theta(x_t \mid x_{<t}) - \log \pi_\theta^+(x_t \mid x_{<t})\right]
+\]
+
+% The teacher's log-probabilities require only a single forward pass (no gradient computation), making the approach significantly cheaper than running a separate reward model or performing full RL rollouts with delayed rewards.
+教师的对数概率只需一次前向传播（无梯度计算），使得该方法比运行独立的奖励模型或执行带延迟奖励的完整 RL rollout 便宜得多。
+
+% \subsection{Why Dense Supervision Matters}
+\subsection{为什么密集监督很重要}
+\label{subsec:opsd-dense}
+
+% The information-theoretic argument is compelling: RL teaches $O(1)$ bits per episode (the scalar reward), while token-level distillation teaches $O(T)$ bits per episode. This translates directly into training efficiency:
+信息论上的论证很有说服力：RL 每回合只教 $O(1)$ 比特（标量奖励），而 token 级蒸馏每回合教 $O(T)$ 比特。这直接转化为训练效率：
+\begin{itemize}
+  % \item \textbf{Qwen3 results}: The Qwen3 technical report reports that on-policy distillation achieves 74.4\% on AIME'24 at \textbf{one-tenth the GPU-hours} of their RL pipeline (1,800 vs.\ 17,920 GPU-hours), while exceeding RL's 67.6\%.
+  \item \textbf{Qwen3 结果}：Qwen3 技术报告称，同策略蒸馏以 RL 流水线\textbf{十分之一的 GPU 时长}（1,800 vs.\ 17,920 GPU 小时）在 AIME'24 上达到 74.4\%，同时超过了 RL 的 67.6\%。
+  % \item \textbf{Step efficiency}: Empirical comparisons show OPSD reaching equivalent reasoning performance in 7--10$\times$ fewer gradient steps than GRPO, corresponding to 50--100$\times$ compute savings when accounting for shorter required context lengths and smaller batch sizes.
+  \item \textbf{步数效率}：实证对比显示，OPSD 用比 GRPO 少 7--10$\times$ 的梯度步数就能达到同等的推理性能；考虑到所需上下文长度更短、批大小更小，对应 50--100$\times$ 的算力节省。
+  % \item \textbf{Data reuse}: Unlike RL, which memorizes final answers when trained on repeated prompts, OPSD learns to approximate the teacher's full distribution via reverse KL, enabling effective multi-epoch training on small prompt sets.
+  \item \textbf{数据复用}：与在重复提示上训练时会记住最终答案的 RL 不同，OPSD 通过反向 KL 学习逼近教师的完整分布，从而可以在小提示集上进行有效的多轮训练。
+\end{itemize}
+
+% \subsection{Failure Modes and Mitigations}
+\subsection{失败模式与缓解措施}
+\label{subsec:opsd-failures}
+
+\begin{warningbox}[特权导致的风格漂移]
+% When the teacher is conditioned on a verified solution, it tends to produce shorter, more direct outputs—it already ``knows'' the answer. The resulting distributional gap between teacher and student concentrates on \emph{style tokens} (brevity, directness) rather than \emph{task-bearing tokens} (correct reasoning steps). This causes the student's response length to shrink without improving accuracy.
+当教师以已验证解答为条件时，它倾向于产出更短、更直接的输出——因为它已经“知道”答案。由此产生的师生分布差距集中在\emph{风格 token}（简洁、直接）上，而非\emph{承载任务的 token}（正确的推理步骤）。这导致学生的回答变短，准确率却没有提升。
+\end{warningbox}
+
+% RLCSD~\cite{pan2026rlcsd} addresses this pathology through a \textbf{contrastive} formulation: it computes the teacher-student gap under both a correct hint and an incorrect hint, then subtracts the latter to cancel out the style component that conditioning on \emph{any} hint induces. The residual signal concentrates on task-relevant tokens.
+RLCSD~\cite{pan2026rlcsd} 通过\textbf{对比式}公式化解决这一病态：它在正确提示与错误提示两种条件下分别计算师生差距，然后相减，以消除任何提示都会诱导出的风格分量。残差信号集中在任务相关 token 上。
+
+% EGRSD~\cite{ke2026egrsd} takes a complementary approach: it introduces an \textbf{entropy-guided confidence gate} that down-weights token positions where the teacher's predictive distribution is high-entropy (uncertain), focusing the gradient on positions where the teacher is confident and the student diverges.
+EGRSD~\cite{ke2026egrsd} 采用互补的方法：它引入一个\textbf{熵引导的置信门控}，对教师预测分布高熵（不确定）的 token 位置降低权重，把梯度集中在教师自信而学生偏离的位置。
+
+% \subsection{Connection to RL and the Training Pipeline}
+\subsection{与 RL 的联系及训练流水线}
+\label{subsec:opsd-pipeline}
+
+% OPSD occupies a specific niche in the post-training pipeline:
+OPSD 在后训练流水线中占据一个特定的生态位：
+
+\begin{figure}[ht!]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners=3pt, minimum height=0.8cm, minimum width=2.5cm, align=center, font=\small},
+  arr/.style={-{Stealth[length=3mm]}, thick}
+]
+\node[box] (sft) at (0,0) {异策略\\蒸馏（SFT）};
+\node[box] (opsd) at (5.5,0) {同策略\\自蒸馏};
+\node[box] (rl) at (11,0) {RL\\(GRPO/PPO)};
+\draw[arr] (sft) -- (opsd) node[midway, above, font=\scriptsize] {密集，同策略};
+\draw[arr] (opsd) -- (rl) node[midway, above, font=\scriptsize] {稀疏，探索};
+\node[below=0.5cm, font=\scriptsize, text=gray] at (sft) {异策略，密集};
+\node[below=0.5cm, font=\scriptsize, text=gray] at (opsd) {同策略，密集};
+\node[below=0.5cm, font=\scriptsize, text=gray] at (rl) {同策略，稀疏};
+\end{tikzpicture}
+% \caption{OPSD bridges SFT and RL: it combines on-policy sampling (avoiding distribution mismatch) with dense token-level supervision (avoiding reward sparsity).}
+\caption{OPSD 连接了 SFT 与 RL：它把同策略采样（避免分布失配）与密集的 token 级监督（避免奖励稀疏）结合起来。}
+\label{fig:opsd-pipeline}
+\end{figure}
+
+% The practical pipeline emerging in frontier labs is: (1)~SFT on teacher-generated reasoning traces to initialize the policy within the correct distribution; (2)~OPSD to cheaply recover or refine reasoning capabilities with dense supervision; (3)~RL for the final push on hard problems where OPSD's teacher signal becomes unreliable (the teacher itself cannot solve them).
+前沿实验室中浮现的实用流水线是：(1)~在教师生成的推理轨迹上做 SFT，把策略初始化到正确的分布中；(2)~用 OPSD 以密集监督低成本地恢复或精化推理能力；(3)~在 OPSD 的教师信号变得不可靠（教师自己也解不出）的难题上，用 RL 做最后的冲刺。
+
+\begin{intuitionbox}[何时用 OPSD，何时用 RL]
+\begin{itemize}
+  % \item \textbf{Use OPSD}: When the teacher (or the model itself with privileged context) reliably solves the target tasks; when compute budget is limited; when you need to recover reasoning behavior after domain-specific fine-tuning; for continual learning where RL's sparsity causes catastrophic forgetting.
+  \item \textbf{用 OPSD}：当教师（或带特权上下文的模型自身）能可靠解决目标任务时；当算力预算有限时；当需要在特定领域微调后恢复推理行为时；以及当 RL 的稀疏性会导致灾难性遗忘的持续学习场景。
+  % \item \textbf{Use RL}: When pushing beyond the teacher's capability ceiling; when exploring novel reasoning strategies that don't exist in any teacher distribution; when verifiable rewards are cheap (code execution, math verification).
+  \item \textbf{用 RL}：当需要突破教师的能力天花板时；当要探索任何教师分布中都不存在的新颖推理策略时；当可验证奖励很廉价时（代码执行、数学验证）。
+  % \item \textbf{Use both}: OPSD first to cheaply reach the teacher's level, then RL to push beyond it.
+  \item \textbf{两者都用}：先用 OPSD 低成本地达到教师水平，再用 RL 突破它。
+\end{itemize}
+\end{intuitionbox}
+
 \section{总结与开放问题}
 \label{subsec:reasoning_summary}
 
@@ -1384,10 +1594,12 @@ RL 用于推理模型的领域进展极为迅速。已经浮现出若干关键�
   \item \textbf{可验证奖励已经足够}：对于具备真值验证的领域（数学、代码），仅靠结果奖励就足以让 RL 发现复杂的推理策略，无需过程奖励模型。
   % \item \textbf{Test-time compute is a new axis}: Reasoning models introduce a new dimension of scaling---inference compute---that is roughly substitutable with training compute for hard reasoning tasks.
   \item \textbf{测试时计算是一个新维度}：推理模型引入了新的扩展维度——推理计算——在困难推理任务上它与训练计算大致可互相替代。
-  % \item \textbf{Distillation is highly effective}: Large reasoning models can transfer their capabilities to much smaller models via supervised fine-tuning on generated chains, often outperforming direct RL training of small models.
-  \item \textbf{蒸馏极为有效}：大型推理模型可以通过对生成推理链进行监督微调，将能力迁移到小得多的模型上，往往优于对小模型直接进行 RL 训练。
+  % \item \textbf{Distillation is highly effective}: Large reasoning models can transfer their capabilities to much smaller models via supervised fine-tuning on generated chains, often outperforming direct RL training of small models. On-policy self-distillation further closes the gap between distillation and RL at a fraction of the compute.
+  \item \textbf{蒸馏极为有效}：大型推理模型可以通过对生成推理链进行监督微调，将能力迁移到小得多的模型上，往往优于对小模型直接进行 RL 训练。同策略自蒸馏进一步以一小部分算力缩小了蒸馏与 RL 之间的差距。
   % \item \textbf{Emergent meta-cognition}: RL training on reasoning tasks produces emergent self-correction and verification behaviors that were not explicitly trained.
   \item \textbf{涌现的元认知}：在推理任务上的 RL 训练会涌现出未被显式训练的自我纠正与验证行为。
+  % \item \textbf{Dense supervision beats sparse rewards}: On-policy self-distillation achieves RL-level reasoning at 10--100$\times$ lower compute by providing token-level feedback rather than episode-level rewards.
+  \item \textbf{密集监督胜过稀疏奖励}：同策略自蒸馏通过提供 token 级反馈而非回合级奖励，以低 10--100$\times$ 的算力达到 RL 级推理。
 \end{enumerate}
 
 \begin{questionbox}[RL 用于推理中的开放问题]
@@ -1397,18 +1609,22 @@ RL 用于推理模型的领域进展极为迅速。已经浮现出若干关键�
 \begin{itemize}
   % \item \textbf{Generalization}: Do reasoning capabilities trained on math/code transfer to other domains (scientific reasoning, planning, social reasoning)?
   \item \textbf{泛化}：在数学/代码上训练得到的推理能力，能否迁移到其他领域（科学推理、规划、社会推理）？
-  % \item \textbf{Faithfulness}: Are the generated reasoning chains causally responsible for the final answer, or are they post-hoc rationalizations?
-  \item \textbf{忠实性（Faithfulness）}：生成的推理链对最终答案是因果性负责的，还是事后合理化？
+  % \item \textbf{Faithfulness}: Are the generated reasoning chains causally responsible for the final answer, or are they post-hoc rationalizations? Latent reasoning research suggests the chain may be a communication protocol rather than the computation itself.
+  \item \textbf{忠实性（Faithfulness）}：生成的推理链对最终答案是因果性负责的，还是事后合理化？潜空间推理研究表明，思维链可能是一种通信协议，而非计算本身。
   % \item \textbf{Optimal search}: What is the optimal search strategy during inference---beam search, MCTS, or something else?
   \item \textbf{最优搜索}：推理时的最优搜索策略是什么——束搜索（beam search）、MCTS，还是其他？
   % \item \textbf{Reward design}: For domains without ground-truth verifiers, how can we design reliable reward signals for reasoning?
   \item \textbf{奖励设计}：对于没有真值验证器的领域，如何为推理设计可靠的奖励信号？
-  % \item \textbf{Overthinking}: How can models learn to allocate the \emph{right} amount of thinking---neither too little nor too much?
-  \item \textbf{过度思考}：模型如何学会分配\emph{恰当}的思考量——既不过少也不过多？
+  % \item \textbf{Overthinking}: How can models learn to allocate the \emph{right} amount of thinking---neither too little nor too much? Inference-time scaling laws show diminishing and eventually negative returns beyond task-specific optimal budgets.
+  \item \textbf{过度思考}：模型如何学会分配\emph{恰当}的思考量——既不过少也不过多？推理时扩展定律显示，超过任务特定的最优预算后，收益递减并最终变为负。
   % \item \textbf{Compositional reasoning}: Can RL-trained reasoning models solve problems that require composing multiple distinct reasoning skills?
   \item \textbf{组合式推理}：经过 RL 训练的推理模型能否解决需要组合多种不同推理技能的问题？
+  % \item \textbf{Latent vs.\ explicit reasoning}: Can future architectures reason entirely in continuous latent space, emitting only conclusions---and if so, how do we verify their reasoning?
+  \item \textbf{潜空间 vs.\ 显式推理}：未来的架构能否完全在连续潜空间中推理、只输出结论——如果可以，我们又该如何验证它们的推理？
+  % \item \textbf{Self-distillation ceiling}: OPSD is bounded by the teacher's capability (the model conditioned on privileged context). How can we break this ceiling without reverting to expensive RL exploration?
+  \item \textbf{自蒸馏的天花板}：OPSD 受限于教师的能力（以特权上下文为条件的模型）。我们如何在不必退回昂贵的 RL 探索的情况下突破这一天花板？
 \end{itemize}
 \end{questionbox}
 
-% The development of reasoning models represents a paradigm shift: from language models that \emph{know} things to language models that can \emph{figure things out}. The RL methods described in this section are the primary engine driving this shift, and their continued development is likely to be a central focus of AI research in the coming years.
-推理模型的发展代表了一次范式转变：从\emph{知道}事情的语言模型，转向能够\emph{推演}事情的语言模型。本节所描述的 RL 方法是驱动这一转变的主要引擎，它们的持续发展很可能成为未来数年 AI 研究的中心焦点。
+% The development of reasoning models represents a paradigm shift: from language models that \emph{know} things to language models that can \emph{figure things out}. The methods described in this chapter---from RL with verifiable rewards through inference-time compute scaling to on-policy self-distillation---form a rapidly expanding toolkit, and their continued development is likely to be a central focus of AI research in the coming years.
+推理模型的发展代表了一次范式转变：从\emph{知道}事情的语言模型，转向能够\emph{推演}事情的语言模型。本章所描述的方法——从可验证奖励的 RL，到推理时算力扩展，再到同策略自蒸馏——构成了一套快速扩张的工具箱，其持续发展很可能成为未来数年 AI 研究的中心焦点。

@@ -3260,13 +3260,13 @@ Best-of-N & 1+RM & 在线（生成） & 中 & 完美 & 强基线、数据生成 
 \label{sec:reward-models}
 
 % Reward models are the bridge between human preferences and the RL training signal. A well-trained reward model is essential for successful RLHF; a poorly trained one leads to reward hacking and misaligned behaviour. This section covers the theoretical foundations, practical training techniques, and architectural choices for reward models.
-奖励模型是连接人类偏好与 RL 训练信号的桥梁。训练良好的奖励模型对成功的 RLHF 至关重要;训练不佳的奖励模型会导致奖励黑客攻击(reward hacking)和行为失准。本章涵盖奖励模型的理论基础、实用训练技术以及架构选择。
+奖励模型是连接人类偏好与 RL 训练信号的桥梁。训练良好的奖励模型对成功的 RLHF 至关重要；训练不佳的奖励模型会导致奖励黑客攻击（reward hacking）和行为失准。本章涵盖奖励模型的理论基础、实用训练技术以及架构选择。
 
 \section{Bradley-Terry 模型 —— 完整推导}
 \label{sec:bradley-terry}
 
 % The Bradley-Terry model~\cite{bradley1952rank} is the standard probabilistic framework for pairwise preference learning. Given two responses $y_1$ and $y_2$ to a prompt $q$, the model assumes:
-Bradley-Terry 模型~\cite{bradley1952rank} 是成对偏好学习(pairwise preference learning)的标准概率框架。给定对 prompt $q$ 的两个回答 $y_1$ 和 $y_2$,该模型假设:
+Bradley-Terry 模型~\cite{bradley1952rank} 是成对偏好学习（pairwise preference learning）的标准概率框架。给定对 prompt $q$ 的两个回答 $y_1$ 和 $y_2$，该模型假设：
 
 \[
 P(y_1 \succ y_2 \mid q) = \sigma(r(y_1, q) - r(y_2, q))
@@ -3274,13 +3274,13 @@ P(y_1 \succ y_2 \mid q) = \sigma(r(y_1, q) - r(y_2, q))
 \]
 
 % where $r: \mathcal{Y} \times \mathcal{Q} \to \mathbb{R}$ is the scalar reward function and $\sigma$ is the sigmoid function.
-其中 $r: \mathcal{Y} \times \mathcal{Q} \to \mathbb{R}$ 是标量 Reward 函数,$\sigma$ 是 sigmoid 函数。
+其中 $r: \mathcal{Y} \times \mathcal{Q} \to \mathbb{R}$ 是标量 Reward 函数，$\sigma$ 是 sigmoid 函数。
 
 \subsubsection*{最大似然估计}
 \label{maximum-likelihood-estimation}
 
 % Given a dataset $\mathcal{D} = \{(q^{(k)}, y_w^{(k)}, y_l^{(k)})\}_{k=1}^N$ of preference pairs, the MLE objective is:
-给定偏好对数据集 $\mathcal{D} = \{(q^{(k)}, y_w^{(k)}, y_l^{(k)})\}_{k=1}^N$,最大似然估计(MLE)目标为:
+给定偏好对数据集 $\mathcal{D} = \{(q^{(k)}, y_w^{(k)}, y_l^{(k)})\}_{k=1}^N$，最大似然估计（MLE）目标为：
 
 \[
 \mathcal{L}_{\text{BT}}(\phi) =
@@ -3288,29 +3288,29 @@ P(y_1 \succ y_2 \mid q) = \sigma(r(y_1, q) - r(y_2, q))
 \]
 
 % where $r_\phi$ is a neural network parameterised by $\phi$. This is a binary cross-entropy loss where the ``positive'' class is the preferred response.
-其中 $r_\phi$ 是由 $\phi$ 参数化的神经网络。这是一个二元交叉熵 Loss,其中“正”类别对应偏好的回答。
+其中 $r_\phi$ 是由 $\phi$ 参数化的神经网络。这是一个二元交叉熵 Loss，其中“正”类别对应偏好的回答。
 
 \begin{keybox}[Bradley-Terry 假设]
 \begin{enumerate}
   % \item Preferences are \emph{transitive}: if $y_1 \succ y_2$ and $y_2 \succ y_3$, then $y_1 \succ y_3$.
-  \item 偏好具有\emph{传递性}:若 $y_1 \succ y_2$ 且 $y_2 \succ y_3$,则 $y_1 \succ y_3$。
+  \item 偏好具有\emph{传递性}：若 $y_1 \succ y_2$ 且 $y_2 \succ y_3$，则 $y_1 \succ y_3$。
   % \item Preferences are determined by a \emph{scalar} reward (no multi-dimensional preferences).
-  \item 偏好由\emph{标量}Reward 决定(不存在多维偏好)。
+  \item 偏好由\emph{标量}Reward 决定（不存在多维偏好）。
   % \item The preference probability depends only on the \emph{difference} in rewards.
   \item 偏好概率仅依赖于 Reward 的\emph{差值}。
   % \item Preferences are \emph{independent} across pairs (no annotator effects).
-  \item 各偏好对之间相互\emph{独立}(不存在标注者效应)。
+  \item 各偏好对之间相互\emph{独立}（不存在标注者效应）。
 \end{enumerate}
 
 % These assumptions are often violated in practice, motivating extensions like Plackett-Luce models for ranking and multi-dimensional reward models.
-这些假设在实践中常被违反,这催生了一些扩展模型,例如用于排序的 Plackett-Luce 模型和多维奖励模型。
+这些假设在实践中常被违反，这催生了一些扩展模型，例如用于排序的 Plackett-Luce 模型和多维奖励模型。
 \end{keybox}
 
 \subsubsection*{Margin Loss 扩展}
 \label{margin-loss-extension}
 
 % A common extension adds a margin $m$ to ensure a minimum gap between winning and losing rewards:
-一种常见的扩展是引入 margin $m$,以确保胜出与落败 Reward 之间存在最小间隔:
+一种常见的扩展是引入 margin $m$，以确保胜出与落败 Reward 之间存在最小间隔：
 
 \[
 \mathcal{L}_{\text{margin}} =
@@ -3322,19 +3322,19 @@ P(y_1 \succ y_2 \mid q) = \sigma(r(y_1, q) - r(y_2, q))
 
 \begin{intuitionbox}[LLM 上的分类头]
 % The standard reward model architecture takes a pretrained LLM and replaces the language modelling head (which maps hidden states to vocabulary logits) with a scalar regression head (which maps the final hidden state to a single reward value).
-标准的奖励模型架构是:取一个预训练 LLM,将其语言建模头(将隐藏状态映射到词表 logits)替换为一个标量回归头(将最终隐藏状态映射到单一 Reward 值)。
+标准的奖励模型架构是：取一个预训练 LLM，将其语言建模头（将隐藏状态映射到词表 logits）替换为一个标量回归头（将最终隐藏状态映射到单一 Reward 值）。
 \end{intuitionbox}
 
 % The architecture is:
-该架构由以下部分组成:
+该架构由以下部分组成：
 
 \begin{enumerate}
   % \item \textbf{Backbone}: a pretrained LLM (e.g., Llama, Mistral) that encodes the prompt-response pair into a sequence of hidden states.
-  \item \textbf{骨干网络(Backbone)}:预训练 LLM(例如 Llama、Mistral),将 prompt-response 对编码为一系列隐藏状态。
+  \item \textbf{骨干网络（Backbone）}：预训练 LLM（例如 Llama、Mistral），将 prompt-response 对编码为一系列隐藏状态。
   % \item \textbf{Pooling}: extract the hidden state at the last token position (for decoder-only models) or the \texttt{[CLS]} token (for encoder models).
-  \item \textbf{池化(Pooling)}:提取最后一个 Token 位置(decoder-only 模型)或 \texttt{[CLS]} Token(encoder 模型)处的隐藏状态。
+  \item \textbf{池化（Pooling）}：提取最后一个 Token 位置（decoder-only 模型）或 \texttt{[CLS]} Token（encoder 模型）处的隐藏状态。
   % \item \textbf{Regression head}: a linear layer $W \in \mathbb{R}^{d \times 1}$ that maps the pooled hidden state to a scalar reward.
-  \item \textbf{回归头(Regression head)}:线性层 $W \in \mathbb{R}^{d \times 1}$,将池化后的隐藏状态映射为标量 Reward。
+  \item \textbf{回归头（Regression head）}：线性层 $W \in \mathbb{R}^{d \times 1}$，将池化后的隐藏状态映射为标量 Reward。
 \end{enumerate}
 
 \begin{examplebox}[TRL 中的奖励模型训练]
@@ -3374,35 +3374,35 @@ trainer.train()
 \label{reward-centering}
 
 % Raw reward model outputs can have arbitrary scale and offset. Centering the rewards (subtracting the mean) stabilises RL training:
-原始的奖励模型输出可能存在任意尺度和偏移。对 Reward 进行中心化(减去均值)可以稳定 RL 训练:
+原始的奖励模型输出可能存在任意尺度和偏移。对 Reward 进行中心化（减去均值）可以稳定 RL 训练：
 
 \[
 r_{\text{centered}}(y, q) = r_\phi(y, q) - \mathbb{E}_{y' \sim \pi_\theta}[r_\phi(y', q)].
 \]
 
 % In TRL, this is implemented via the \texttt{center\_rewards\_coefficient} parameter, which adds a regularisation term to the reward model loss that penalises non-zero mean rewards.
-在 TRL 中,这通过 \texttt{center\_rewards\_coefficient} 参数实现,它会向奖励模型 Loss 中添加一个正则项,惩罚均值非零的 Reward。
+在 TRL 中，这通过 \texttt{center\_rewards\_coefficient} 参数实现，它会向奖励模型 Loss 中添加一个正则项，惩罚均值非零的 Reward。
 
 \subsubsection*{长度偏差校正}
 \label{length-bias-correction}
 
 % Reward models are known to exhibit \emph{length bias}: they tend to assign higher rewards to longer responses, regardless of quality. This can be corrected by:
-奖励模型往往存在\emph{长度偏差}:无论质量如何,都倾向于给较长的回答分配更高的 Reward。可通过以下方式校正:
+奖励模型往往存在\emph{长度偏差}：无论质量如何，都倾向于给较长的回答分配更高的 Reward。可通过以下方式校正：
 
 \begin{enumerate}
   % \item \textbf{Length normalisation}: divide the reward by the response length.
-  \item \textbf{长度归一化(Length normalisation)}:将 Reward 除以回答长度。
+  \item \textbf{长度归一化（Length normalisation）}：将 Reward 除以回答长度。
   % \item \textbf{Length-controlled training}: include length as a feature and train the model to be length-invariant.
-  \item \textbf{长度受控训练(Length-controlled training)}:将长度作为特征,训练模型使其对长度不变。
+  \item \textbf{长度受控训练（Length-controlled training）}：将长度作为特征，训练模型使其对长度不变。
   % \item \textbf{Calibration}: post-hoc regression to remove the length effect.
-  \item \textbf{校准(Calibration)}:事后回归以剔除长度效应。
+  \item \textbf{校准（Calibration）}：事后回归以剔除长度效应。
 \end{enumerate}
 
 \subsubsection*{Margin Loss}
 \label{margin-losses}
 
 % Adding a margin $m$ to the Bradley-Terry loss ensures the reward model assigns meaningfully different scores to preferred and dispreferred responses:
-在 Bradley-Terry Loss 中加入 margin $m$,可确保奖励模型对偏好回答与非偏好回答打出具有显著区分度的分数:
+在 Bradley-Terry Loss 中加入 margin $m$，可确保奖励模型对偏好回答与非偏好回答打出具有显著区分度的分数：
 
 \[
 \mathcal{L}_{\text{margin}} = \max\!\bigl(0,\; m - (r_w - r_l)\bigr).
@@ -3423,7 +3423,7 @@ Reward 信号 & 仅最终答案 & 每一步推理 \\
 信用分配 & 稀疏 & 稠密 \\
 Reward 黑客 & 较易被攻击 & 较难被攻击 \\
 最适合 & 简单任务 & 多步推理 \\
-推理成本 & 低 & 高(需对每步打分) \\
+推理成本 & 低 & 高（需对每步打分） \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -3431,39 +3431,39 @@ Reward 黑客 & 较易被攻击 & 较难被攻击 \\
 
 \begin{intuitionbox}[何时使用 PRM]
 % Process Reward Models are most valuable when:
-过程奖励模型(PRM)在以下场景中最有价值:
+过程奖励模型（PRM）在以下场景中最有价值：
 
 \begin{itemize}
   % \item The task requires multi-step reasoning (math, code, logic).
-  \item 任务需要多步推理(数学、代码、逻辑)。
+  \item 任务需要多步推理（数学、代码、逻辑）。
   % \item The final answer is binary (correct/incorrect) but intermediate steps vary in quality.
-  \item 最终答案是二元的(正确/错误),但中间步骤质量参差不齐。
+  \item 最终答案是二元的（正确/错误），但中间步骤质量参差不齐。
   % \item You want to use the reward model for \emph{search} (e.g., beam search with step scores).
-  \item 你希望将奖励模型用于\emph{搜索}(例如带步骤分数的 beam search)。
+  \item 你希望将奖励模型用于\emph{搜索}（例如带步骤分数的 beam search）。
   % \item You have access to step-level annotations (or can generate them automatically).
-  \item 你能获得步骤级标注(或可自动生成)。
+  \item 你能获得步骤级标注（或可自动生成）。
 \end{itemize}
 
 % For simple tasks (sentiment, toxicity, factuality), ORMs are sufficient and much cheaper.
-对于简单任务(情感、毒性、事实性),ORM 已经足够,且成本低得多。
+对于简单任务（情感、毒性、事实性），ORM 已经足够，且成本低得多。
 \end{intuitionbox}
 
 \begin{examplebox}[LLM RLHF 中的 PBRS]
 % \textbf{Original reward}: Binary correctness (1 if final answer is right, 0 otherwise) --- extremely sparse for multi-step reasoning.
-\textbf{原始 Reward}:二元正确性(最终答案正确为 1,否则为 0)—— 对多步推理而言极其稀疏。
+\textbf{原始 Reward}：二元正确性（最终答案正确为 1，否则为 0）—— 对多步推理而言极其稀疏。
 
 % \textbf{Potential function}: $\Phi(s) =$ partial credit from a verifier (e.g., fraction of intermediate reasoning steps that are logically valid).
-\textbf{势函数(Potential function)}:$\Phi(s) =$ 来自验证器的部分得分(例如,逻辑上有效的中间推理步骤的比例)。
+\textbf{势函数（Potential function）}：$\Phi(s) =$ 来自验证器的部分得分（例如，逻辑上有效的中间推理步骤的比例）。
 
 % \textbf{Shaped reward}: Agent gets incremental signal for each valid reasoning step while preserving the guarantee that the optimal policy still maximizes final-answer correctness.
-\textbf{塑形后的 Reward}:Agent 对每个有效推理步骤都获得增量信号,同时保留“最优 Policy 仍然最大化最终答案正确率”的理论保证。
+\textbf{塑形后的 Reward}：Agent 对每个有效推理步骤都获得增量信号，同时保留“最优 Policy 仍然最大化最终答案正确率”的理论保证。
 
 % \textbf{Practical implementations}:
-\textbf{实际实现}:
+\textbf{实际实现}：
 
 \begin{itemize}
   % \item Process reward models (PRMs) that score each step in a chain-of-thought
-  \item 对思维链(Chain-of-Thought,CoT)中每一步打分的过程奖励模型(PRM)
+  \item 对思维链（Chain-of-Thought, CoT）中每一步打分的过程奖励模型（PRM）
   % \item Intermediate compilation checks in code generation
   \item 代码生成中的中间编译检查
   % \item Partial match scores for multi-part answers
@@ -3471,29 +3471,29 @@ Reward 黑客 & 较易被攻击 & 较难被攻击 \\
 \end{itemize}
 
 % This is a direct application of Potential-Based Reward Shaping (PBRS)~\cite{ng1999policy} to the LLM setting---the theoretical guarantee that shaped rewards preserve the optimal policy makes PRMs a principled approach to dense reward in reasoning tasks.
-这是基于势函数的 Reward 塑形(Potential-Based Reward Shaping, PBRS)~\cite{ng1999policy} 在 LLM 场景下的直接应用 —— “塑形 Reward 保留最优 Policy”这一理论保证使得 PRM 成为在推理任务中获取稠密 Reward 的有原则方法。
+这是基于势函数的 Reward 塑形（Potential-Based Reward Shaping, PBRS）~\cite{ng1999policy} 在 LLM 场景下的直接应用 —— “塑形 Reward 保留最优 Policy”这一理论保证使得 PRM 成为在推理任务中获取稠密 Reward 的有原则方法。
 \end{examplebox}
 
 \subsubsection*{自动 PRM 标注}
 \label{automatic-prm-annotation}
 
 % Step-level annotations can be generated automatically using:
-步骤级标注可通过以下方法自动生成:
+步骤级标注可通过以下方法自动生成：
 
 \begin{enumerate}
   % \item \textbf{Monte Carlo rollouts}: for each intermediate step, sample multiple completions and use the fraction that reach the correct answer as the step reward.
-  \item \textbf{蒙特卡洛 rollout}:对每个中间步骤,采样多个补全(completion),将到达正确答案的比例作为该步的 Reward。
+  \item \textbf{蒙特卡洛 rollout}：对每个中间步骤，采样多个补全（completion），将到达正确答案的比例作为该步的 Reward。
   % \item \textbf{LLM-as-judge}: use a strong LLM to evaluate each step.
-  \item \textbf{LLM-as-judge}:使用一个强大的 LLM 来评估每一步。
+  \item \textbf{LLM-as-judge}：使用一个强大的 LLM 来评估每一步。
   % \item \textbf{Formal verification}: for math/code, use a verifier to check each step.
-  \item \textbf{形式化验证}:对数学/代码任务,使用验证器逐步检查。
+  \item \textbf{形式化验证}：对数学/代码任务，使用验证器逐步检查。
 \end{enumerate}
 
 \section{RLVR 中基于规则的 Reward}
 \label{sec:rule-based-rewards}
 
 % Reinforcement Learning from Verifiable Rewards (RLVR) uses deterministic, rule-based reward functions instead of learned reward models. This substantially reduces reward hacking (though models can still exploit format tricks, edge cases, or test memorization) and is the approach used in DeepSeek-R1~\cite{deepseek2025r1}.
-可验证奖励的强化学习(Reinforcement Learning from Verifiable Rewards, RLVR)使用确定性、基于规则的 Reward 函数,而非习得的奖励模型。这能显著减少奖励黑客行为(尽管模型仍可能利用格式技巧、边界情况或测试记忆来作弊),DeepSeek-R1~\cite{deepseek2025r1} 即采用此方法。
+可验证奖励的强化学习（Reinforcement Learning from Verifiable Rewards, RLVR）使用确定性、基于规则的 Reward 函数，而非习得的奖励模型。这能显著减少奖励黑客行为（尽管模型仍可能利用格式技巧、边界情况或测试记忆来作弊），DeepSeek-R1~\cite{deepseek2025r1} 即采用此方法。
 
 \begin{examplebox}[TRL 中基于规则的 Reward 函数]
 \begin{lstlisting}[style=pythonstyle]
@@ -3552,13 +3552,13 @@ def code_execution_reward(completions, test_cases, **kwargs):
 \begin{warningbox}[基于规则 Reward 的陷阱]
 \begin{itemize}
   % \item \textbf{Format gaming}: models learn to produce the correct format without correct content. Always combine format and correctness rewards.
-  \item \textbf{格式作弊(Format gaming)}:模型学会生成正确格式但内容错误。务必将格式 Reward 与正确性 Reward 结合使用。
+  \item \textbf{格式作弊（Format gaming）}：模型学会生成正确格式但内容错误。务必将格式 Reward 与正确性 Reward 结合使用。
   % \item \textbf{Test case leakage}: if test cases are in the training data, the model memorises them.
-  \item \textbf{测试用例泄漏}:如果测试用例存在于训练数据中,模型会将其记住。
+  \item \textbf{测试用例泄漏}：如果测试用例存在于训练数据中，模型会将其记住。
   % \item \textbf{Timeout exploitation}: models may generate code that times out (avoiding failure). Use strict timeouts and penalise timeouts explicitly.
-  \item \textbf{超时利用}:模型可能生成会超时的代码(以回避失败)。请使用严格的超时并显式惩罚超时。
+  \item \textbf{超时利用}：模型可能生成会超时的代码（以回避失败）。请使用严格的超时并显式惩罚超时。
   % \item \textbf{Reward sparsity}: binary rewards (0/1) can be too sparse for complex tasks. Consider partial credit or intermediate rewards.
-  \item \textbf{Reward 稀疏性}:二元 Reward(0/1)对复杂任务而言可能过于稀疏。考虑使用部分得分或中间 Reward。
+  \item \textbf{Reward 稀疏性}：二元 Reward(0/1)对复杂任务而言可能过于稀疏。考虑使用部分得分或中间 Reward。
 \end{itemize}
 \end{warningbox}
 
@@ -3566,20 +3566,20 @@ def code_execution_reward(completions, test_cases, **kwargs):
 \label{sec:multi-objective-rewards}
 
 % When training with multiple reward signals, the combination strategy significantly affects the final policy.
-当使用多个 Reward 信号进行训练时,组合策略会显著影响最终 Policy。
+当使用多个 Reward 信号进行训练时，组合策略会显著影响最终 Policy。
 
 \begin{keybox}[多 Reward 组合策略]
 \begin{enumerate}
   % \item \textbf{Weighted sum}: $r = \sum_n w_n r_n$. Simple but sensitive to scale.
-  \item \textbf{加权求和(Weighted sum)}:$r = \sum_n w_n r_n$。简单但对尺度敏感。
+  \item \textbf{加权求和（Weighted sum）}：$r = \sum_n w_n r_n$。简单但对尺度敏感。
   % \item \textbf{Normalise then sum (GDPO)}: normalise each reward to zero mean and unit variance within the group, then sum with weights. Scale-invariant.
-  \item \textbf{先归一化再求和(GDPO)}:在组内将每个 Reward 归一化为零均值、单位方差,再加权求和。尺度无关。
+  \item \textbf{先归一化再求和（GDPO）}：在组内将每个 Reward 归一化为零均值、单位方差，再加权求和。尺度无关。
   % \item \textbf{Lexicographic}: optimise rewards in priority order; only consider lower-priority rewards when higher-priority ones are tied.
-  \item \textbf{字典序(Lexicographic)}:按优先级顺序优化 Reward;仅当高优先级 Reward 平局时才考虑低优先级的 Reward。
+  \item \textbf{字典序（Lexicographic）}：按优先级顺序优化 Reward；仅当高优先级 Reward 平局时才考虑低优先级的 Reward。
   % \item \textbf{Constrained}: maximise primary reward subject to constraints on secondary rewards.
-  \item \textbf{约束法(Constrained)}:在次要 Reward 的约束下最大化主 Reward。
+  \item \textbf{约束法（Constrained）}：在次要 Reward 的约束下最大化主 Reward。
   % \item \textbf{Pareto}: maintain a Pareto front of policies and select based on preference.
-  \item \textbf{Pareto}:维护一组 Policy 的 Pareto 前沿,并根据偏好进行选择。
+  \item \textbf{Pareto}：维护一组 Policy 的 Pareto 前沿，并根据偏好进行选择。
 \end{enumerate}
 \end{keybox}
 
@@ -3611,21 +3611,21 @@ trainer = GRPOTrainer(
 \label{listwise-rank-based-rewards}
 
 % While the Bradley-Terry model handles \emph{pairwise} preferences ($y_w \succ y_l$), many practical scenarios involve ranking multiple responses simultaneously. Listwise reward models learn from complete orderings, providing richer training signal and enabling better calibration.
-虽然 Bradley-Terry 模型处理的是\emph{成对}偏好($y_w \succ y_l$),但许多实际场景需要同时对多个回答进行排序。列表式(listwise)奖励模型从完整排序中学习,提供更丰富的训练信号,并实现更好的校准。
+虽然 Bradley-Terry 模型处理的是\emph{成对}偏好（$y_w \succ y_l$），但许多实际场景需要同时对多个回答进行排序。列表式（listwise）奖励模型从完整排序中学习，提供更丰富的训练信号，并实现更好的校准。
 
-\subsubsection*{动机:超越成对比较}
+\subsubsection*{动机：超越成对比较}
 \label{motivation-beyond-pairwise}
 
 \begin{intuitionbox}[为何要用 listwise?]
 \begin{itemize}
   % \item \textbf{Richer signal}: A ranking of $K$ responses contains $\binom{K}{2}$ implicit pairwise comparisons, but also captures \emph{relative margins} (how much better rank 1 is vs.~rank 3).
-  \item \textbf{更丰富的信号}:对 $K$ 个回答的排序包含 $\binom{K}{2}$ 个隐式成对比较,同时还能捕捉\emph{相对 margin}(例如排名第 1 比第 3 好多少)。
+  \item \textbf{更丰富的信号}：对 $K$ 个回答的排序包含 $\binom{K}{2}$ 个隐式成对比较，同时还能捕捉\emph{相对 margin}（例如排名第 1 比第 3 好多少）。
   % \item \textbf{Better calibration}: Pairwise BT models only learn \emph{differences} in reward; listwise models learn absolute reward scale.
-  \item \textbf{更好的校准}:成对 BT 模型只学习 Reward 的\emph{差值};listwise 模型学习的是绝对 Reward 尺度。
+  \item \textbf{更好的校准}：成对 BT 模型只学习 Reward 的\emph{差值}；listwise 模型学习的是绝对 Reward 尺度。
   % \item \textbf{Natural fit for GRPO}: GRPO generates $N$ responses per prompt and ranks them --- listwise rewards align directly with this workflow.
-  \item \textbf{天然契合 GRPO}:GRPO 对每个 prompt 生成 $N$ 个回答并排序 —— listwise Reward 与该工作流直接对齐。
+  \item \textbf{天然契合 GRPO}：GRPO 对每个 prompt 生成 $N$ 个回答并排序 —— listwise Reward 与该工作流直接对齐。
   % \item \textbf{Annotator efficiency}: Ranking 5 responses is faster than labeling all 10 possible pairs independently.
-  \item \textbf{标注效率}:对 5 个回答排序比独立标注所有 10 个可能的成对组合更快。
+  \item \textbf{标注效率}：对 5 个回答排序比独立标注所有 10 个可能的成对组合更快。
 \end{itemize}
 \end{intuitionbox}
 
@@ -3640,10 +3640,10 @@ Plackett-Luce(PL)模型~\cite{plackett1975analysis} 是将 Bradley-Terry 推广�
 P(\pi \mid q) = \prod_{i=1}^{K} \frac{e^{r_\phi(y_{\pi(i)}, q)}}{\sum_{j=i}^{K} e^{r_\phi(y_{\pi(j)}, q)}}
 \]
  % \textbf{Intuition}: Sequentially select the best remaining item. At each step, the probability of selecting item $\pi(i)$ is softmax over the remaining items.
- \textbf{直觉}:顺序地从剩余项中选出最佳。每一步选中 $\pi(i)$ 的概率是对剩余项做 Softmax。
+ \textbf{直觉}：顺序地从剩余项中选出最佳。每一步选中 $\pi(i)$ 的概率是对剩余项做 Softmax。
 
 % \textbf{Loss function}:
-\textbf{Loss 函数}:
+\textbf{Loss 函数}：
 \[
 \mathcal{L}_{\text{PL}}(\phi) = -\frac{1}{|\mathcal{D}|} \sum_{(q, \pi) \in \mathcal{D}} \sum_{i=1}^{K-1} \left[ r_\phi(y_{\pi(i)}, q) - \log \sum_{j=i}^{K} e^{r_\phi(y_{\pi(j)}, q)} \right]
 \]
@@ -3651,7 +3651,7 @@ P(\pi \mid q) = \prod_{i=1}^{K} \frac{e^{r_\phi(y_{\pi(i)}, q)}}{\sum_{j=i}^{K} 
 
 \begin{intuitionbox}[Plackett-Luce 退化为 Bradley-Terry]
 % For $K=2$, the PL model gives: $P(y_1 \succ y_2) = \frac{e^{r(y_1)}}{e^{r(y_1)} + e^{r(y_2)}} = \sigma(r(y_1) - r(y_2))$ --- exactly the Bradley-Terry model. PL is a strict generalization.
-当 $K=2$ 时,PL 模型给出:$P(y_1 \succ y_2) = \frac{e^{r(y_1)}}{e^{r(y_1)} + e^{r(y_2)}} = \sigma(r(y_1) - r(y_2))$ —— 这正是 Bradley-Terry 模型。PL 是其严格的推广。
+当 $K=2$ 时，PL 模型给出：$P(y_1 \succ y_2) = \frac{e^{r(y_1)}}{e^{r(y_1)} + e^{r(y_2)}} = \sigma(r(y_1) - r(y_2))$ —— 这正是 Bradley-Terry 模型。PL 是其严格的推广。
 \end{intuitionbox}
 
 \subsubsection*{ListMLE 与基于排序的 Loss}
@@ -3660,18 +3660,18 @@ P(\pi \mid q) = \prod_{i=1}^{K} \frac{e^{r_\phi(y_{\pi(i)}, q)}}{\sum_{j=i}^{K} 
 \begin{keybox}[列表式 Loss 函数]
 \begin{itemize}
   % \item \textbf{ListMLE}~\cite{xia2008listwise}: Directly maximizes the PL likelihood of the ground-truth ranking. Simple and effective.
-  \item \textbf{ListMLE}~\cite{xia2008listwise}:直接最大化真实排序的 PL 似然。简洁有效。
+  \item \textbf{ListMLE}~\cite{xia2008listwise}：直接最大化真实排序的 PL 似然。简洁有效。
   % \item \textbf{ListNet}~\cite{cao2007listnet}: Minimizes KL divergence between the model's top-1 probability distribution and the ground-truth:
-  \item \textbf{ListNet}~\cite{cao2007listnet}:最小化模型的 top-1 概率分布与真实分布之间的 KL 散度:
+  \item \textbf{ListNet}~\cite{cao2007listnet}：最小化模型的 top-1 概率分布与真实分布之间的 KL 散度：
 \[
 \mathcal{L}_{\text{ListNet}} = -\sum_{i=1}^{K} P_{\text{true}}(y_i \text{ is best}) \cdot \log P_{\text{model}}(y_i \text{ is best})
 \]
  % where $P_{\text{model}}(y_i \text{ is best}) = \frac{e^{r_\phi(y_i)}}{\sum_j e^{r_\phi(y_j)}}$.
  其中 $P_{\text{model}}(y_i \text{ is best}) = \frac{e^{r_\phi(y_i)}}{\sum_j e^{r_\phi(y_j)}}$。
   % \item \textbf{LambdaRank}~\cite{burges2006lambdarank}: Weights pairwise gradients by the change in ranking metric (e.g., NDCG). Useful when ranking quality matters more at the top.
-  \item \textbf{LambdaRank}~\cite{burges2006lambdarank}:用排序指标(例如 NDCG)的变化对成对 Gradient 加权。当排名靠前的质量更重要时尤为有用。
+  \item \textbf{LambdaRank}~\cite{burges2006lambdarank}：用排序指标（例如 NDCG）的变化对成对 Gradient 加权。当排名靠前的质量更重要时尤为有用。
   % \item \textbf{RankNet}~\cite{burges2005ranknet}: Pairwise cross-entropy summed over all pairs --- equivalent to BT on all $\binom{K}{2}$ pairs extracted from the ranking.
-  \item \textbf{RankNet}~\cite{burges2005ranknet}:对所有成对组合求和的成对交叉熵 —— 等价于在从排序中抽取的所有 $\binom{K}{2}$ 个对上应用 BT。
+  \item \textbf{RankNet}~\cite{burges2005ranknet}：对所有成对组合求和的成对交叉熵 —— 等价于在从排序中抽取的所有 $\binom{K}{2}$ 个对上应用 BT。
 \end{itemize}
 \end{keybox}
 
@@ -3680,21 +3680,21 @@ P(\pi \mid q) = \prod_{i=1}^{K} \frac{e^{r_\phi(y_{\pi(i)}, q)}}{\sum_{j=i}^{K} 
 
 \begin{keybox}[与 GRPO 的集成]
 % GRPO naturally produces ranked groups: for each prompt, $N$ responses are scored and ranked. A listwise reward model can be trained directly on these rankings:
-GRPO 天然产生有序的分组:对每个 prompt,$N$ 个回答被打分并排序。可以直接在这些排序上训练 listwise 奖励模型:
+GRPO 天然产生有序的分组：对每个 prompt,$N$ 个回答被打分并排序。可以直接在这些排序上训练 listwise 奖励模型：
 
 \begin{enumerate}
   % \item \textbf{Generate}: Sample $N=8$ responses per prompt from the policy.
-  \item \textbf{生成}:从 Policy 中对每个 prompt 采样 $N=8$ 个回答。
+  \item \textbf{生成}：从 Policy 中对每个 prompt 采样 $N=8$ 个回答。
   % \item \textbf{Rank}: Use an existing reward model (or human annotators) to produce a full ranking $\pi$.
-  \item \textbf{排序}:使用已有的奖励模型(或人工标注者)产生完整排序 $\pi$。
+  \item \textbf{排序}：使用已有的奖励模型（或人工标注者）产生完整排序 $\pi$。
   % \item \textbf{Train listwise RM}: Optimize the PL loss on $(q, \pi)$ tuples.
-  \item \textbf{训练 listwise RM}:在 $(q, \pi)$ 元组上优化 PL Loss。
+  \item \textbf{训练 listwise RM}：在 $(q, \pi)$ 元组上优化 PL Loss。
   % \item \textbf{Use in GRPO}: The listwise RM assigns scalar rewards $r(y_i, q)$ to each response; GRPO computes advantages as $\hat{A}_i = (r_i - \mu) / \sigma$.
-  \item \textbf{在 GRPO 中使用}:listwise RM 对每个回答分配标量 Reward $r(y_i, q)$;GRPO 将优势计算为 $\hat{A}_i = (r_i - \mu) / \sigma$。
+  \item \textbf{在 GRPO 中使用}：listwise RM 对每个回答分配标量 Reward $r(y_i, q)$；GRPO 将优势计算为 $\hat{A}_i = (r_i - \mu) / \sigma$。
 \end{enumerate}
 
 % \textbf{Advantage over pairwise}: The listwise RM sees all $N$ responses simultaneously, learning that rank-1 should have much higher reward than rank-$N$ (not just ``slightly better than one other response'').
-\textbf{相对成对方法的优势}:listwise RM 同时看到全部 $N$ 个回答,可学到排名第 1 应当比排名第 $N$ 拥有高得多的 Reward(而非仅仅“比另一个回答略好”)。
+\textbf{相对成对方法的优势}：listwise RM 同时看到全部 $N$ 个回答，可学到排名第 1 应当比排名第 $N$ 拥有高得多的 Reward（而非仅仅“比另一个回答略好”）。
 \end{keybox}
 
 \subsubsection*{实用考量}
@@ -3703,15 +3703,15 @@ GRPO 天然产生有序的分组:对每个 prompt,$N$ 个回答被打分并排�
 \begin{warningbox}[Listwise 训练挑战]
 \begin{itemize}
   % \item \textbf{Annotation cost}: Full rankings are expensive. Partial rankings (top-3 out of 8) reduce cost with minimal quality loss.
-  \item \textbf{标注成本}:完整排序昂贵。部分排序(8 个中取 top-3)能在质量损失很小的前提下降低成本。
+  \item \textbf{标注成本}：完整排序昂贵。部分排序（8 个中取 top-3）能在质量损失很小的前提下降低成本。
   % \item \textbf{Ties}: Real rankings often have ties. Use the Plackett-Luce extension for ties: assign equal probability mass to tied items.
-  \item \textbf{并列}:真实排序常有并列。使用 PL 的并列扩展:对并列项分配相等的概率质量。
+  \item \textbf{并列}：真实排序常有并列。使用 PL 的并列扩展：对并列项分配相等的概率质量。
   % \item \textbf{Position bias}: Annotators tend to prefer items shown first. Randomize presentation order and train debiasing.
-  \item \textbf{位置偏差}:标注者倾向偏好排在前面的项。随机化展示顺序并训练去偏。
+  \item \textbf{位置偏差}：标注者倾向偏好排在前面的项。随机化展示顺序并训练去偏。
   % \item \textbf{List length}: Training on $K=4$--8 is typical. Longer lists ($K>16$) add noise without much benefit.
-  \item \textbf{列表长度}:训练时 $K=4$--8 较为常见。更长的列表($K>16$)只会增加噪声,收益有限。
+  \item \textbf{列表长度}：训练时 $K=4$--8 较为常见。更长的列表（$K>16$）只会增加噪声，收益有限。
   % \item \textbf{Consistency}: Rankings from different annotators may disagree. Use inter-annotator agreement ($\kappa > 0.6$) as a quality filter.
-  \item \textbf{一致性}:不同标注者的排序可能不一致。使用标注者间一致性($\kappa > 0.6$)作为质量过滤。
+  \item \textbf{一致性}：不同标注者的排序可能不一致。使用标注者间一致性（$\kappa > 0.6$）作为质量过滤。
 \end{itemize}
 \end{warningbox}
 
@@ -3754,26 +3754,26 @@ loss.backward()
 \label{sec:sft-best-practices}
 
 % Supervised Fine-Tuning (SFT) is the foundation of the RLHF pipeline. The quality of the SFT model determines the ceiling of what RL can achieve: RL can refine and improve a behaviour, but it cannot reliably introduce a behaviour that is entirely absent from the SFT model. This section covers the key techniques for effective SFT.
-监督微调(Supervised Fine-Tuning, SFT)是 RLHF 流水线的基础。SFT 模型的质量决定了 RL 能达到的上限:RL 可以精炼和提升某种行为,但无法可靠地引入 SFT 模型中完全不存在的行为。本章涵盖高效 SFT 的关键技术。
+监督微调（Supervised Fine-Tuning, SFT）是 RLHF 流水线的基础。SFT 模型的质量决定了 RL 能达到的上限：RL 可以精炼和提升某种行为，但无法可靠地引入 SFT 模型中完全不存在的行为。本章涵盖高效 SFT 的关键技术。
 
 \section{序列打包以提升效率}
 \label{sec:sequence-packing}
 
 \begin{intuitionbox}[Padding 问题]
 % Standard SFT batches pad all sequences to the length of the longest sequence in the batch. For datasets with high length variance (e.g., a mix of short instructions and long documents), this wastes 50--80\% of compute on padding tokens. Sequence packing eliminates this waste.
-标准 SFT 的 Batch 会将所有序列填充(pad)到该 Batch 中最长序列的长度。对长度方差较大的数据集(例如短指令与长文档混合),这会浪费 50--80\% 的计算量在 padding Token 上。序列打包(Sequence Packing)消除了这种浪费。
+标准 SFT 的 Batch 会将所有序列填充（pad）到该 Batch 中最长序列的长度。对长度方差较大的数据集（例如短指令与长文档混合），这会浪费 50--80\% 的计算量在 padding Token 上。序列打包（Sequence Packing）消除了这种浪费。
 \end{intuitionbox}
 
 % Sequence packing concatenates multiple short examples into a single sequence of length \texttt{max\_seq\_length}, separated by EOS tokens. The attention mask ensures that tokens from different examples do not attend to each other:
-序列打包将多个短样本拼接为长度为 \texttt{max\_seq\_length} 的单一序列,以 EOS Token 分隔。Attention mask 确保不同样本的 Token 之间不会相互 attend:
+序列打包将多个短样本拼接为长度为 \texttt{max\_seq\_length} 的单一序列，以 EOS Token 分隔。Attention mask 确保不同样本的 Token 之间不会相互 attend：
 
 \begin{enumerate}
   % \item Sort examples by length (optional, improves packing efficiency).
-  \item 按长度对样本排序(可选,可提升打包效率)。
+  \item 按长度对样本排序（可选，可提升打包效率）。
   % \item Greedily pack examples into bins of size \texttt{max\_seq\_length}.
   \item 贪心地将样本打包进大小为 \texttt{max\_seq\_length} 的 bin。
   % \item Use a block-diagonal attention mask to prevent cross-example attention.
-  \item 使用块对角(block-diagonal)Attention mask,防止跨样本 attention。
+  \item 使用块对角（block-diagonal）Attention mask，防止跨样本 attention。
   % \item Compute loss only on non-padding tokens.
   \item 只在非 padding Token 上计算 Loss。
 \end{enumerate}
@@ -3781,13 +3781,13 @@ loss.backward()
 \begin{keybox}[打包效率]
 \begin{itemize}
   % \item Typical packing efficiency: 85--95\% (vs 20--50\% with padding).
-  \item 典型打包效率:85--95\%(相比之下,padding 仅 20--50\%)。
+  \item 典型打包效率：85--95\%(相比之下，padding 仅 20--50\%)。
   % \item Speedup: 2--4$\times$ for datasets with high length variance.
-  \item 加速比:对长度方差较大的数据集可达 2--4$\times$。
+  \item 加速比：对长度方差较大的数据集可达 2--4$\times$。
   % \item Memory: similar to padding (same total tokens per batch).
-  \item 显存:与 padding 相近(每个 Batch 的总 Token 数相同)。
+  \item 显存：与 padding 相近（每个 Batch 的总 Token 数相同）。
   % \item Caveat: requires careful attention masking to avoid cross-contamination.
-  \item 注意事项:需谨慎设计 attention masking 以避免交叉污染。
+  \item 注意事项：需谨慎设计 attention masking 以避免交叉污染。
 \end{itemize}
 \end{keybox}
 
@@ -3820,14 +3820,14 @@ trainer.train()
 
 \begin{intuitionbox}[为何 Chat 模板重要]
 % Language models are trained on raw text, but instruction-following models need to distinguish between system prompts, user messages, and assistant responses. Chat templates encode this structure into the token sequence. Using the wrong template (or no template) at inference time causes significant performance degradation.
-语言模型在原始文本上训练,但指令跟随模型需要区分 system prompt、用户消息与 assistant 回应。Chat 模板将这种结构编码进 Token 序列。推理时使用错误模板(或不使用模板)会导致性能显著下降。
+语言模型在原始文本上训练，但指令跟随模型需要区分 system prompt、用户消息与 assistant 回应。Chat 模板将这种结构编码进 Token 序列。推理时使用错误模板（或不使用模板）会导致性能显著下降。
 \end{intuitionbox}
 
 \subsubsection*{ChatML 格式}
 \label{chatml-format}
 
 % ChatML is the most widely used chat template:
-ChatML 是使用最广泛的 chat 模板:
+ChatML 是使用最广泛的 chat 模板：
 
 \begin{lstlisting}[style=pythonstyle]
 # ChatML 格式
@@ -3843,7 +3843,7 @@ template = """<|im_start|>system
 \label{llama-format}
 
 % Llama 3 uses a different template with special tokens:
-Llama 3 使用一种带特殊 Token 的不同模板:
+Llama 3 使用一种带特殊 Token 的不同模板：
 
 \begin{lstlisting}[style=pythonstyle]
 # Llama 3 格式
@@ -3893,7 +3893,7 @@ trainer = SFTTrainer(
 
 \begin{intuitionbox}[为何要 mask prompt?]
 % In instruction fine-tuning, the model should learn to generate the assistant's response, not to predict the user's question or the system prompt. Computing loss on the prompt tokens wastes gradient signal and can cause the model to ``memorise'' prompts rather than learning to respond to them. Completion-only masking sets the loss to zero for all non-assistant tokens.
-在指令微调中,模型应该学习生成 assistant 的回应,而非预测用户的问题或 system prompt。在 prompt Token 上计算 Loss 会浪费 Gradient 信号,并可能导致模型“记忆”prompt 而非学会回应它们。Completion-only masking 将所有非 assistant Token 的 Loss 置零。
+在指令微调中，模型应该学习生成 assistant 的回应，而非预测用户的问题或 system prompt。在 prompt Token 上计算 Loss 会浪费 Gradient 信号，并可能导致模型“记忆”prompt 而非学会回应它们。Completion-only masking 将所有非 assistant Token 的 Loss 置零。
 \end{intuitionbox}
 
 \begin{examplebox}[TRL 中的 Completion-Only Masking]
@@ -3931,9 +3931,9 @@ trainer = SFTTrainer(
   % \item The response template must exactly match the tokenised form. Off-by-one errors in tokenisation can cause the mask to be applied incorrectly.
   \item 响应模板必须与 token 化后的形式精确匹配。token 化中的 off-by-one 错误会导致 mask 应用错误。
   % \item For very short responses, masking the prompt may leave too few tokens for meaningful gradient signal. Consider a minimum response length threshold.
-  \item 对非常短的回答,mask 掉 prompt 后剩下的 Token 可能不足以提供有意义的 Gradient 信号。可考虑设置最小响应长度阈值。
+  \item 对非常短的回答，mask 掉 prompt 后剩下的 Token 可能不足以提供有意义的 Gradient 信号。可考虑设置最小响应长度阈值。
   % \item Multi-turn conversations require masking all non-assistant turns, not just the first.
-  \item 多轮对话(Multi-Turn)需要 mask 所有非 assistant 轮次,而不仅是第一轮。
+  \item 多轮对话（Multi-Turn）需要 mask 所有非 assistant 轮次，而不仅是第一轮。
 \end{itemize}
 \end{warningbox}
 
@@ -3942,40 +3942,40 @@ trainer = SFTTrainer(
 
 \begin{intuitionbox}[多任务挑战]
 % Training on multiple tasks simultaneously can improve generalisation but also causes \emph{task interference}: gradients from different tasks conflict, degrading performance on individual tasks. Data mixing strategies control the relative contribution of each task to the training signal.
-同时在多任务上训练能提升泛化能力,但也会引发\emph{任务干扰}:不同任务的 Gradient 相互冲突,降低单一任务的性能。数据混合策略用于控制各任务对训练信号的相对贡献。
+同时在多任务上训练能提升泛化能力，但也会引发\emph{任务干扰}：不同任务的 Gradient 相互冲突，降低单一任务的性能。数据混合策略用于控制各任务对训练信号的相对贡献。
 \end{intuitionbox}
 
 \subsubsection*{比例混合}
 \label{proportional-mixing}
 
 % Sample from each dataset proportionally to its size:
-按各数据集的规模成比例地采样:
+按各数据集的规模成比例地采样：
 
 \[
 p_k = \frac{N_k}{\sum_{j=1}^K N_j},
 \]
 
 % where $N_k$ is the number of examples in dataset $k$. This is the default in most frameworks and works well when datasets are of similar quality.
-其中 $N_k$ 是数据集 $k$ 中的样本数。这是大多数框架的默认方式,在数据集质量相近时效果良好。
+其中 $N_k$ 是数据集 $k$ 中的样本数。这是大多数框架的默认方式，在数据集质量相近时效果良好。
 
 \subsubsection*{温度混合}
 \label{temperature-mixing}
 
 % Apply a temperature $T$ to smooth the proportions:
-应用温度 $T$ 来平滑比例:
+应用温度 $T$ 来平滑比例：
 
 \[
 p_k \propto N_k^{1/T}.
 \]
 
 % $T=1$: proportional mixing. $T \to \infty$: uniform mixing. $T < 1$: over-samples large datasets. $T > 1$: over-samples small datasets.
-$T=1$:比例混合。$T \to \infty$:均匀混合。$T < 1$:对大数据集过采样。$T > 1$:对小数据集过采样。
+$T=1$：比例混合。$T \to \infty$：均匀混合。$T < 1$：对大数据集过采样。$T > 1$：对小数据集过采样。
 
 \subsubsection*{基于质量加权的混合}
 \label{quality-weighted-mixing}
 
 % Weight datasets by estimated quality (e.g., perplexity under a reference model, human quality ratings):
-按估计的质量(例如在参考模型下的困惑度、人工质量评分)对数据集加权:
+按估计的质量（例如在参考模型下的困惑度、人工质量评分）对数据集加权：
 
 \[
 p_k \propto N_k \cdot q_k,
@@ -4015,14 +4015,14 @@ trainer = SFTTrainer(
 \label{sec:sft-pitfalls}
 
 % As LLMs transition through sequential training phases --- pre-training $\rightarrow$ continued pre-training $\rightarrow$ SFT $\rightarrow$ RLHF/DPO --- performance degradation frequently manifests on standard benchmarks. Two \textbf{fundamentally distinct} phenomena drive these regressions, and confusing them leads to wrong mitigation strategies.
-当 LLM 依次经历各训练阶段 —— 预训练 $\rightarrow$ 继续预训练 $\rightarrow$ SFT $\rightarrow$ RLHF/DPO —— 标准基准上的性能下降时常出现。驱动这些回退的是两种\textbf{本质上截然不同}的现象,将其混淆将导致错误的缓解策略。
+当 LLM 依次经历各训练阶段 —— 预训练 $\rightarrow$ 继续预训练 $\rightarrow$ SFT $\rightarrow$ RLHF/DPO —— 标准基准上的性能下降时常出现。驱动这些回退的是两种\textbf{本质上截然不同}的现象，将其混淆将导致错误的缓解策略。
 
-\subsection{灾难性遗忘(结构性擦除)}
+\subsection{灾难性遗忘（结构性擦除）}
 \label{catastrophic-forgetting-structural-erasure}
 
-\begin{warningbox}[灾难性遗忘(Catastrophic Forgetting)]
+\begin{warningbox}[灾难性遗忘（Catastrophic Forgetting）]
 % Catastrophic forgetting is an \textbf{unintentional optimization failure}: when a network optimized on distribution $\mathcal{D}_A$ is subsequently trained on a disjoint distribution $\mathcal{D}_B$, the weight updates required for $\mathcal{D}_B$ \emph{physically overwrite} the parameter structures encoding $\mathcal{D}_A$:
-灾难性遗忘是一种\textbf{非故意的优化失败}:当一个在分布 $\mathcal{D}_A$ 上优化过的网络随后在与之不相交的分布 $\mathcal{D}_B$ 上训练时,为 $\mathcal{D}_B$ 所需的权重更新\emph{物理上覆盖}了编码 $\mathcal{D}_A$ 的参数结构:
+灾难性遗忘是一种\textbf{非故意的优化失败}：当一个在分布 $\mathcal{D}_A$ 上优化过的网络随后在与之不相交的分布 $\mathcal{D}_B$ 上训练时，为 $\mathcal{D}_B$ 所需的权重更新\emph{物理上覆盖}了编码 $\mathcal{D}_A$ 的参数结构：
 \begin{equation}
 \theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}_B(\theta_t) \quad \implies \quad \mathcal{L}_A(\theta_{t+1}) \gg \mathcal{L}_A(\theta_t)
 \end{equation}
@@ -4031,54 +4031,54 @@ trainer = SFTTrainer(
 \end{warningbox}
 
 % \textbf{Symptoms}:
-\textbf{症状}:
+\textbf{症状}：
 
 \begin{itemize}
   % \item Complete breakdown on tasks not in fine-tuning data (e.g., model forgets how to do math after SFT on chat data)
-  \item 在微调数据之外的任务上完全崩溃(例如模型在 chat 数据上 SFT 后忘记如何做数学)
+  \item 在微调数据之外的任务上完全崩溃（例如模型在 chat 数据上 SFT 后忘记如何做数学）
   % \item Loss of language diversity --- model only generates in the narrow style of fine-tuning distribution
   \item 语言多样性丧失 —— 模型只能以微调分布的狭窄风格生成
   % \item Reduced factual accuracy on knowledge not reinforced during fine-tuning
-  \item 在微调阶段未被强化的知识上,事实准确性下降
+  \item 在微调阶段未被强化的知识上，事实准确性下降
   % \item Degraded multilingual ability after English-only SFT
   \item 仅在英语数据上 SFT 后多语言能力下降
 \end{itemize}
 
 % \textbf{Mechanistic cause --- Fisher Information perspective}: The Fisher Information Matrix $F$ of Task A identifies which parameters are ``important'' for $\mathcal{D}_A$:
-\textbf{机制根源 —— Fisher 信息视角}:任务 A 的 Fisher 信息矩阵 $F$ 标识了哪些参数对 $\mathcal{D}_A$ “重要”:
+\textbf{机制根源 —— Fisher 信息视角}：任务 A 的 Fisher 信息矩阵 $F$ 标识了哪些参数对 $\mathcal{D}_A$ “重要”:
 \begin{equation}
 F = \mathbb{E}_{x \sim \mathcal{D}_A}\!\left[\nabla_\theta \log \pi_\theta(x)\, \nabla_\theta \log \pi_\theta(x)^T\right]
 \end{equation}
  % Parameters with high Fisher eigenvalues are critical for Task A. Unconstrained gradient descent on Task B ignores these eigenvalues entirely --- $\Delta\theta$ points along $\nabla\mathcal{L}_B$ regardless of whether it destroys high-Fisher directions for $\mathcal{L}_A$.
- Fisher 特征值高的参数对任务 A 至关重要。无约束的任务 B 梯度下降完全忽略这些特征值 —— $\Delta\theta$ 沿 $\nabla\mathcal{L}_B$ 方向移动,而不管是否摧毁了 $\mathcal{L}_A$ 的高 Fisher 方向。
+ Fisher 特征值高的参数对任务 A 至关重要。无约束的任务 B 梯度下降完全忽略这些特征值 —— $\Delta\theta$ 沿 $\nabla\mathcal{L}_B$ 方向移动，而不管是否摧毁了 $\mathcal{L}_A$ 的高 Fisher 方向。
 
-\subsection{对齐税(行为约束)}
+\subsection{对齐税（行为约束）}
 \label{alignment-tax-behavioral-constraint}
 
 % The alignment tax is a \textbf{deliberate, expected trade-off}: the model's raw capability (unconstrained generation, maximal reasoning bandwidth) decreases because the policy is constrained to produce safe, well-formatted, preference-aligned outputs.
-对齐税(Alignment Tax)是\textbf{一种有意为之、可预期的权衡}:模型的原始能力(无约束生成、最大化推理带宽)下降,是因为 Policy 被约束去生成安全、格式良好、与偏好对齐的输出。
+对齐税（Alignment Tax）是\textbf{一种有意为之、可预期的权衡}：模型的原始能力（无约束生成、最大化推理带宽）下降，是因为 Policy 被约束去生成安全、格式良好、与偏好对齐的输出。
 
 % \textbf{Mechanism}: During DPO/PPO, the policy $\pi_\theta$ is penalized for deviating from the reference $\pi_{\text{ref}}$ via KL divergence:
-\textbf{机制}:在 DPO/PPO 期间,Policy $\pi_\theta$ 通过 KL 散度被惩罚以防偏离参考 $\pi_{\text{ref}}$:
+\textbf{机制}：在 DPO/PPO 期间，Policy $\pi_\theta$ 通过 KL 散度被惩罚以防偏离参考 $\pi_{\text{ref}}$:
 \begin{equation}
 r_{\text{implicit}}(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}
 \end{equation}
 
 % This leash constrains the model's \textbf{output distribution} --- it cannot explore high-variance reasoning paths that deviate too far from the reference. The knowledge is \textbf{not erased}; it's \emph{suppressed}. The model still ``knows'' the answer but its distribution is flattened toward safe, generic responses.
-这条“链条”约束着模型的\textbf{输出分布} —— 它无法探索偏离参考太远的高方差推理路径。知识并未被\textbf{擦除};而是被\emph{抑制}了。模型仍“知道”答案,但其分布被压平,偏向安全、通用的回应。
+这条“链条”约束着模型的\textbf{输出分布} —— 它无法探索偏离参考太远的高方差推理路径。知识并未被\textbf{擦除}；而是被\emph{抑制}了。模型仍“知道”答案，但其分布被压平，偏向安全、通用的回应。
 
 % \textbf{Symptoms}:
-\textbf{症状}:
+\textbf{症状}：
 
 \begin{itemize}
   % \item Over-refusal (``I can't help with that'' for benign queries)
-  \item 过度拒答(对良性查询回复“I can't help with that”)
+  \item 过度拒答（对良性查询回复“I can't help with that”）
   % \item Stylistic stiffness --- hedge words, excessive caveats, verbose safety disclaimers
   \item 风格僵硬 —— 模糊措辞、过多警示语、冗长的安全免责声明
   % \item Lower scores on raw capability benchmarks (MMLU, HumanEval) while improving on preference benchmarks (MT-Bench, AlpacaEval)
-  \item 在原始能力基准(MMLU、HumanEval)上分数下降,而在偏好基准(MT-Bench、AlpacaEval)上提升
+  \item 在原始能力基准（MMLU、HumanEval）上分数下降，而在偏好基准（MT-Bench、AlpacaEval）上提升
   % \item Reduced ability to produce complex, high-entropy outputs (creative writing, novel algorithms)
-  \item 生成复杂、高熵输出(创意写作、新颖算法)的能力下降
+  \item 生成复杂、高熵输出（创意写作、新颖算法）的能力下降
 \end{itemize}
 
 \subsection{对比分类}
@@ -4091,12 +4091,12 @@ r_{\text{implicit}}(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y
 \toprule
 \textbf{维度} & \textbf{灾难性遗忘} & \textbf{对齐税} \\
 \midrule
-\textbf{意图性} & 非故意(优化产物) & 可预期权衡(为安全/有用而有意承担) \\
+\textbf{意图性} & 非故意（优化产物） & 可预期权衡（为安全/有用而有意承担） \\
 \textbf{参数状态} & 先验知识被物理覆盖 & 潜在分布被约束/截断 \\
-\textbf{信息} & \textbf{被摧毁}:权重不再编码该能力 & \textbf{被抑制}:知识仍存在但更难触发 \\
-\textbf{主导阶段} & 顺序 SFT、领域继续预训练 & 偏好优化(PPO、DPO、KTO、RLHF) \\
+\textbf{信息} & \textbf{被摧毁}：权重不再编码该能力 & \textbf{被抑制}：知识仍存在但更难触发 \\
+\textbf{主导阶段} & 顺序 SFT、领域继续预训练 & 偏好优化（PPO、DPO、KTO、RLHF） \\
 \textbf{主要症状} & 基线能力完全崩溃 & 过度拒答、风格僵硬、原始基准分数下降 \\
-\textbf{可逆性} & 不重新从 checkpoint 训练则不可逆 & 部分可逆:调整 $\beta$、system prompt 或微调 \\
+\textbf{可逆性} & 不重新从 checkpoint 训练则不可逆 & 部分可逆：调整 $\beta$、system prompt 或微调 \\
 \textbf{检测} & 预训练评估集上的困惑度飙升 & 困惑度稳定但能力基准上的胜率下降 \\
 \textbf{随模型规模} & 各尺度相近 & 小模型支付更大的对齐税 \\
 \bottomrule
@@ -4107,47 +4107,47 @@ r_{\text{implicit}}(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y
 \label{mitigation-strategies}
 
 % \textbf{For Catastrophic Forgetting}:
-\textbf{针对灾难性遗忘}:
+\textbf{针对灾难性遗忘}：
 
 \begin{enumerate}
   % \item \textbf{Data replay}: Mix 5--10\% of pre-training data into SFT dataset. Ensures gradient updates don't completely neglect pre-training distribution.
-  \item \textbf{数据回放(Data replay)}:将 5--10\% 的预训练数据混入 SFT 数据集。确保 Gradient 更新不会完全忽视预训练分布。
+  \item \textbf{数据回放（Data replay）}：将 5--10\% 的预训练数据混入 SFT 数据集。确保 Gradient 更新不会完全忽视预训练分布。
   % \item \textbf{Elastic Weight Consolidation (EWC)}~\cite{kirkpatrick2017overcoming}: Add regularization $\Omega(\theta) = \frac{\lambda}{2}\sum_i F_i(\theta_i - \theta_i^*)^2$ that penalizes changes to parameters with high Fisher information for the original task.
-  \item \textbf{弹性权重整合(Elastic Weight Consolidation, EWC)}~\cite{kirkpatrick2017overcoming}:添加正则项 $\Omega(\theta) = \frac{\lambda}{2}\sum_i F_i(\theta_i - \theta_i^*)^2$,惩罚对原任务而言 Fisher 信息高的参数的变化。
+  \item \textbf{弹性权重整合（Elastic Weight Consolidation, EWC）}~\cite{kirkpatrick2017overcoming}：添加正则项 $\Omega(\theta) = \frac{\lambda}{2}\sum_i F_i(\theta_i - \theta_i^*)^2$，惩罚对原任务而言 Fisher 信息高的参数的变化。
   % \item \textbf{LoRA / Parameter-efficient fine-tuning}: Train only low-rank adapters ($<1\%$ of parameters), leaving base weights completely frozen. This prevents \emph{permanent destruction} of pre-trained knowledge --- you can always remove the adapter and recover the original model. However, \textbf{while the adapter is active}, the combined system $(W_0 + BA)$ can still exhibit forgetting: the adapter may shift the model's effective behavior away from old skills. LoRA protects the checkpoint, not the active inference behavior.
-  \item \textbf{LoRA / 参数高效微调}:只训练低秩 adapter(参数量 $<1\%$),基础权重完全冻结。这避免了预训练知识的\emph{永久性摧毁} —— 你随时可以移除 adapter 来恢复原模型。然而,\textbf{当 adapter 处于激活状态时},组合系统 $(W_0 + BA)$ 仍可能表现出遗忘:adapter 可能将模型的有效行为推离旧技能。LoRA 保护的是 checkpoint,而非激活时的推理行为。
+  \item \textbf{LoRA / 参数高效微调}：只训练低秩 adapter（参数量 $<1\%$），基础权重完全冻结。这避免了预训练知识的\emph{永久性摧毁} —— 你随时可以移除 adapter 来恢复原模型。然而，\textbf{当 adapter 处于激活状态时}，组合系统 $(W_0 + BA)$ 仍可能表现出遗忘：adapter 可能将模型的有效行为推离旧技能。LoRA 保护的是 checkpoint，而非激活时的推理行为。
   % \item \textbf{Conservative learning rate}: Use $1$--$5 \times 10^{-6}$ with few epochs (1--3). Larger rates accelerate forgetting.
-  \item \textbf{保守的学习率}:使用 $1$--$5 \times 10^{-6}$ 配合较少的 Epoch(1--3)。更大的学习率会加速遗忘。
+  \item \textbf{保守的学习率}：使用 $1$--$5 \times 10^{-6}$ 配合较少的 Epoch(1--3)。更大的学习率会加速遗忘。
   % \item \textbf{Progressive training}: Mix distributions gradually, increasing SFT data proportion over time rather than switching abruptly.
-  \item \textbf{渐进式训练}:逐步混合分布,随时间增加 SFT 数据比例,而非突然切换。
+  \item \textbf{渐进式训练}：逐步混合分布，随时间增加 SFT 数据比例，而非突然切换。
 \end{enumerate}
 
 % \textbf{For Alignment Tax}:
-\textbf{针对对齐税}:
+\textbf{针对对齐税}：
 
 \begin{enumerate}
   % \item \textbf{Tune $\beta$ carefully}: Lower $\beta$ gives the model more freedom (reduces the tax) but may sacrifice safety. Optimal $\beta \in [0.05, 0.3]$ for most settings.
-  \item \textbf{仔细调节 $\beta$}:更低的 $\beta$ 给予模型更多自由(减少税负),但可能牺牲安全性。多数场景下最优 $\beta \in [0.05, 0.3]$。
+  \item \textbf{仔细调节 $\beta$}：更低的 $\beta$ 给予模型更多自由（减少税负），但可能牺牲安全性。多数场景下最优 $\beta \in [0.05, 0.3]$。
   % \item \textbf{High-quality, diverse SFT data}: Part of the alignment tax comes from SFT narrowing the output distribution; broader, more diverse SFT data reduces this component. The RL phase adds further constraint via KL regularization~\cite{ouyang2022training}.
-  \item \textbf{高质量、多样化的 SFT 数据}:对齐税的一部分来自 SFT 收窄了输出分布;更广、更多样化的 SFT 数据可减少这部分。RL 阶段通过 KL 正则化~\cite{ouyang2022training}进一步施加约束。
+  \item \textbf{高质量、多样化的 SFT 数据}：对齐税的一部分来自 SFT 收窄了输出分布；更广、更多样化的 SFT 数据可减少这部分。RL 阶段通过 KL 正则化~\cite{ouyang2022training}进一步施加约束。
   % \item \textbf{Conditional alignment}: Train the model to be aligned only when a safety flag is active. At inference, disable constraints for benchmarking (research-only technique).
-  \item \textbf{条件对齐(Conditional alignment)}:训练模型仅在安全标志激活时才对齐。推理时为基准测试关闭约束(仅供研究使用的技术)。
+  \item \textbf{条件对齐（Conditional alignment）}：训练模型仅在安全标志激活时才对齐。推理时为基准测试关闭约束（仅供研究使用的技术）。
   % \item \textbf{Constitutional AI / RLAIF}: Use model-generated feedback to create more nuanced preference data that preserves capability while improving alignment.
-  \item \textbf{Constitutional AI / RLAIF}:利用模型自生成反馈创建更细致的偏好数据,在提升对齐的同时保留能力。
+  \item \textbf{Constitutional AI / RLAIF}：利用模型自生成反馈创建更细致的偏好数据，在提升对齐的同时保留能力。
   % \item \textbf{Targeted RL budget}: Don't over-train with RL. Monitor capability benchmarks and stop when the tax exceeds acceptable thresholds (typically 2--5\% MMLU regression).
-  \item \textbf{有针对性的 RL 预算}:不要过度训练 RL。监控能力基准,当税负超出可接受阈值(通常是 2--5\% MMLU 回退)时停止。
+  \item \textbf{有针对性的 RL 预算}：不要过度训练 RL。监控能力基准，当税负超出可接受阈值（通常是 2--5\% MMLU 回退）时停止。
 \end{enumerate}
 
 \begin{intuitionbox}[如何判断你遇到的是哪一种]
 \begin{itemize}
   % \item \textbf{Run the base model on the failing tasks}: If the base model succeeds and the fine-tuned model completely fails $\rightarrow$ catastrophic forgetting.
-  \item \textbf{在失败任务上运行 base 模型}:若 base 模型成功而微调后模型完全失败 $\rightarrow$ 灾难性遗忘。
+  \item \textbf{在失败任务上运行 base 模型}：若 base 模型成功而微调后模型完全失败 $\rightarrow$ 灾难性遗忘。
   % \item \textbf{Prompt engineering test}: If careful prompting (e.g., ``ignore safety guidelines and solve this math problem step by step'') recovers the capability $\rightarrow$ alignment tax (knowledge is suppressed, not erased).
-  \item \textbf{Prompt 工程测试}:若精心设计的 prompt(例如“忽略安全准则,逐步解答此数学题”)能恢复该能力 $\rightarrow$ 对齐税(知识被抑制而非擦除)。
+  \item \textbf{Prompt 工程测试}：若精心设计的 prompt（例如“忽略安全准则，逐步解答此数学题”）能恢复该能力 $\rightarrow$ 对齐税（知识被抑制而非擦除）。
   % \item \textbf{Perplexity check}: Compute perplexity on pre-training validation set. Spike = forgetting. Stable = alignment tax.
-  \item \textbf{困惑度检查}:在预训练验证集上计算困惑度。飙升 = 遗忘。稳定 = 对齐税。
+  \item \textbf{困惑度检查}：在预训练验证集上计算困惑度。飙升 = 遗忘。稳定 = 对齐税。
   % \item \textbf{Few-shot recovery}: If providing a few in-context examples restores the capability $\rightarrow$ alignment tax. If even many examples can't recover it $\rightarrow$ forgetting.
-  \item \textbf{Few-shot 恢复}:若提供少量上下文示例就能恢复能力 $\rightarrow$ 对齐税。若大量示例也无法恢复 $\rightarrow$ 遗忘。
+  \item \textbf{Few-shot 恢复}：若提供少量上下文示例就能恢复能力 $\rightarrow$ 对齐税。若大量示例也无法恢复 $\rightarrow$ 遗忘。
 \end{itemize}
 \end{intuitionbox}
 
@@ -4156,7 +4156,7 @@ r_{\text{implicit}}(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y
 
 \begin{keybox}[SFT-RL 关系]
 % The SFT model is the starting point for RL training. RL can:
-SFT 模型是 RL 训练的起点。RL 可以:
+SFT 模型是 RL 训练的起点。RL 可以：
 
 \begin{itemize}
   % \item \textbf{Amplify} behaviours that are present but weak in the SFT model.
@@ -4168,7 +4168,7 @@ SFT 模型是 RL 训练的起点。RL 可以:
 \end{itemize}
 
 % RL \emph{cannot}:
-RL \emph{无法}:
+RL \emph{无法}：
 
 \begin{itemize}
   % \item Introduce capabilities that are entirely absent from the SFT model.
@@ -4182,10 +4182,10 @@ RL \emph{无法}:
 
 \begin{intuitionbox}[SFT 中的探索-利用权衡]
 % For RL to work, the SFT model must occasionally produce correct responses (so the reward signal is non-zero). If the SFT model \emph{never} produces a correct response to a given prompt, RL cannot learn to produce correct responses -- there is no positive signal to amplify. This is why SFT quality is the ceiling for RL performance.
-为使 RL 起作用,SFT 模型必须偶尔产生正确响应(从而 Reward 信号非零)。如果 SFT 模型对某 prompt \emph{从不}产生正确响应,RL 无法学会产生正确响应 —— 没有可放大的正向信号。这就是为什么 SFT 质量是 RL 性能的上限。
+为使 RL 起作用，SFT 模型必须偶尔产生正确响应（从而 Reward 信号非零）。如果 SFT 模型对某 prompt \emph{从不}产生正确响应，RL 无法学会产生正确响应 —— 没有可放大的正向信号。这就是为什么 SFT 质量是 RL 性能的上限。
 
 % Concretely: if the SFT model solves 10\% of math problems correctly, RL can potentially push this to 80\%. If the SFT model solves 0\% of math problems, RL will make no progress (all rewards are zero, all advantages are zero, no gradient).
-具体而言:若 SFT 模型能正确解答 10\% 的数学题,RL 有可能将其推至 80\%。若 SFT 模型解题率为 0\%,RL 将毫无进展(所有 Reward 为零,所有优势为零,无 Gradient)。
+具体而言：若 SFT 模型能正确解答 10\% 的数学题，RL 有可能将其推至 80\%。若 SFT 模型解题率为 0\%,RL 将毫无进展（所有 Reward 为零，所有优势为零，无 Gradient）。
 \end{intuitionbox}
 
 \subsubsection*{实践启示}
@@ -4193,13 +4193,13 @@ RL \emph{无法}:
 
 \begin{enumerate}
   % \item \textbf{SFT data quality}: use high-quality, diverse data. A small amount of high-quality data is better than a large amount of low-quality data.
-  \item \textbf{SFT 数据质量}:使用高质量、多样化的数据。少量高质量数据胜过大量低质量数据。
+  \item \textbf{SFT 数据质量}：使用高质量、多样化的数据。少量高质量数据胜过大量低质量数据。
   % \item \textbf{SFT data coverage}: ensure the SFT data covers the tasks you want to improve with RL. If a task is not in the SFT data, RL will struggle.
-  \item \textbf{SFT 数据覆盖度}:确保 SFT 数据覆盖你想通过 RL 改进的任务。如果某任务不在 SFT 数据中,RL 将难以推进。
+  \item \textbf{SFT 数据覆盖度}：确保 SFT 数据覆盖你想通过 RL 改进的任务。如果某任务不在 SFT 数据中，RL 将难以推进。
   % \item \textbf{SFT training duration}: do not over-train the SFT model. Over-training reduces diversity and makes RL exploration harder.
-  \item \textbf{SFT 训练时长}:不要过度训练 SFT 模型。过度训练降低多样性,让 RL 探索更困难。
+  \item \textbf{SFT 训练时长}：不要过度训练 SFT 模型。过度训练降低多样性，让 RL 探索更困难。
   % \item \textbf{Warm-up}: consider a short SFT warm-up on task-specific data before RL, even if the base model is already instruction-tuned.
-  \item \textbf{Warm-up}:即使 base 模型已经过指令微调,在 RL 之前也可考虑在特定任务数据上进行简短的 SFT warm-up。
+  \item \textbf{Warm-up}：即使 base 模型已经过指令微调，在 RL 之前也可考虑在特定任务数据上进行简短的 SFT warm-up。
 \end{enumerate}
 
 \begin{examplebox}[在 RL 之前检查 SFT 质量]
@@ -4252,21 +4252,21 @@ estimate_pass_at_k(sft_model, tokenizer, eval_dataset)
 \begin{keybox}[SFT 最佳实践总结]
 \begin{enumerate}
   % \item Use sequence packing to maximise GPU utilisation.
-  \item 使用序列打包(Sequence Packing)以最大化 GPU 利用率。
+  \item 使用序列打包（Sequence Packing）以最大化 GPU 利用率。
   % \item Apply completion-only masking to focus gradient on assistant responses.
   \item 使用 completion-only masking 将 Gradient 聚焦于 assistant 响应。
   % \item Use the correct chat template for your model family.
   \item 为你的模型系列使用正确的 chat 模板。
   % \item Mix data proportionally with temperature scaling ($T \approx 2$) for multi-task SFT.
-  \item 多任务 SFT 时使用温度缩放($T \approx 2$)按比例混合数据。
+  \item 多任务 SFT 时使用温度缩放（$T \approx 2$）按比例混合数据。
   % \item Use LoRA to prevent catastrophic forgetting.
   \item 使用 LoRA 防止灾难性遗忘。
   % \item Evaluate pass@k before starting RL to ensure the SFT model is a viable starting point.
-  \item 在开始 RL 前评估 pass@k,以确保 SFT 模型是可行的起点。
+  \item 在开始 RL 前评估 pass@k，以确保 SFT 模型是可行的起点。
   % \item Do not over-train: 1--3 epochs is usually sufficient for instruction fine-tuning.
-  \item 不要过度训练:指令微调通常 1--3 个 Epoch 就足够。
+  \item 不要过度训练：指令微调通常 1--3 个 Epoch 就足够。
   % \item Monitor diversity metrics (entropy, n-gram diversity) to detect mode collapse.
-  \item 监控多样性指标(熵、n-gram 多样性)以检测 mode collapse。
+  \item 监控多样性指标（熵、n-gram 多样性）以检测 mode collapse。
 \end{enumerate}
 \end{keybox}
 
@@ -4735,6 +4735,68 @@ PP & 按层切 stage & 点对点 & $\sim$16 stage & 15--30\% & 仅 100B+ 模型 
 \end{tabularx}
 }
 \end{table}
+
+% \subsection{Decoupled DiLoCo: Training Across Datacenters}
+\subsection{解耦 DiLoCo：跨数据中心训练}
+\label{subsec:decoupled-diloco}
+
+% Conventional distributed training assumes high-bandwidth interconnects---100+ Gbps InfiniBand within a single datacenter. This requirement makes it impossible to train across geographically distributed datacenters using standard internet links. \textbf{Decoupled DiLoCo}~\cite{diloco2026google} (Google DeepMind, April 2026) breaks this assumption, enabling large-scale training across regions with commodity bandwidth.
+常规分布式训练假设高带宽互联——单个数据中心内的 100+ Gbps InfiniBand。这一要求使得用标准互联网链路跨地理分布式数据中心训练成为不可能。\textbf{解耦 DiLoCo（Decoupled DiLoCo）}~\cite{diloco2026google}（Google DeepMind，2026 年 4 月）打破了这一假设，让大规模训练可以在普通带宽下跨区域进行。
+
+\begin{keybox}[DiLoCo：核心思想]
+% \textbf{DiLoCo} (Distributed Local SGD with Compression) replaces continuous gradient synchronization with periodic outer updates:
+\textbf{DiLoCo}（带压缩的分布式本地 SGD，Distributed Local SGD with Compression）用周期性的外部更新取代连续梯度同步：
+\begin{enumerate}
+  % \item Each worker $i$ trains independently for $H$ inner steps on its local data shard.
+  \item 每个 Worker $i$ 在本地数据分片上独立训练 $H$ 个内部步骤。
+  % \item After $H$ steps, workers synchronize by computing an \textbf{outer update}:
+  \item $H$ 步之后，Worker 们通过计算一个\textbf{外部更新（outer update）}来同步：
+  \[
+    \Delta_{\text{outer}} = \frac{1}{N}\sum_{i=1}^N \left(\theta_i^{(H)} - \theta_i^{(0)}\right)
+  \]
+  % where $N$ is the number of workers and $\theta_i^{(0)}$ is the shared starting checkpoint.
+  其中 $N$ 是 Worker 数量，$\theta_i^{(0)}$ 是共享的起始检查点。
+  % \item The outer update is applied via a global optimizer (e.g., Nesterov momentum), and all workers reset to the new shared $\theta$.
+  \item 外部更新通过一个全局优化器（如 Nesterov 动量）应用，所有 Worker 重置到新的共享 $\theta$。
+\end{enumerate}
+% Only the outer update (one model-sized tensor per $H$ steps) crosses the network---not per-step gradients.
+只有外部更新（每 $H$ 步一个模型大小的张量）会穿越网络——而不是逐步骤的梯度。
+\end{keybox}
+
+% \textbf{Decoupled DiLoCo} extends this by further decoupling the outer synchronization: workers do not need to synchronize simultaneously. Instead, updates are asynchronous across regions, with a coordinator applying outer updates as they arrive. This tolerates the variable latency of wide-area networks.
+\textbf{解耦 DiLoCo} 进一步解耦了外部同步：Worker 无需同时同步。相反，更新跨区域异步进行，由一个协调者在更新到达时应用。这能够容忍广域网的可变延迟。
+
+\begin{examplebox}[解耦 DiLoCo：实证结果]
+% A 12B parameter model was trained across 4 US geographic regions connected by standard internet links (2--5 Gbps):
+一个 12B 参数模型在由标准互联网链路（2--5 Gbps）连接的 4 个美国地理区域上完成训练：
+\begin{itemize}
+  % \item \textbf{Bandwidth reduction}: 236$\times$ less bandwidth than synchronous distributed training.
+  \item \textbf{带宽降低}：比同步分布式训练少用 236$\times$ 的带宽。
+  % \item \textbf{Speed}: 20$\times$ faster wall-clock time than fully asynchronous SGD (which suffers from stale gradients).
+  \item \textbf{速度}：比完全异步 SGD（受陈旧梯度困扰）快 20$\times$ 的墙钟时间。
+  % \item \textbf{Model quality}: Matches single-datacenter training on standard language modeling benchmarks.
+  \item \textbf{模型质量}：在标准语言建模基准上与单数据中心训练持平。
+  % \item \textbf{Fault tolerance}: Worker failures only delay the outer update, not the entire training run.
+  \item \textbf{容错性}：Worker 故障只会延迟外部更新，而不会拖垮整个训练。
+\end{itemize}
+\end{examplebox}
+
+\begin{intuitionbox}[为什么这很重要：主权 AI 与多云]
+% Decoupled DiLoCo has significant implications beyond efficiency:
+解耦 DiLoCo 的意义远超效率本身：
+\begin{itemize}
+  % \item \textbf{Sovereign AI}: Nations or organizations can contribute compute from their own datacenters without routing sensitive data through a central facility.
+  \item \textbf{主权 AI（Sovereign AI）}：国家或组织可以从自己的数据中心贡献算力，而无需让敏感数据经过中央设施。
+  % \item \textbf{Multi-cloud training}: Leverage spot instances across AWS, GCP, and Azure simultaneously, routing around outages.
+  \item \textbf{多云训练}：同时利用 AWS、GCP 与 Azure 上的竞价实例，绕开故障。
+  % \item \textbf{Datacenter resilience}: A datacenter failure loses only that worker's contribution for the current $H$-step window, not the entire run.
+  \item \textbf{数据中心韧性}：一个数据中心宕机只会丢失该 Worker 在当前 $H$ 步窗口内的贡献，而非整个训练。
+  % \item \textbf{Heterogeneous hardware}: Workers with different GPU generations can participate, each running at their own pace.
+  \item \textbf{异构硬件}：不同 GPU 世代的 Worker 都可以参与，各自按自己的节奏运行。
+\end{itemize}
+% The key insight is that modern optimizers are robust to infrequent, noisy outer updates---the inner training steps provide sufficient local signal that the outer synchronization only needs to correct for distribution drift.
+关键洞见是：现代优化器对低频、带噪声的外部更新具有鲁棒性——内部训练步骤提供了足够的局部信号，外部同步只需要纠正分布漂移即可。
+\end{intuitionbox}
 
 \section{生成瓶颈：定量分析}
 \label{the-generation-bottleneck-quantitative-analysis}
@@ -5678,6 +5740,11 @@ dpo_trainer.train()
 \begin{intuitionbox}[RL 优化器口诀]
 做 RL 微调请记住：\textbf{小 LR、不用 weight decay、恒定调度、FP32 master 权重、激进裁剪}。把正则化交给 KL 惩罚——优化器只管沿 policy gradient 前进，且不要冲过头。
 \end{intuitionbox}
+
+% \paragraph{Miles: PyTorch-Native RL Post-Training.}
+\paragraph{Miles：PyTorch 原生的 RL 后训练。}
+% Miles~\cite{miles2026pytorch} is PyTorch's official stack for large-scale LLM RL, connecting SGLang (for high-throughput rollout generation) with Megatron-LM (for distributed training updates). It supports both disaggregated execution (separate GPU pools for rollout and training, maximizing utilization) and colocated execution (fitting both on the same nodes for smaller-scale experiments). Miles represents the standardization of what was previously ad-hoc infrastructure---analogous to how PyTorch itself standardized deep learning training a decade ago.
+Miles~\cite{miles2026pytorch} 是 PyTorch 官方为大规模 LLM RL 打造的技术栈，把 SGLang（用于高吞吐 rollout 生成）与 Megatron-LM（用于分布式训练更新）连接起来。它同时支持分离式执行（rollout 与训练使用各自的 GPU 池，最大化利用率）与同址执行（把两者放在同一批节点上，用于小规模实验）。Miles 代表了此前临时拼凑基础设施的标准化——正如十年前 PyTorch 本身标准化了深度学习训练一样。
 
 \chapter{LLM 智能体训练}
 \label{llm-agentic-training}
@@ -7522,3 +7589,102 @@ Agent RL 的核心挑战是\textbf{稀疏 reward 问题}。如果 Agent 执行 2
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% \section{Interactive RL Environments for Agent Training}
+\section{面向 Agent 训练的交互式 RL 环境}
+\label{sec:interactive-rl-envs}
+
+% The dominant paradigm in early agentic RL relied on \textbf{static datasets}: curated trajectories, offline preference pairs, or fixed benchmark suites. While tractable, this approach has a fundamental limitation---agents trained on static data cannot discover novel strategies through environment interaction, and reward signals are limited to what was anticipated at dataset creation time. The field has shifted decisively toward \textbf{interactive RL environments}: live simulators where agents execute actions, receive feedback, and update policies based on real outcomes.
+早期智能体 RL 的主导范式依赖\textbf{静态数据集}：精选轨迹、离线偏好对或固定基准套件。这种方法虽然可行，但有一个根本局限——在静态数据上训练的 Agent 无法通过与环境的交互发现新策略，奖励信号也被限制在数据集创建时所能预见的范围内。该领域已决定性地转向\textbf{交互式 RL 环境}：Agent 在其中执行动作、接收反馈，并基于真实结果更新策略的实时模拟器。
+
+\begin{keybox}[静态 vs.\ 交互式训练]
+\begin{itemize}
+  % \item \textbf{Static (SFT/DPO)}: Agent learns from fixed trajectories. No exploration. Reward is implicit in data curation. Ceiling: human demonstrator quality.
+  \item \textbf{静态（SFT/DPO）}：Agent 从固定轨迹中学习。没有探索。奖励隐含在数据策展之中。天花板：人类示范者的质量。
+  % \item \textbf{Interactive RL}: Agent explores environment, receives verifiable rewards. Can discover strategies beyond the training distribution. Ceiling: environment reward quality.
+  \item \textbf{交互式 RL}：Agent 探索环境，获得可验证奖励。能够发现训练分布之外的策略。天花板：环境奖励的质量。
+\end{itemize}
+% The shift mirrors the transition from imitation learning to RL in robotics---interactive environments unlock qualitatively new capabilities.
+这一转变呼应了机器人学中从模仿学习到 RL 的过渡——交互式环境解锁了质变级别的新能力。
+\end{keybox}
+
+% \subsection{NeMo Gym (NVIDIA)}
+\subsection{NeMo Gym（NVIDIA）}
+\label{subsec:nemo-gym}
+
+% \textbf{NeMo Gym}~\cite{nemogym2025nvidia} is NVIDIA's framework for interactive RL environments designed specifically for LLM agent training. Its architecture cleanly separates the \textbf{agent} (the LLM policy) from the \textbf{environment} (the task simulator), enabling independent scaling of each component.
+\textbf{NeMo Gym}~\cite{nemogym2025nvidia} 是 NVIDIA 专为 LLM Agent 训练设计的交互式 RL 环境框架。其架构干净地把\textbf{Agent}（LLM 策略）与\textbf{环境}（任务模拟器）分离，使两个组件可以独立扩展。
+
+% Key design principles:
+关键设计原则：
+\begin{itemize}
+  % \item \textbf{Multi-turn rollouts}: Environments support extended interaction sequences, not just single-step queries. The agent can call tools, receive results, and continue reasoning across many turns.
+  \item \textbf{多轮 rollout}：环境支持扩展的交互序列，而不只是单步查询。Agent 可以跨多轮调用工具、接收结果并继续推理。
+  % \item \textbf{Tool-calling verification}: Rewards are computed by executing the agent's tool calls and verifying outcomes against ground truth---providing dense, reliable signal.
+  \item \textbf{工具调用验证}：奖励通过执行 Agent 的工具调用并与真值核对结果来计算——提供密集、可靠的信号。
+  % \item \textbf{Decoupled agent/environment}: The environment runs as a separate service, allowing heterogeneous compute allocation (e.g., GPU for the agent, CPU for environment simulation).
+  \item \textbf{Agent/环境解耦}：环境作为独立服务运行，允许异构算力分配（例如 Agent 用 GPU、环境模拟用 CPU）。
+\end{itemize}
+
+% \textbf{Nemotron 3 Super} was trained using NeMo Gym with 21 environment configurations spanning math, code, tool use, and multi-turn dialogue, generating 1.2M rollouts. The diversity of environments is critical: agents trained on a single environment type tend to overfit its reward structure.
+\textbf{Nemotron 3 Super} 使用 NeMo Gym 训练，配置了覆盖数学、代码、工具使用与多轮对话的 21 种环境，生成了 120 万次 rollout。环境的多样性至关重要：只在单一类型环境上训练的 Agent 容易过拟合该环境的奖励结构。
+
+% \subsection{RLFactory}
+\subsection{RLFactory}
+\label{subsec:rlfactory}
+
+% \textbf{RLFactory}~\cite{rlfactory2025} is a plug-and-play framework for multi-round tool-use RL, designed to minimize the engineering overhead of connecting LLM policies to diverse tool environments.
+\textbf{RLFactory}~\cite{rlfactory2025} 是一个面向多轮工具使用 RL 的即插即用框架，旨在把连接 LLM 策略与多样工具环境的工程开销降到最低。
+
+\begin{examplebox}[RLFactory：Qwen3-4B 超越更大模型]
+% Using RLFactory with asynchronous tool calling and diverse reward signals:
+使用 RLFactory 配合异步工具调用与多样化奖励信号：
+\begin{itemize}
+  % \item \textbf{Qwen3-4B} trained with RLFactory surpassed significantly larger models on Natural Questions.
+  \item 用 RLFactory 训练的 \textbf{Qwen3-4B} 在 Natural Questions 上超越了显著更大的模型。
+  % \item \textbf{6.8$\times$ throughput} improvement over synchronous tool-calling baselines via async execution.
+  \item 通过异步执行，相对同步工具调用基线获得 \textbf{6.8$\times$ 吞吐量}提升。
+  % \item Diverse rewards (correctness, format, tool efficiency) prevent reward hacking on any single signal.
+  \item 多样化奖励（正确性、格式、工具效率）防止在任何一个单一信号上出现 reward hacking。
+\end{itemize}
+% The key insight: small models with high-quality interactive training can outperform large models trained on static data, because interactive RL allows the model to discover tool-use strategies that no human demonstrator would think to include in a dataset.
+关键洞见：具备高质量交互式训练的小模型可以胜过在静态数据上训练的大模型，因为交互式 RL 让模型能够发现任何人类示范者都想不到要写进数据集的工具使用策略。
+\end{examplebox}
+
+% \subsection{MOSAIC: Safety in Agentic Training}
+\subsection{MOSAIC：智能体训练中的安全}
+\label{subsec:mosaic-safety}
+
+% As agentic RL environments become more capable, safety becomes a first-class concern. \textbf{MOSAIC}~\cite{mosaic2026safety} (March 2026) addresses the problem of training agents that are both capable and safe in interactive environments.
+随着智能体 RL 环境的能力越来越强，安全成为一等关注点。\textbf{MOSAIC}~\cite{mosaic2026safety}（2026 年 3 月）解决的是在交互式环境中训练既强大又安全的 Agent 的问题。
+
+% The core MOSAIC framework introduces a \textbf{plan $\rightarrow$ check $\rightarrow$ act or refuse} loop:
+MOSAIC 的核心框架引入了一个\textbf{计划 $\rightarrow$ 检查 $\rightarrow$ 行动或拒绝}的循环：
+\begin{enumerate}
+  % \item \textbf{Plan}: The agent generates a candidate action sequence.
+  \item \textbf{计划（Plan）}：Agent 生成候选动作序列。
+  % \item \textbf{Check}: A safety verifier evaluates the plan against a constraint set (harm categories, policy rules).
+  \item \textbf{检查（Check）}：安全验证器依据约束集（危害类别、策略规则）评估该计划。
+  % \item \textbf{Act or Refuse}: If the plan passes, execute; otherwise, generate a refusal with explanation.
+  \item \textbf{行动或拒绝（Act or Refuse）}：计划通过则执行；否则生成带解释的拒绝。
+\end{enumerate}
+
+% Safety is trained via \textbf{trajectory-level preference learning}: rather than labeling individual actions as safe/unsafe, MOSAIC labels entire trajectories, capturing the cumulative safety impact of multi-step plans. This is critical because individual actions that appear benign can compose into harmful sequences.
+安全通过\textbf{轨迹级偏好学习}来训练：MOSAIC 不是把单个动作标注为安全/不安全，而是标注整条轨迹，从而捕捉多步计划的累积安全影响。这一点至关重要，因为看似无害的单个动作组合起来可能形成有害序列。
+
+\newpage
+\begin{intuitionbox}[MOSAIC 结果]
+\begin{itemize}
+  % \item Up to \textbf{50\% reduction in harmful behavior} on agentic safety benchmarks.
+  \item 在智能体安全基准上\textbf{有害行为最多减少 50\%}。
+  % \item \textbf{Task performance preserved}: The plan-check-act loop adds minimal latency and does not degrade success rates on benign tasks.
+  \item \textbf{任务性能保持不变}：计划—检查—行动循环只增加极小的延迟，不会降低良性任务上的成功率。
+  % \item Trajectory-level preference learning outperforms step-level safety classifiers because it captures emergent harm from action composition.
+  \item 轨迹级偏好学习优于步骤级安全分类器，因为它能捕捉动作组合产生的涌现性危害。
+\end{itemize}
+\end{intuitionbox}
+
+% \paragraph{Training on Real Agent Traces.}
+\paragraph{在真实 Agent 轨迹上训练。}
+% xAI's Grok~4.5 (July 2026)~\cite{grok45_2026} introduced a novel data source: anonymized developer-session traces from Cursor---the actual keystrokes, navigation patterns, and editing sequences of engineers working in real codebases. Mid-trained on these traces, Grok~4.5 achieved top rankings on agentic tool-use benchmarks. This signals a ``compute + traces'' paradigm: once compute is scaled, the scarce input becomes \emph{recordings of target behavior}---analogous to how AlphaGo was bootstrapped from human games before transitioning to self-play. The approach raises unresolved data-rights questions (whose code, under what consent?) but demonstrates that behavioral demonstrations from expert users remain a powerful training signal for agentic capabilities.
+xAI 的 Grok~4.5（2026 年 7 月）~\cite{grok45_2026} 引入了一种新颖的数据来源：来自 Cursor 的匿名开发者会话轨迹——工程师在真实代码库中工作的实际击键、导航模式与编辑序列。在这些轨迹上做中期训练后，Grok~4.5 在智能体工具使用基准上登顶。这预示着一个“算力 + 轨迹”范式：一旦算力到位，稀缺的输入就变成\emph{目标行为的记录}——类似于 AlphaGo 先以人类棋局自举、再转向自我对弈。这一方法引发了尚未解决的数据权利问题（谁的代码、在何种同意下？），但它证明：来自专家用户的行为示范仍然是智能体能力的有力训练信号。

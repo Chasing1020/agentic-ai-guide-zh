@@ -4,12 +4,12 @@
 
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![LaTeX](https://img.shields.io/badge/LaTeX-XeLaTeX-green.svg)](https://www.latex-project.org/)
-[![Pages](https://img.shields.io/badge/Pages-563-orange.svg)](#)
+[![Pages](https://img.shields.io/badge/Pages-598-orange.svg)](#)
 [![Language](https://img.shields.io/badge/Language-中文-red.svg)](#)
 
 本项目是 Haggai Roitman 所著《The Hitchhiker's Guide to Agentic AI: From Foundations to Systems》一书的**非官方中文译本**。本译本作为衍生作品，与原文同样遵循 **CC BY-SA 4.0** 许可证。
 
-全书 29 章、6 个板块、约 560 页，系统覆盖了从 Transformer 内部机制、GPU 训练系统、强化学习、对齐方法、推理模型，到智能体编排、多智能体协作与 Agentic UI 的完整技术栈。中文译本面向希望快速建立"从底层硬件 → 训练算法 → 智能体系统"完整图景的中文读者。
+全书 30 章、6 个板块、598 页，系统覆盖了从 Transformer 内部机制、GPU 训练系统、强化学习、对齐方法、推理模型，到智能体编排、多智能体协作与 Agentic UI 的完整技术栈。中文译本面向希望快速建立"从底层硬件 → 训练算法 → 智能体系统"完整图景的中文读者。
 
 ---
 
@@ -31,11 +31,11 @@
 
 回答"上面这些东西到底有没有真的变好"。把 LLM 评估从 BLEU/perplexity 这种古典指标，推到 LLM-as-Judge、多维偏好、ELO 排名、智能体 benchmark 与污染检测这套现代体系。
 
-### **Part V — Agentic AI｜智能体 AI（第 15--26 章）**
+### **Part V — Agentic AI｜智能体 AI（第 15--27 章）**
 
 篇幅最大的部分，从一个训练好的模型出发，逐层加上 **知识层（RAG）→ 记忆层 → 运行时层（编排/Harness）→ 协作层（MCP/A2A/多智能体）→ 人机交互层（Agentic UI）**，最终走到一个可被部署的自主系统。每章基本可以独立阅读，也涵盖了主流开发框架（LangGraph、CrewAI、AutoGen、OpenAI Agents SDK、Google ADK）的对比。
 
-### **Part VI — Assessment & Reference｜自测与参考（第 27--29 章）**
+### **Part VI — Assessment & Reference｜自测与参考（第 28--30 章）**
 
 工具书性质的收尾。**108 道**测验题覆盖了前面所有主题，每题都配有详细解答；快速参考章整合关键公式、API 与失败模式诊断；最后一章展望未来方向。建议在通读完前五部分后，把测验题当"考研真题"做一遍——很多概念在解答中才会被串起来。
 
@@ -43,7 +43,7 @@
 
 ## 🚀 构建
 
-需要 **TeX Live 2024+** 与 **XeLaTeX**；macOS 默认 CJK 字体即可，其他系统可在 `book.tex` 第 14--16 行换成 `Noto Serif CJK SC` 等。
+需要 **XeLaTeX**；macOS 默认 CJK 字体即可，其他系统可在 `book.tex` 第 14--16 行换成 `Noto Serif CJK SC` 等。
 
 ```bash
 make distclean && make

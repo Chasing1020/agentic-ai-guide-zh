@@ -129,7 +129,7 @@
 \midrule
 BPE & GPT-4~\cite{openai2023gpt4}, Llama-3~\cite{grattafiori2024llama3}, Mistral~\cite{jiang2023mistral} & 自底向上合并频繁对；确定性 \\
 WordPiece & BERT~\cite{devlin2019bert}, DistilBERT~\cite{sanh2019distilbert} & 类似 BPE，但最大化训练数据似然 \\
-Unigram LM & SentencePiece & 自顶向下：从大词表开始，按似然影响剪枝 \\
+Unigram LM & SentencePiece（T5~\cite{raffel2020t5}，XLNet~\cite{yang2019xlnet}） & 自顶向下：从大词表开始，按似然影响剪枝 \\
 字节级 BPE（Byte-level BPE） & GPT-2~\cite{radford2019gpt2}+ & 在原始字节上做 BPE（不可能出现未知 Token）；256 个基础词 \\
 \bottomrule
 \end{tabularx}
@@ -242,6 +242,7 @@ print(prompt)
 #
 \end{lstlisting}
 
+\newpage
 \begin{keybox}[特殊 Token 最佳实践]
 \begin{itemize}
   % \item \textbf{Never split special tokens}: They must be atomic---ensure your tokenizer treats them as single units, not character sequences.
@@ -614,6 +615,16 @@ Q = XW_Q, \quad K = XW_K, \quad V = XW_V \quad (W_Q, W_K, W_V \in \mathbb{R}^{d 
 
 % \textbf{Grouped Query Attention (GQA)}: Llama-3~\cite{grattafiori2024llama3} uses fewer K,V heads than Q heads (e.g., 8 KV heads shared across 32 Q heads). This reduces KV cache size by $4\times$ with minimal quality loss.
 \textbf{分组查询注意力（Grouped Query Attention，GQA）}：Llama-3~\cite{grattafiori2024llama3} 使用比 Q 头更少的 K、V 头（例如，8 个 KV 头被 32 个 Q 头共享）。这将 KV 缓存大小减小 $4\times$，质量损失极小。
+
+% \paragraph{Multi-head Latent Attention (MLA).}
+\paragraph{多头潜在注意力（Multi-head Latent Attention，MLA）。}
+% DeepSeek-V2~\cite{deepseekv2} introduced a more aggressive compression: instead of sharing KV heads (as in GQA), MLA compresses \emph{all} key-value information into a single low-rank latent vector per token:
+DeepSeek-V2~\cite{deepseekv2} 引入了更激进的压缩：与 GQA 共享 KV 头不同，MLA 把\emph{全部}键值信息压缩为每个 token 的单一低秩潜向量：
+\[
+c_t = W_{DKV} \, h_t, \quad K_t = W_{UK} \, c_t, \quad V_t = W_{UV} \, c_t
+\]
+% where $c_t \in \mathbb{R}^{d_c}$ with $d_c \ll n_h \cdot d_h$. The KV cache stores only $c_t$---smaller than even GQA---while decompression matrices $W_{UK}, W_{UV}$ reconstruct full keys and values on-the-fly. Because the compression is learned end-to-end, quality matches or exceeds GQA. MLA enables DeepSeek's subsequent Sparse Attention for sub-quadratic long-context scaling and is now the basis of the DeepSeek-V3/V4 architecture family.
+其中 $c_t \in \mathbb{R}^{d_c}$，且 $d_c \ll n_h \cdot d_h$。KV 缓存只存储 $c_t$——甚至比 GQA 还小——而解压矩阵 $W_{UK}, W_{UV}$ 会即时重建完整的键与值。由于压缩是端到端学到的，其质量达到甚至超过 GQA。MLA 使 DeepSeek 后续的 Sparse Attention 得以实现次二次复杂度的长上下文扩展，如今已是 DeepSeek-V3/V4 架构家族的基础。
 \end{keybox}
 
 \subsection{位置编码}
@@ -904,7 +915,7 @@ DeepSeek-V3~\cite{deepseekv3} & 671B (37B 活跃) & 61 & 7168 & 128 & MLA & 128K
 \end{table}
 
 % \emph{Note}: Models marked with ``active'' parameters use Mixture-of-Experts (MoE) architecture---total parameters indicate model capacity, while active parameters reflect per-token compute cost. DeepSeek-V3 uses Multi-head Latent Attention (MLA) instead of standard GQA, compressing KV into a low-rank latent space.
-\emph{注}：标注``活跃''参数的模型使用混合专家（Mixture-of-Experts，MoE）架构——总参数表示模型容量，而活跃参数反映每个 Token 的计算代价。DeepSeek-V3 使用多头潜注意力（Multi-head Latent Attention，MLA）而非标准 GQA，将 KV 压缩到低秩潜空间中。
+\emph{注}：标注``活跃''参数的模型使用混合专家（Mixture-of-Experts，MoE）架构——总参数表示模型容量，而活跃参数反映每个 Token 的计算代价。DeepSeek-V3 使用多头潜在注意力（Multi-head Latent Attention，MLA）而非标准 GQA，将 KV 压缩到低秩潜空间中。
 
 \subsection{注意力病态}
 \label{attention-pathologies}
@@ -1296,6 +1307,7 @@ Reward Head & $\mathbb{R}^1$ & 成对排序 & 奖励模型训练 & 给回复质�
 为预训练 LM 添加价值头时，应将其初始化为接近零的小随机权重。若初始化值过大，初始价值估计会严重偏离，导致优势值过大、PPO 更新不稳定。常见做法：将最后一层线性层用 $\mathcal{N}(0, 1/\sqrt{d})$ 初始化，或直接置零。
 \end{warningbox}
 
+\newpage
 \subsection{HuggingFace 实现}
 \label{huggingface-implementation}
 
@@ -1548,6 +1560,58 @@ AdamW（Loshchilov \& Hutter, 2017）将权重衰减\emph{直接}作用于参数
 \begin{warningbox}[对 LLM 始终使用 AdamW -- 不要用纯 Adam]
 % The difference between Adam and AdamW is subtle but matters. With Adam + L2, the effective weight decay is stronger for parameters with small gradient variance (e.g., biases, LayerNorm parameters) and weaker for parameters with large gradient variance (e.g., attention weights). AdamW gives the intended uniform regularization. Most frameworks default to AdamW; double-check your optimizer class.
 Adam 与 AdamW 的差别虽细微但很重要。使用 Adam + L2 时，梯度方差小的参数（如 bias、LayerNorm 参数）受到更强的权重衰减，梯度方差大的参数（如 attention 权重）受到的衰减更弱。AdamW 才能提供我们想要的均匀正则化。大多数框架默认使用 AdamW；务必确认你的优化器类。
+\end{warningbox}
+
+% -----------------------------------------------------------------------
+\subsection{Muon：超越 AdamW}
+\label{sec:muon-optimizer}
+% -----------------------------------------------------------------------
+
+% For nearly a decade, AdamW was the unchallenged default optimizer for neural network training. Muon~\cite{liu2025muon} (Liu et al., 2025) is the first serious challenger to that dominance. Its core insight is that the momentum buffer accumulated by Adam carries directional information that is obscured by the adaptive scaling step---and that \emph{orthogonalizing} that momentum before applying it produces a fundamentally better update direction.
+近十年来，AdamW 一直是神经网络训练无可争议的默认优化器。Muon~\cite{liu2025muon}（Liu 等人，2025）是第一个严肃挑战这一统治地位的优化器。其核心洞见是：Adam 累积的动量缓冲区携带的方向信息会被自适应缩放步骤掩盖——而在应用动量之前先对其做\emph{正交化}，能产生根本更好的更新方向。
+
+\begin{keybox}[Muon：正交化动量]
+% Muon replaces the standard Adam update for hidden-layer weight matrices with a two-step procedure:
+Muon 用两步流程取代隐藏层权重矩阵上的标准 Adam 更新：
+\begin{enumerate}
+  % \item \textbf{Orthogonalize the momentum}: Apply Newton-Schulz iteration to the momentum buffer $M_t$ to produce an approximately orthogonal matrix $\tilde{M}_t = \text{NS}(M_t)$.
+  \item \textbf{正交化动量}：对动量缓冲区 $M_t$ 应用 Newton--Schulz 迭代，得到一个近似正交的矩阵 $\tilde{M}_t = \text{NS}(M_t)$。
+  % \item \textbf{Rescale to match AdamW RMS}: Scale $\tilde{M}_t$ so that its root-mean-square matches the RMS of the corresponding AdamW update, ensuring the effective step size is comparable.
+  \item \textbf{重新缩放以匹配 AdamW 的 RMS}：缩放 $\tilde{M}_t$，使其均方根与对应 AdamW 更新的 RMS 一致，确保有效步长具有可比性。
+\end{enumerate}
+% The resulting update is applied to the weight matrix directly. Embedding layers, output projections, and scalar parameters continue to use AdamW.
+最终的更新直接作用于权重矩阵。Embedding 层、输出投影与标量参数仍继续使用 AdamW。
+\end{keybox}
+
+% The Newton-Schulz iteration is a matrix polynomial that converges to the orthogonal factor of the polar decomposition of $M_t$. Concretely, starting from $X_0 = M_t / \|M_t\|_F$, the iteration
+Newton--Schulz 迭代是一个矩阵多项式，收敛于 $M_t$ 极分解中的正交因子。具体而言，从 $X_0 = M_t / \|M_t\|_F$ 出发，迭代
+\[
+X_{k+1} = \frac{3}{2} X_k - \frac{1}{2} X_k X_k^\top X_k
+\]
+% converges rapidly (typically 5--10 steps) to a matrix $\tilde{M}_t$ satisfying $\tilde{M}_t^\top \tilde{M}_t \approx I$. Orthogonality ensures that the update moves weight matrices in a direction that is maximally spread across all singular value directions---preventing the optimizer from collapsing updates onto a low-rank subspace, which is a known failure mode of Adam on weight matrices with highly skewed singular value spectra.
+会快速收敛（通常 5--10 步）到一个满足 $\tilde{M}_t^\top \tilde{M}_t \approx I$ 的矩阵 $\tilde{M}_t$。正交性保证了更新方向在所有奇异值方向上最大程度地展开——防止优化器把更新坍缩到低秩子空间上，而这是 Adam 在奇异值谱高度倾斜的权重矩阵上的一个已知失败模式。
+
+% \paragraph{Empirical efficiency.}
+\paragraph{实证效率。}
+% Muon claims approximately \textbf{2$\times$ compute efficiency} relative to AdamW: the same validation loss is reached in roughly half the gradient steps. This is not a marginal improvement---it represents a qualitative shift in the optimizer's sample efficiency on the loss landscape.
+Muon 声称相对 AdamW 约有 \textbf{2$\times$ 的算力效率}：以大约一半的梯度步数达到相同的验证损失。这不是边际改进——它代表着优化器在损失景观上样本效率的质变。
+
+% \paragraph{Adoption in frontier models.}
+\paragraph{前沿模型中的采用。}
+% The momentum is clearly shifting toward Muon in large-scale pretraining:
+在大型预训练中，天平明显正在向 Muon 倾斜：
+\begin{itemize}
+  % \item \textbf{GLM-4.5 / GLM-5} (Zhipu AI)~\cite{glm45_2025,glm5_2026}: adopted Muon for pretraining
+  \item \textbf{GLM-4.5 / GLM-5}（智谱 AI）~\cite{glm45_2025,glm5_2026}：预训练采用 Muon
+  % \item \textbf{Kimi K2} (Moonshot AI)~\cite{kimik2_2025}: uses \textbf{MuonClip}, a variant that adds \emph{QK-Clip}---rescaling query and key projections to cap attention logits and prevent loss spikes. Kimi K2 trained over 15.5T tokens with zero loss spikes, a stability record for models at that scale.
+  \item \textbf{Kimi K2}（月之暗面）~\cite{kimik2_2025}：使用 \textbf{MuonClip}——一个加入 \emph{QK-Clip} 的变体，通过重新缩放 query 与 key 投影来限制 attention logits 并防止损失尖峰。Kimi K2 在超过 15.5T token 上训练且零损失尖峰，是该规模模型的稳定性纪录。
+  % \item \textbf{DeepSeek-V4} (2026)~\cite{deepseekv4_2026}: adopted Muon for its pretraining run
+  \item \textbf{DeepSeek-V4}（2026）~\cite{deepseekv4_2026}：预训练采用 Muon
+\end{itemize}
+
+\begin{warningbox}[AdamW 仍是安全默认]
+% AdamW remains the optimizer of choice for MAI-Thinking-1, Qwen, Llama, and most production fine-tuning pipelines. Muon's advantages are most pronounced in large-scale pretraining of weight matrices; its behavior on LoRA adapters, small fine-tuning runs, and RL training (PPO/GRPO) is less well characterized. Use AdamW unless you are running a pretraining run at scale and have the infrastructure to validate Muon's behavior on your specific architecture.
+AdamW 仍是 MAI-Thinking-1、Qwen、Llama 以及大多数生产微调流水线的首选优化器。Muon 的优势在权重矩阵的大规模预训练中最为显著；它在 LoRA 适配器、小型微调与 RL 训练（PPO/GRPO）上的行为则尚未被充分刻画。除非你正在进行大规模预训练，且有基础设施在具体架构上验证 Muon 的行为，否则请使用 AdamW。
 \end{warningbox}
 
 \newpage
@@ -1914,6 +1978,11 @@ for batch in train_dataloader:
   \item \textbf{显存节省}：激活显存减半（激活值以 16-bit 存储）；权重显存取决于是否保留 FP32 主副本。
 \end{itemize}
 \end{intuitionbox}
+
+% \paragraph{FP8 and FP4: Next-Generation Training Precision.}
+\paragraph{FP8 与 FP4：下一代训练精度。}
+% DeepSeek-V3~\cite{deepseekv3} demonstrated that 671B-parameter training in FP8 (E4M3 for forward pass, E5M2 for backward) with fine-grained tile-wise scaling achieves less than 0.25\% relative loss degradation versus BF16---at a total training cost of approximately \$5.6M. Key techniques include stochastic rounding to reduce quantization bias, per-tile scaling factors that adapt to local activation magnitudes, and keeping the first and last layers in higher precision where quantization sensitivity is greatest. NVIDIA's Nemotron~3 pushes further to NVFP4 (4-bit), demonstrating stability over 25T training tokens by maintaining approximately 15\% of layers in BF16. The economic implication is profound: careful precision engineering reduces frontier training costs by 3--5$\times$, making billion-parameter training accessible beyond the largest labs.
+DeepSeek-V3~\cite{deepseekv3} 证明：以 FP8（前向传播用 E4M3，反向传播用 E5M2）配合细粒度逐 tile 缩放训练 671B 参数模型，相对 BF16 仅损失不到 0.25\%——而总训练成本约为 \$5.6M。关键技术包括：用随机舍入（stochastic rounding）降低量化偏差、让缩放因子逐 tile 适应局部激活幅度，以及在量化敏感度最高的首尾层保持更高精度。NVIDIA 的 Nemotron~3 更进一步，采用 NVFP4（4-bit），通过在大约 15\% 的层上维持 BF16，在超过 25T 训练 token 上证明了稳定性。其经济含义极为深远：精心的精度工程能把前沿训练成本降低 3--5$\times$，让数十亿参数的训练不再只是最大实验室的专利。
 
 \subsection{各训练阶段的优化器配置实践}
 \label{practical-optimizer-settings-by-training-phase}
@@ -2297,6 +2366,21 @@ Token 数 & 15T & 15T & 18T & 8T \\
   \item \textbf{上下文长度}：在短序列上训练却部署到长上下文会失败。应在长文档上做继续预训练 + RoPE 缩放。
 \end{itemize}
 \end{warningbox}
+
+% \subsection{Mid-Training: Preparing for Reinforcement Learning}
+\subsection{中期训练：为强化学习做准备}
+\label{sec:mid-training}
+
+% A distinct pipeline stage has emerged between raw pretraining and post-training. \emph{Mid-training} (sometimes called ``continued pretraining'' or ``annealing'') up-weights STEM, mathematics, and code on high-quality curated data while extending context length to 128K--256K tokens. Its purpose is not to teach new knowledge but to \emph{prepare the model for RL}: instilling the cognitive behaviors---verification, backtracking, subgoal decomposition---that reinforcement learning will later amplify.
+在原始预训练与后训练之间，一个新的流水线阶段已经浮现。\emph{中期训练（Mid-training）}（有时也叫“继续预训练（continued pretraining）”或“退火（annealing）”）在高质量精选数据上提高 STEM、数学与代码的权重，同时把上下文长度扩展到 128K--256K token。它的目的不是传授新知识，而是\emph{让模型为 RL 做好准备}：植入验证、回溯、子目标分解这些认知行为，供之后的强化学习放大。
+
+\begin{warningbox}[中期训练决定 RL 就绪度]
+% OctoThinker~\cite{octothinker2025} demonstrated that mid-training composition determines whether a base model responds to RL at all. The same GRPO recipe produced strong reasoning improvements on Qwen (which has reasoning-dense mid-training) but failed entirely on Llama (which lacks it). The difference was not model size or architecture---it was whether the base model already exhibited self-correction behaviors that RL could reinforce.
+OctoThinker~\cite{octothinker2025} 证明：中期训练的数据构成决定了 base 模型是否会对 RL 产生响应。同一套 GRPO 配方在 Qwen（其中期训练富含推理内容）上带来了显著的推理提升，在 Llama（缺少此类内容）上却完全失败。差异不在模型大小或架构——而在于 base 模型是否已经展现出 RL 可以强化的自我纠正行为。
+\end{warningbox}
+
+% Typical mid-training uses 100B--500B tokens of curated high-quality data with a cosine-decayed learning rate. Llama~3's ``annealing tail,'' MiMo's 3-stage mixture (ramping math+code to 70\%), and MAI-Thinking-1's explicit STEM up-weight are all instances of this pattern.
+典型的中期训练使用 100B--500B token 的精选高质量数据，搭配余弦衰减的学习率。Llama~3 的“退火尾巴（annealing tail）”、MiMo 的三阶段混合（把数学+代码提高到 70\%），以及 MAI-Thinking-1 对 STEM 的显式加权，都是这一模式的实例。
 
 \section{监督微调（Supervised Fine-Tuning，SFT）}
 \label{sec:sft}
@@ -2885,6 +2969,11 @@ MoE 的核心挑战在于 \textbf{top-$k$ 选择是不可微的}——你无法�
   % \item \textbf{Key insight}: Both approaches solve the same problem (making discrete selection trainable) via noise injection. Gaussian noise is simpler; Gumbel noise has stronger theoretical guarantees for categorical sampling.
   \item \textbf{关键见解}：两种方法都通过噪声注入解决了同一个问题（让离散选择可训练）。高斯噪声更简单；Gumbel 噪声在类别采样上有更强的理论保证。
 \end{itemize}
+
+% \paragraph{Auxiliary-Loss-Free Load Balancing.}
+\paragraph{无辅助损失负载均衡。}
+% The standard approach adds a balance penalty to the training loss, but DeepSeek~\cite{wang2024auxfree} demonstrated that this fights the routing signal: the loss pushes toward uniform utilization while the router tries to specialize. Their solution moves balancing entirely out of the gradient into a per-expert routing \emph{bias} updated based on observed utilization---achieving both better quality \emph{and} more expert specialization. A subsequent insight from Qwen revealed that the \emph{aggregation scope} matters more than the mechanism: computing balance statistics per micro-batch (the common default) silently destroys specialization because micro-batches are too homogeneous. Aggregating over the full global batch---as MAI-Thinking-1 confirms---restores the diversity signal that experts need to differentiate.
+标准做法是在训练损失上加一个均衡惩罚项，但 DeepSeek~\cite{wang2024auxfree} 证明这会与路由信号相互对抗：损失把利用率推向均匀，而路由器想要专业化。他们的解决方案把均衡完全移出梯度，改为一个基于观测利用率更新的逐专家路由\emph{偏置（bias）}——同时实现了更好的质量\emph{和}更高的专家专业化。Qwen 的后续洞见进一步揭示：\emph{聚合范围}比机制本身更重要——按微批次（常见默认）计算均衡统计会悄无声息地摧毁专业化，因为微批次过于同质。像 MAI-Thinking-1 所证实的那样，在整个全局批次上聚合，才能恢复专家分化所需的多样性信号。
 \end{keybox}
 
 \subsection{值得关注的 MoE 模型}
@@ -5255,6 +5344,11 @@ vLLM 将掩码计算委托给后端引擎：
 \end{tabularx}
 \end{table}
 
+% \paragraph{Dynamo: Datacenter-Scale Inference Orchestration.}
+\paragraph{Dynamo：数据中心级推理编排。}
+% Dynamo~\cite{dynamo2025nvidia} is NVIDIA's open-source orchestration layer that sits \emph{above} individual inference engines (SGLang, TensorRT-LLM, vLLM) and turns them into a coordinated multi-node serving system. Key capabilities include disaggregated serving (separating prefill and decode phases across specialized node pools), intelligent request routing based on KV cache locality, multi-tier KV caching (GPU $\to$ CPU $\to$ SSD), and automatic scaling. It addresses the gap between single-GPU inference optimization (covered by vLLM) and production serving at datacenter scale.
+Dynamo~\cite{dynamo2025nvidia} 是 NVIDIA 的开源编排层，位于各推理引擎（SGLang、TensorRT-LLM、vLLM）之\emph{上}，把它们组织成协同的多节点服务系统。关键能力包括：分离式服务（把 prefill 与 decode 阶段拆到专用节点池）、基于 KV 缓存局部性的智能请求路由、多级 KV 缓存（GPU $\to$ CPU $\to$ SSD），以及自动扩缩容。它填补了单 GPU 推理优化（由 vLLM 覆盖）与数据中心级生产服务之间的空白。
+
 % \chapter{Introduction to Reinforcement Learning}
 \chapter{强化学习导论}
 \label{sec:rl}
@@ -5407,7 +5501,7 @@ Q^*(s,a) = \sum_{s'} P(s'|s,a)\left[R(s,a,s') + \gamma \max_{a'} Q^*(s', a')\rig
 \end{itemize}
 
 % \textbf{On-Policy vs Off-Policy}:
-\textbf{同策略（On-Policy） vs 异策略（Off-Policy）}：
+\textbf{On-Policy vs Off-Policy}：
 
 \begin{itemize}
   % \item \textbf{On-Policy}: Learn from data generated by the \emph{current} policy. Must regenerate data after each update. Examples: REINFORCE, PPO, A2C. More stable but less sample-efficient.

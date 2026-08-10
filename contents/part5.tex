@@ -35,22 +35,24 @@
   \item \textbf{第 17 章：记忆}——持久化层。记忆使 Agent 能够跨交互回忆信息——从单个任务内的短期工作记忆，到跨越数月的长期情景记忆（Episodic Memory）。我们将涵盖记忆架构（缓冲区、摘要、向量索引、知识图谱）、记忆固化（Memory Consolidation），以及如何设计能够扩展而不淹没上下文窗口的记忆系统。
   % \item \textbf{Chapter 18: Harness \& Orchestration} --- The runtime layer. The orchestration harness is the ``operating system'' for agents: it manages the agent loop, context window budget, tool dispatch, error recovery, state persistence, and observability. We cover context management strategies (summarization, sliding window, hierarchical), execution control (sequential, parallel, branching), guardrails, and human-in-the-loop patterns.
   \item \textbf{第 18 章：执行框架与编排（Harness \& Orchestration）}——运行时层。编排框架是 Agent 的“操作系统”：它管理 Agent 循环、上下文窗口预算、工具分发、错误恢复、状态持久化和可观测性。我们将涵盖上下文管理策略（摘要、滑动窗口、分层）、执行控制（顺序、并行、分支）、护栏与人机协同（Human-in-the-Loop）模式。
-  % \item \textbf{Chapter 19: Design Patterns} --- The architecture layer. Canonical patterns for structuring agents: ReAct (reason + act interleaving), plan-then-execute, reflection loops, tool-augmented generation, and multi-step workflows. We analyze when each pattern applies, their failure modes, and how to combine them for complex real-world tasks.
-  \item \textbf{第 19 章：设计模式}——架构层。构建 Agent 的经典模式：ReAct（推理与行动交错）、先规划后执行、反思循环、工具增强生成与多步工作流。我们分析每种模式的适用场景、失败模式，以及如何组合它们以应对真实世界的复杂任务。
-  % \item \textbf{Chapter 20: Environments \& Benchmarks} --- The evaluation layer. Where and how to evaluate agentic behaviour. We cover web navigation benchmarks, coding environments, tool-use evaluation suites, and the unique challenges of evaluating multi-step autonomous systems (partial credit, trajectory quality, safety violations).
-  \item \textbf{第 20 章：环境与基准}——评测层。在哪里、如何评测智能体行为。我们将涵盖网页导航基准、编程环境、工具使用评测套件，以及评测多步自主系统所特有的挑战（部分得分、轨迹质量、安全违规）。
-  % \item \textbf{Chapter 21: MCP (Model Context Protocol)} --- The tool integration standard. MCP standardizes how agents discover and invoke tools---analogous to USB for hardware. We cover the protocol specification, server/client architecture, resource management, and how MCP eliminates the N$\times$M integration problem between agents and tools.
-  \item \textbf{第 21 章：MCP（模型上下文协议，Model Context Protocol）}——工具集成标准。MCP 标准化了 Agent 如何发现并调用工具——类似于硬件世界的 USB。我们将涵盖协议规范、服务端/客户端架构、资源管理，以及 MCP 如何消除 Agent 与工具之间的 N$\times$M 集成问题。
-  % \item \textbf{Chapter 22: Agent Skills} --- The capability layer. How agents acquire and compose specialized capabilities beyond basic tool use, including skill libraries, skill selection, and compositional task solving.
-  \item \textbf{第 22 章：Agent 技能（Skills）}——能力层。Agent 如何获取并组合超越基本工具使用的专门化能力，包括技能库、技能选择与可组合的任务求解。
-  % \item \textbf{Chapter 23: A2A (Agent-to-Agent Communication)} --- The inter-agent protocol. When tasks require multiple specialists, A2A provides a standardized protocol for agent discovery, task delegation, progress streaming, and result aggregation---enabling heterogeneous agents (from different vendors, frameworks, or organizations) to collaborate.
-  \item \textbf{第 23 章：A2A（智能体到智能体通信，Agent-to-Agent Communication）}——Agent 间协议。当任务需要多名专家时，A2A 提供了用于 Agent 发现、任务委派、进度流式传输与结果聚合的标准化协议，使来自不同供应商、框架或组织的异构 Agent 能够协作。
-  % \item \textbf{Chapter 24: Multi-Agent Systems} --- The coordination layer. Architectures for multi-agent collaboration: hierarchical delegation, peer-to-peer negotiation, debate and consensus, swarm intelligence, and emergent behaviour. We cover when to use single-agent vs. multi-agent designs and how to debug coordination failures.
-  \item \textbf{第 24 章：多智能体系统}——协调层。多智能体协作的架构：层级委派、对等协商、辩论与共识、群体智能（Swarm Intelligence）与涌现行为。我们将讨论何时使用单 Agent 与多 Agent 设计，以及如何调试协调失败。
-  % \item \textbf{Chapter 25: Frameworks} --- The implementation layer. Production toolkits that implement the above concepts: LangGraph (stateful graph-based orchestration), CrewAI (role-based multi-agent), OpenAI Agents SDK, AutoGen, and others. We compare their trade-offs, architecture decisions, and suitability for different use cases.
-  \item \textbf{第 25 章：框架}——实现层。实现上述概念的生产级工具集：LangGraph（基于状态图的编排）、CrewAI（基于角色的多智能体）、OpenAI Agents SDK、AutoGen 等。我们比较它们的权衡、架构决策与在不同场景下的适用性。
-  % \item \textbf{Chapter 26: Agentic UI} --- The interaction layer. How users interact with and supervise agents: streaming interfaces, progressive disclosure, approval workflows, status dashboards, and the UX patterns that build appropriate trust in autonomous systems.
-  \item \textbf{第 26 章：Agentic UI}——交互层。用户如何与 Agent 交互并对其进行监督：流式接口、渐进式披露、审批工作流、状态仪表盘，以及构建对自主系统适当信任的 UX 模式。
+  % \item \textbf{Chapter 19: Loop Engineering} --- The inference-time RL layer. Loop engineering treats the agent's runtime loop as an optimization process: generate--verify--retry cycles that are structurally equivalent to policy optimization without weight updates. We cover the five structural primitives (generator, verifier, terminator, state manager, escalator), verification hierarchies, adaptive budget allocation, and how modern loops evolved from early AutoGPT-style systems into disciplined convergent processes.
+  \item \textbf{第 19 章：循环工程（Loop Engineering）}——推理时 RL 层。循环工程把 Agent 的运行时循环视为一个优化过程：生成—验证—重试的循环在结构上等价于不做权重更新的策略优化。我们将涵盖五个结构性原语（生成器、验证器、终止器、状态管理器、升级器）、验证层级、自适应预算分配，以及现代循环如何从早期 AutoGPT 式系统演化为有纪律的收敛过程。
+  % \item \textbf{Chapter 20: Design Patterns} --- The architecture layer. Canonical patterns for structuring agents: ReAct (reason + act interleaving), plan-then-execute, reflection loops, tool-augmented generation, and multi-step workflows. We analyze when each pattern applies, their failure modes, and how to combine them for complex real-world tasks.
+  \item \textbf{第 20 章：设计模式}——架构层。构建 Agent 的经典模式：ReAct（推理与行动交错）、先规划后执行、反思循环、工具增强生成与多步工作流。我们分析每种模式的适用场景、失败模式，以及如何组合它们以应对真实世界的复杂任务。
+  % \item \textbf{Chapter 21: Environments \& Benchmarks} --- The evaluation layer. Where and how to evaluate agentic behaviour. We cover web navigation benchmarks, coding environments, tool-use evaluation suites, and the unique challenges of evaluating multi-step autonomous systems (partial credit, trajectory quality, safety violations).
+  \item \textbf{第 21 章：环境与基准}——评测层。在哪里、如何评测智能体行为。我们将涵盖网页导航基准、编程环境、工具使用评测套件，以及评测多步自主系统所特有的挑战（部分得分、轨迹质量、安全违规）。
+  % \item \textbf{Chapter 22: MCP (Model Context Protocol)} --- The tool integration standard. MCP standardizes how agents discover and invoke tools---analogous to USB for hardware. We cover the protocol specification, server/client architecture, resource management, and how MCP eliminates the N$\times$M integration problem between agents and tools.
+  \item \textbf{第 22 章：MCP（模型上下文协议，Model Context Protocol）}——工具集成标准。MCP 标准化了 Agent 如何发现并调用工具——类似于硬件世界的 USB。我们将涵盖协议规范、服务端/客户端架构、资源管理，以及 MCP 如何消除 Agent 与工具之间的 N$\times$M 集成问题。
+  % \item \textbf{Chapter 23: Agent Skills} --- The capability layer. How agents acquire and compose specialized capabilities beyond basic tool use, including skill libraries, skill selection, and compositional task solving.
+  \item \textbf{第 23 章：Agent 技能（Skills）}——能力层。Agent 如何获取并组合超越基本工具使用的专门化能力，包括技能库、技能选择与可组合的任务求解。
+  % \item \textbf{Chapter 24: A2A (Agent-to-Agent Communication)} --- The inter-agent protocol. When tasks require multiple specialists, A2A provides a standardized protocol for agent discovery, task delegation, progress streaming, and result aggregation---enabling heterogeneous agents (from different vendors, frameworks, or organizations) to collaborate.
+  \item \textbf{第 24 章：A2A（智能体到智能体通信，Agent-to-Agent Communication）}——Agent 间协议。当任务需要多名专家时，A2A 提供了用于 Agent 发现、任务委派、进度流式传输与结果聚合的标准化协议，使来自不同供应商、框架或组织的异构 Agent 能够协作。
+  % \item \textbf{Chapter 25: Multi-Agent Systems} --- The coordination layer. Architectures for multi-agent collaboration: hierarchical delegation, peer-to-peer negotiation, debate and consensus, swarm intelligence, and emergent behaviour. We cover when to use single-agent vs. multi-agent designs and how to debug coordination failures.
+  \item \textbf{第 25 章：多智能体系统}——协调层。多智能体协作的架构：层级委派、对等协商、辩论与共识、群体智能（Swarm Intelligence）与涌现行为。我们将讨论何时使用单 Agent 与多 Agent 设计，以及如何调试协调失败。
+  % \item \textbf{Chapter 26: Frameworks} --- The implementation layer. Production toolkits that implement the above concepts: LangGraph (stateful graph-based orchestration), CrewAI (role-based multi-agent), OpenAI Agents SDK, NVIDIA OO Agents, AutoGen, and others. We compare their trade-offs, architecture decisions, and suitability for different use cases.
+  \item \textbf{第 26 章：框架}——实现层。实现上述概念的生产级工具集：LangGraph（基于状态图的编排）、CrewAI（基于角色的多智能体）、OpenAI Agents SDK、NVIDIA OO Agents、AutoGen 等。我们比较它们的权衡、架构决策与在不同场景下的适用性。
+  % \item \textbf{Chapter 27: Agentic UI} --- The interaction layer. How users interact with and supervise agents: streaming interfaces, progressive disclosure, approval workflows, status dashboards, and the UX patterns that build appropriate trust in autonomous systems.
+  \item \textbf{第 27 章：Agentic UI}——交互层。用户如何与 Agent 交互并对其进行监督：流式接口、渐进式披露、审批工作流、状态仪表盘，以及构建对自主系统适当信任的 UX 模式。
 \end{itemize}
 
 % These layers do not operate in isolation---they form a tightly integrated system where each component depends on and enhances the others:
@@ -61,8 +63,8 @@
   \item \textbf{Agent 核心}（具备第二、第三部分所述推理能力的 LLM）位于中心，执行感知—推理—行动的循环。
   % \item \textbf{RAG} feeds the agent with relevant knowledge before each reasoning step, while \textbf{Memory} provides continuity across steps and sessions.
   \item \textbf{RAG} 在每一步推理之前向 Agent 提供相关知识，而\textbf{记忆}则提供跨步骤、跨会话的连续性。
-  % \item The \textbf{Orchestration Harness} coordinates everything: it decides when to retrieve, when to call tools, when to delegate to sub-agents, and when to ask the human for guidance.
-  \item \textbf{编排框架}协调一切：它决定何时检索、何时调用工具、何时委派给子 Agent，以及何时向人类寻求指导。
+  % \item The \textbf{Orchestration Harness} coordinates everything: it decides when to retrieve, when to call tools, when to delegate to sub-agents, and when to ask the human for guidance. \textbf{Loop Engineering} formalizes the harness's retry-and-verify cycles as inference-time optimization, ensuring convergence and cost control.
+  \item \textbf{编排框架}协调一切：它决定何时检索、何时调用工具、何时委派给子 Agent，以及何时向人类寻求指导。\textbf{循环工程（Loop Engineering）}把编排框架的重试与验证循环形式化为推理时优化，确保收敛与成本可控。
   % \item \textbf{MCP} provides the standardized interface through which the agent accesses all external tools, and \textbf{A2A} provides the equivalent interface for inter-agent communication.
   \item \textbf{MCP} 为 Agent 访问所有外部工具提供标准化接口，而 \textbf{A2A} 为 Agent 间通信提供对等接口。
   % \item \textbf{Design Patterns} define the high-level strategy (ReAct, plan-and-execute, reflection), while \textbf{Frameworks} provide the concrete implementation of these patterns.
@@ -3009,7 +3011,7 @@ class HierarchicalMemoryManager:
         lines = ["[Memory Context]"]
         # last 10
         for entry in list(self.hot.values())[-10:]:  # 最后 10 条
-            lines.append(f"  * {entry.content}")
+            lines.append(f"  - {entry.content}")
         return "\n".join(lines)
 \end{lstlisting}
 
@@ -3368,6 +3370,65 @@ A-MEM~\cite{xu2025amem} 引入了一种借鉴 \emph{Zettelkasten} 方法的记�
 % Across six foundation models on multi-session reasoning tasks, A-MEM consistently outperforms flat vector stores, summarization-based memory, and graph-database approaches, demonstrating that \emph{how} memories are organized matters as much as \emph{what} is stored.
 在六个基础模型、多种多会话推理任务上，A-MEM 稳定优于扁平向量存储、基于摘要的记忆与图数据库方案，说明记忆\emph{如何}组织与\emph{存什么}同等重要。
 
+% \section{Proactive Memory Architectures}
+\section{主动记忆架构}
+\label{sec:proactive-memory}
+
+% A fundamental challenge in long-horizon agentic tasks is \textbf{behavioral state decay}: after dozens of tool calls, the executor agent loses track of its original goals, constraints, and accumulated context. Standard memory systems address this reactively---the agent queries memory when it needs information. \textbf{Proactive memory architectures}~\cite{meta2026remember} (Meta AI, July 2026, ``Remember When It Matters'') take a different approach: a dedicated memory agent \emph{monitors} the executor and injects constraints \emph{before} the executor drifts.
+长时程智能体任务中的一个根本性挑战是\textbf{行为状态衰减（behavioral state decay）}：在数十次工具调用之后，执行 Agent 会丢失对原始目标、约束与已积累上下文的追踪。标准记忆系统是反应式地解决这一问题——Agent 在需要信息时才查询记忆。\textbf{主动记忆架构}~\cite{meta2026remember}（Meta AI，2026 年 7 月，《Remember When It Matters》）采取了不同的方法：一个专门的记忆 Agent \emph{监控}执行者，并在执行者\emph{漂移之前}注入约束。
+
+\begin{keybox}[主动记忆 Agent 架构]
+% The system consists of two decoupled agents:
+系统由两个解耦的 Agent 组成：
+\begin{enumerate}
+  % \item \textbf{Executor Agent}: Handles task execution---tool calls, reasoning, output generation. Maintains a lean context focused on the immediate subtask.
+  \item \textbf{执行 Agent（Executor Agent）}：负责任务执行——工具调用、推理、输出生成。维持一个聚焦于当前子任务的精简上下文。
+  % \item \textbf{Memory Agent}: Runs in parallel, monitoring the executor's action stream. Maintains a compressed representation of:
+  \item \textbf{记忆 Agent（Memory Agent）}：并行运行，监控执行者的动作流。维护以下内容的压缩表示：
+    \begin{itemize}
+      % \item Long-term goals and success criteria
+      \item 长期目标与成功标准
+      % \item Active constraints (safety rules, user preferences, resource limits)
+      \item 生效中的约束（安全规则、用户偏好、资源限制）
+      % \item Key decisions made earlier in the trajectory
+      \item 轨迹早期做出的关键决策
+    \end{itemize}
+\end{enumerate}
+% The memory agent \textbf{injects reminders} into the executor's context only when it detects drift---when the executor's recent actions suggest it has forgotten a constraint or is moving away from the stated goal. This is the key distinction from reactive memory: the memory agent acts \emph{proactively}, before errors compound.
+记忆 Agent 只在检测到漂移时——即执行者近期的动作表明它忘记了一条约束或正在偏离既定目标时——才把\textbf{提醒注入}执行者的上下文。这是与反应式记忆的关键区别：记忆 Agent \emph{主动}行动，赶在错误累积之前。
+\end{keybox}
+
+\begin{examplebox}[主动记忆：实证结果]
+% On long-horizon agentic benchmarks (50+ tool calls per task):
+在长时程智能体基准上（每个任务 50+ 次工具调用）：
+\begin{itemize}
+  % \item \textbf{Dramatically higher success rates} on tasks requiring sustained constraint adherence (e.g., ``never modify files in /prod'', ``always cite sources'').
+  \item 在需要持续遵守约束的任务（如“绝不修改 /prod 中的文件”“始终注明来源”）上\textbf{成功率显著更高}。
+  % \item \textbf{$\sim$40\% API cost increase}: The memory agent adds LLM calls for monitoring and injection. This is the primary trade-off.
+  \item \textbf{API 成本增加 $\sim$40\%}：记忆 Agent 为监控与注入增加了 LLM 调用。这是主要的权衡代价。
+  % \item \textbf{Graceful degradation}: Without the memory agent, executor success rates drop sharply after $\sim$30 tool calls. With it, performance remains stable to 100+ calls.
+  \item \textbf{优雅降级}：没有记忆 Agent 时，执行者在 $\sim$30 次工具调用后成功率急剧下降；有了它，性能在 100+ 次调用中保持稳定。
+\end{itemize}
+\end{examplebox}
+
+\begin{intuitionbox}[RL 联系：把记忆 Agent 视为状态汇总器]
+% The proactive memory architecture has a natural interpretation in the RL framework:
+主动记忆架构在 RL 框架中有一个自然的解释：
+\begin{itemize}
+  % \item The \textbf{memory agent} functions as a \textbf{state summarizer}---analogous to the attention mechanism in an actor-critic architecture, which selectively weights relevant past states for the value function.
+  \item \textbf{记忆 Agent} 起到\textbf{状态汇总器}的作用——类似于 actor-critic 架构中的注意力机制，它为价值函数选择性加权相关的历史状态。
+  % \item In a POMDP (Partially Observable MDP), the memory agent maintains the \textbf{belief state}: a compressed sufficient statistic of the history relevant to future decisions.
+  \item 在 POMDP（部分可观测 MDP）中，记忆 Agent 维护\textbf{信念状态}：与未来决策相关的历史压缩充分统计量。
+  % \item The injection mechanism is analogous to \textbf{privileged information} in asymmetric actor-critic training: the memory agent has access to the full trajectory history, while the executor operates on a compressed context.
+  \item 注入机制类似于非对称 actor-critic 训练中的\textbf{特权信息}：记忆 Agent 可以访问完整轨迹历史，而执行者只操作压缩后的上下文。
+  % \item The 40\% cost increase reflects the fundamental trade-off between \textbf{Markov state representation} (expensive but sufficient) and \textbf{truncated context} (cheap but lossy).
+  \item 40\% 的成本增加反映了\textbf{马尔可夫状态表示}（昂贵但充分）与\textbf{截断上下文}（廉价但有损）之间的根本权衡。
+\end{itemize}
+% This architecture suggests a promising direction for RL training: jointly optimize the executor policy and the memory agent's injection policy, where the memory agent learns \emph{when} and \emph{what} to inject to maximize task success.
+这一架构为 RL 训练指明了一个有前景的方向：联合优化执行者策略与记忆 Agent 的注入策略，让记忆 Agent 学习在\emph{何时}注入\emph{什么}以最大化任务成功。
+\end{intuitionbox}
+
+\newpage
 \section{小结}
 \label{sec:memory-summary}
 
@@ -3383,12 +3444,14 @@ A-MEM~\cite{xu2025amem} 引入了一种借鉴 \emph{Zettelkasten} 方法的记�
   \item \textbf{四种核心操作}：写入（含重要性打分与冲突检测）、读取/检索（含时间衰减与查询扩展）、更新（含冲突解决与巩固），以及反思（元认知洞见生成）。
 %  \item \textbf{Multi-turn and multi-agent extensions}: user modeling, session continuity, shared memory pools, and blackboard architectures.
   \item \textbf{多轮与多智能体扩展}：用户建模、会话连续性、共享记忆池与 blackboard 架构。
-%  \item \textbf{RL training of memory systems}: reward signals for memory operations, learning what to remember, and memory-augmented policy optimization.
+  % \item \textbf{RL training of memory systems}: reward signals for memory operations, learning what to remember, and memory-augmented policy optimization.
   \item \textbf{记忆系统的 RL 训练}：记忆操作的 Reward 信号、学习“记什么”，以及记忆增强的 Policy 优化。
+  % \item \textbf{Proactive memory}: decoupled memory agents that monitor executor behavior and inject reminders before drift compounds---a shift from reactive retrieval to anticipatory intervention.
+  \item \textbf{主动记忆}：解耦的记忆 Agent 监控执行者行为，在漂移累积之前注入提醒——从反应式检索转向预判式干预。
 \end{itemize}
 
-% The field is rapidly evolving. Key open challenges include: (1) \emph{memory grounding}---ensuring retrieved memories are faithfully incorporated rather than ignored or hallucinated over; (2) \emph{scalable consistency}---maintaining coherent shared memory in large multi-agent systems; and (3) \emph{privacy-preserving memory}---enabling personalization without compromising user data. As context windows grow, the boundary between in-context and external memory will shift, but the fundamental need for \emph{selective, structured, retrievable} information storage will remain.
-该领域仍在快速演进。关键的开放挑战包括：（1）\emph{记忆落地（memory grounding）}——确保被检索到的记忆被忠实地纳入回答，而非被忽略或被幻觉所覆盖；（2）\emph{可扩展的一致性}——在大型多智能体系统中维持连贯的共享记忆；（3）\emph{保护隐私的记忆}——在不损害用户数据的前提下实现个性化。随着上下文窗口的增长，上下文内记忆与外部记忆之间的边界会发生移动，但对\emph{有选择、有结构、可检索}的信息存储的根本需求将一直存在。
+% The field is rapidly evolving. Key open challenges include: (1) \emph{memory grounding}---ensuring retrieved memories are faithfully incorporated rather than ignored or hallucinated over; (2) \emph{scalable consistency}---maintaining coherent shared memory in large multi-agent systems; (3) \emph{privacy-preserving memory}---enabling personalization without compromising user data; and (4) \emph{proactive injection policies}---learning when and what to remind the executor without overwhelming its context. As context windows grow, the boundary between in-context and external memory will shift, but the fundamental need for \emph{selective, structured, retrievable} information storage will remain.
+该领域仍在快速演进。关键的开放挑战包括：（1）\emph{记忆落地（memory grounding）}——确保被检索到的记忆被忠实地纳入回答，而非被忽略或被幻觉所覆盖；（2）\emph{可扩展的一致性}——在大型多智能体系统中维持连贯的共享记忆；（3）\emph{保护隐私的记忆}——在不损害用户数据的前提下实现个性化；（4）\emph{主动注入策略}——学习在何时、以何种内容提醒执行者而不淹没其上下文。随着上下文窗口的增长，上下文内记忆与外部记忆之间的边界会发生移动，但对\emph{有选择、有结构、可检索}的信息存储的根本需求将一直存在。
 
 \chapter{Agent Harness —— 上下文管理与编排}
 \label{sec:agent-harness}
@@ -4973,6 +5036,841 @@ agent harness 是将语言模型转变为能干、可靠 Agent 的工程基础�
   \item \textbf{生产环境的关注点会复合。} 延迟、成本、速率限制与评测彼此交互。请系统化地解决它们，而不是事后补救。
 \end{itemize}
 
+\chapter{循环工程（Loop Engineering）}
+\label{sec:loop-engineering}
+
+% The evolution of how practitioners interact with LLM-based agents has followed a remarkably consistent trajectory. In 2022--2024, the primary skill was \emph{prompt engineering}: crafting the right words to elicit the desired response from a single model call. By 2025, the focus shifted to \emph{context engineering}---curating the full set of tokens the model sees at inference time, including retrieved documents, tool outputs, and conversation history~\cite{anthropic2024buildingagents}. In the previous chapter we covered \emph{harness engineering}: designing the runtime environment---tools, sandboxes, memory, and guardrails---that surrounds an agent. Loop engineering~\cite{osmani2026loop} is the next layer in this progression: designing the \emph{iterative control structure} that drives an agent toward a goal autonomously, without requiring a human to type the next instruction at each turn.
+从业者与 LLM 智能体交互方式的演变遵循了一条惊人一致的轨迹。2022--2024 年，首要技能是\emph{提示工程（prompt engineering）}：精心组织措辞，从单次模型调用中引出想要的回答。到 2025 年，焦点转向\emph{上下文工程（context engineering）}——策展模型在推理时看到的全部 token，包括检索到的文档、工具输出与对话历史~\cite{anthropic2024buildingagents}。上一章我们讨论了\emph{harness 工程}：设计围绕 Agent 的运行时环境——工具、沙箱、记忆与护栏。循环工程~\cite{osmani2026loop} 是这一演进中的下一层：设计\emph{迭代控制结构}，让 Agent 自主地朝目标前进，无需人类在每一轮输入下一条指令。
+
+\begin{keybox}[从提示到循环：工程演进的四个阶段]
+\begin{enumerate}
+  % \item \textbf{Prompt engineering}: Optimize what you \emph{say} to the model (2022--2024)
+  \item \textbf{提示工程}：优化你对模型\emph{说了什么}（2022--2024）
+  % \item \textbf{Context engineering}: Optimize everything the model \emph{sees} (2025)
+  \item \textbf{上下文工程}：优化模型\emph{看到了什么}（2025）
+  % \item \textbf{Harness engineering}: Optimize the environment the agent \emph{runs in} (2025--2026)
+  \item \textbf{Harness 工程}：优化 Agent\emph{运行所在}的环境（2025--2026）
+  % \item \textbf{Loop engineering}: Optimize the \emph{cycle} that keeps the agent working toward a goal (2026)
+  \item \textbf{循环工程}：优化让 Agent 持续朝目标工作的\emph{循环}（2026）
+\end{enumerate}
+% Each layer wraps the previous one without replacing it. You still write prompts; you still curate context; you still build a harness. Loop engineering puts all of it in motion.
+每一层都包裹住前一层而不取代它。你仍然要写提示；仍然要策展上下文；仍然要构建 harness。循环工程让这一切运转起来。
+\end{keybox}
+
+% The phrase was coined in June 2026 after Peter Steinberger~\cite{steinberger2026openclaw} argued that developers should stop prompting coding agents directly and instead design systems that prompt those agents---a sentiment validated by Boris Cherny, who leads Claude Code at Anthropic, noting that his role had shifted entirely to writing the external execution loops that coordinate model actions~\cite{cherny2026loops}. This is not merely a tooling preference. It reflects a structural reality: when a single agent run may last an hour and modify dozens of files, the highest-leverage engineering is no longer in the prompt---it is in the loop that keeps the agent productive, verified, and on-goal throughout.
+这个说法诞生于 2026 年 6 月：Peter Steinberger~\cite{steinberger2026openclaw} 主张开发者应当停止直接提示编码 Agent，转而设计能够提示这些 Agent 的系统——这一观点得到了 Boris Cherny（Anthropic 的 Claude Code 负责人）的印证，他提到自己的角色已经完全转变为编写协调模型行动的外部执行循环~\cite{cherny2026loops}。这不仅仅是工具偏好。它反映了一个结构性现实：当一次 Agent 运行可能持续一小时并修改数十个文件时，杠杆率最高的工程不再在提示里——而在那个让 Agent 始终保持高效、被验证、不偏离目标的循环里。
+
+% -----------------------------------------------------------------------
+\section{上下文工程：循环之下的那一层}
+\label{sec:context-engineering}
+% -----------------------------------------------------------------------
+
+% Before a loop can run, something must decide what the model sees at each step. That discipline is \textbf{context engineering}: the formal practice of curating and maintaining the optimal set of tokens in the context window during inference. It is the layer beneath the loop---the mechanism by which the loop's state is translated into model input.
+在循环运行之前，必须有人决定模型在每一步看到什么。这门学科就是\textbf{上下文工程}：在推理期间策展并维护上下文窗口中最优 token 集合的正式实践。它是循环之下的那一层——循环状态被翻译为模型输入的机制。
+
+% The term was popularized by Tobi Lütke (CEO of Shopify) in June 2025~\cite{lutke2025context}, who described it as the emerging core skill for working with AI agents. Anthropic formalized the definition in September 2025 as ``curating and maintaining the optimal set of tokens during inference.'' Andrej Karpathy endorsed the framing, describing it as ``the delicate art and science of filling the context window with just the right information for the next step''~\cite{karpathy2025context}. The convergence of these definitions reflects a practical reality: as context windows grew from 4K to 128K to 1M tokens, the question of \emph{what to put in them} became as important as the question of \emph{what to ask}.
+该术语由 Tobi Lütke（Shopify CEO）在 2025 年 6 月推广开来~\cite{lutke2025context}，他将其描述为与 AI Agent 协作的新兴核心技能。Anthropic 在 2025 年 9 月将其形式化为“在推理期间策展并维护最优 token 集合”。Andrej Karpathy 认同这一框架，将其描述为“在下一步之前，用恰到好处的信息填满上下文窗口的精妙艺术与科学”~\cite{karpathy2025context}。这些定义的汇聚反映了一个现实：当上下文窗口从 4K 增长到 128K 再到 1M token 时，“\emph{往里面放什么}”变得与“\emph{问什么}”同等重要。
+
+% Context engineering is not prompt engineering. Prompt engineering optimizes the \emph{instruction}---the words that direct the model's behavior. Context engineering optimizes the \emph{information environment}---the full set of documents, tool outputs, history, and state that the model reasons over. In a single-turn interaction, the distinction is minor. In a multi-step agent loop, it is the difference between a model that has the information it needs to act correctly and one that is flying blind.
+上下文工程不是提示工程。提示工程优化的是\emph{指令}——引导模型行为的措辞。上下文工程优化的是\emph{信息环境}——模型据以推理的文档、工具输出、历史与状态的全集。在单轮交互中，两者的区别很小。在多步 Agent 循环中，它决定了模型是拥有正确行动所需的信息，还是在盲目飞行。
+
+% \paragraph{Key techniques.}
+\paragraph{关键技术。}
+% Context engineering draws on several complementary methods:
+上下文工程借助几种互补的方法：
+\begin{itemize}
+  % \item \textbf{Dynamic context assembly}: Selecting and composing context from multiple sources (retrieved documents, tool outputs, memory stores) at each loop iteration rather than using a fixed template.
+  \item \textbf{动态上下文组装}：在每一轮循环迭代中从多个来源（检索到的文档、工具输出、记忆存储）选择并组合上下文，而不是使用固定模板。
+  % \item \textbf{RAG integration}: Retrieving task-relevant documents or code snippets and injecting them into the context window, replacing stale or generic background knowledge with precise, current information.
+  \item \textbf{RAG 集成}：检索任务相关文档或代码片段并注入上下文窗口，用精确、即时的信息取代过时或泛泛的背景知识。
+  % \item \textbf{Tool-output summarization}: Compressing verbose tool outputs (e.g., long file listings, test runner logs) before inserting them into context, preserving signal while conserving token budget.
+  \item \textbf{工具输出摘要化}：在把冗长的工具输出（如长文件列表、测试运行器日志）插入上下文之前先压缩，在保留信号的同时节省 token 预算。
+  % \item \textbf{Conversation history management}: Deciding which prior turns to retain verbatim, which to summarize, and which to drop entirely---a rolling compression problem that becomes critical in long agent runs.
+  \item \textbf{对话历史管理}：决定哪些先前的轮次原样保留、哪些摘要化、哪些彻底丢弃——一个滚动压缩问题，在长时程 Agent 运行中变得至关重要。
+  % \item \textbf{Token budget allocation}: Explicitly partitioning the context window across competing information sources to ensure the model always has room to generate a useful response.
+  \item \textbf{Token 预算分配}：在相互竞争的信息来源之间显式划分上下文窗口，确保模型始终有空间生成有用的回答。
+\end{itemize}
+
+\newpage
+\begin{keybox}[上下文窗口预算分配（典型 Agent 循环）]
+\small
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+% \textbf{Component} & \textbf{Budget} & \textbf{Notes} \\
+\textbf{组件} & \textbf{预算} & \textbf{说明} \\
+\midrule
+% System prompt & 10--15\% & Stable; defines agent role, tools, constraints \\
+系统提示 & 10--15\% & 稳定；定义 Agent 角色、工具与约束 \\
+% Retrieved documents / RAG & 20--30\% & Dynamic; refreshed each iteration \\
+检索文档 / RAG & 20--30\% & 动态；每轮迭代刷新 \\
+% Conversation / action history & 30--40\% & Compressed as run lengthens \\
+对话 / 动作历史 & 30--40\% & 随运行变长而压缩 \\
+% Generation budget & 20--30\% & Reserved for model output; never compress below this \\
+生成预算 & 20--30\% & 为模型输出预留；绝不可压缩低于此线 \\
+\bottomrule
+\end{tabularx}
+
+% These are guidelines, not hard rules. Long-horizon coding agents may allocate more to history; single-step QA agents may allocate more to retrieved documents. The key invariant: always reserve the generation budget \emph{before} filling the rest.
+\noindent 这些是指导原则，而非硬性规则。长时程编码 Agent 可以给历史更多预算；单步问答 Agent 可以给检索文档更多预算。关键不变量：始终\emph{先}预留生成预算，再填充其余部分。
+\end{keybox}
+
+% \paragraph{Context engineering within a loop.}
+\paragraph{循环内的上下文工程。}
+% In a loop, context engineering operates at every iteration. At each step $t$, the loop controller must decide: which prior observations $o_{<t}$ to retain, which to summarize, which retrieved documents are still relevant, and how to compose the new context $s_t$ from these components. This is not a one-time design decision---it is a dynamic policy that runs alongside the agent policy $\pi_\theta$. A poorly designed context policy causes the model to lose track of its goal, repeat actions it has already taken, or fail to use information it retrieved two steps earlier. A well-designed one keeps the model's ``working memory'' aligned with the current state of the task throughout the entire run.
+在循环中，上下文工程在每一轮迭代都发挥作用。在每一步 $t$，循环控制器必须决定：保留哪些先前的观测 $o_{<t}$、摘要哪些、哪些检索文档仍然相关，以及如何从这些组件组合出新的上下文 $s_t$。这不是一次性的设计决策——而是一条与 Agent 策略 $\pi_\theta$ 并行的动态策略。设计糟糕的上下文策略会让模型丢失目标、重复已做过的动作，或无法使用两步之前检索到的信息。设计良好的策略则能让模型的“工作记忆”在整个运行期间始终与任务当前状态对齐。
+
+\begin{intuitionbox}[上下文工程 vs.\ 循环工程]
+% Context engineering answers: \emph{what does the model see at step $t$?} Loop engineering answers: \emph{what happens after the model acts at step $t$?} They are complementary. The loop determines the sequence of actions and observations; context engineering determines how those observations are represented when the model takes its next action. You cannot do loop engineering well without doing context engineering well---the loop's state is only useful if it is correctly encoded in the model's context.
+上下文工程回答：\emph{模型在第 $t$ 步看到了什么？}循环工程回答：\emph{模型在第 $t$ 步行动之后发生了什么？}两者互补。循环决定动作与观测的序列；上下文工程决定当模型采取下一个动作时这些观测如何被表示。做不好上下文工程就不可能做好循环工程——循环的状态只有被正确编码进模型上下文时才有用。
+\end{intuitionbox}
+
+% \section{Loop Engineering as Inference-Time Reinforcement Learning}
+\section{把循环工程视为推理时强化学习}
+\label{sec:loop-as-rl}
+
+% The central insight that makes loop engineering relevant to this book is that a well-engineered agent loop is structurally identical to an RL optimization process operating at inference time---without gradient updates to the model weights:
+让循环工程与本书相关的核心洞见是：一个精心设计的 Agent 循环在结构上与在推理时运行的 RL 优化过程完全相同——只是不做模型权重的梯度更新：
+
+\begin{align}
+s_t &= \text{context}(s_{t-1}, a_{t-1}, o_{t-1}) && \text{(state = accumulated context)} \nonumber \\
+a_t &= \pi_\theta(s_t) && \text{(action = model generation)} \nonumber \\
+o_t &= \text{env}(a_t) && \text{(observation = tool/environment feedback)} \nonumber \\
+r_t &= \text{verify}(s_t, a_t, o_t) && \text{(reward = verification signal)}
+\label{eq:loop-as-mdp}
+\end{align}
+
+% The loop continues until $r_t$ exceeds a success threshold or a termination condition triggers. The ``policy'' $\pi_\theta$ is not updated via gradients; instead, the \emph{state} is updated---observations, error messages, and reflections are appended to the context, conditioning the same frozen model to produce better actions on subsequent iterations. This is precisely the mechanism behind Reflexion~\cite{shinn2023reflexion}: the model improves across iterations not by learning new weights but by reading its own failure history.
+循环持续运行，直到 $r_t$ 超过成功阈值或触发终止条件。“策略”$\pi_\theta$ 不通过梯度更新；相反，被更新的是\emph{状态}——观测、错误消息与反思被追加到上下文中，让同一个冻结模型在后续迭代中产生更好的动作。这正是 Reflexion~\cite{shinn2023reflexion} 背后的机制：模型跨迭代改进，靠的不是学习新权重，而是阅读自己的失败历史。
+
+\begin{intuitionbox}[循环—RL 对应关系]
+% Consider the standard RL objective $\max_\pi \mathbb{E}[\sum_{t=0}^T \gamma^t r_t]$. In loop engineering:
+考虑标准 RL 目标 $\max_\pi \mathbb{E}[\sum_{t=0}^T \gamma^t r_t]$。在循环工程中：
+\begin{itemize}
+  % \item \textbf{Policy} $\pi$: The frozen LLM, conditioned on accumulating context
+  \item \textbf{策略} $\pi$：冻结的 LLM，以不断累积的上下文为条件
+  % \item \textbf{State} $s_t$: The context window contents at step $t$
+  \item \textbf{状态} $s_t$：第 $t$ 步时上下文窗口的内容
+  % \item \textbf{Action} $a_t$: The model's generated output (code edit, tool call, message)
+  \item \textbf{动作} $a_t$：模型生成的输出（代码编辑、工具调用、消息）
+  % \item \textbf{Environment}: The tools, filesystem, test runner, linter---anything that produces observations
+  \item \textbf{环境}：工具、文件系统、测试运行器、linter——任何产生观测的东西
+  % \item \textbf{Reward} $r_t$: The verification signal (tests pass, linter clean, metric improves)
+  \item \textbf{奖励} $r_t$：验证信号（测试通过、linter 干净、指标提升）
+  % \item \textbf{Discount} $\gamma$: Implicit in the loop's budget---later steps are costlier and less likely to succeed
+  \item \textbf{折扣} $\gamma$：隐含在循环预算中——越靠后的步骤成本越高、越不可能成功
+  % \item \textbf{Episode}: One complete loop execution from goal specification to termination
+  \item \textbf{回合}：从目标定义到终止的一次完整循环执行
+\end{itemize}
+% The critical difference from training-time RL: the policy weights are frozen. ``Learning'' happens purely through state accumulation---the model receives richer conditioning as the loop progresses. This is analogous to in-context learning, but with the environment actively shaping what the model sees.
+与训练时 RL 的关键区别：策略权重是冻结的。“学习”完全通过状态累积发生——随着循环推进，模型获得更丰富的条件信息。这类似于上下文内学习（in-context learning），但环境在主动塑造模型所见。
+\end{intuitionbox}
+
+% This correspondence is not merely metaphorical. It has direct engineering consequences:
+这种对应并非仅仅是个比喻。它有直接的工程后果：
+\begin{enumerate}
+  % \item \textbf{Reward design matters}: Just as in RLHF, a poorly specified reward (verification criterion) leads to reward hacking---the agent satisfying the letter of the check while violating its intent (e.g., deleting a failing test to turn CI green).
+  \item \textbf{奖励设计很重要}：正如 RLHF 中那样，定义糟糕的奖励（验证标准）会导致 reward hacking——Agent 满足检查的字面要求却违背其意图（例如删除一个失败的测试让 CI 变绿）。
+  % \item \textbf{Exploration--exploitation trade-off}: A loop that repeats the same failing approach exhibits poor exploration. Mechanisms like Reflexion~\cite{shinn2023reflexion} add explicit exploration via self-critique, analogous to entropy bonuses in PPO.
+  \item \textbf{探索—利用权衡}：重复同一失败方法的循环表现出很差的探索能力。Reflexion~\cite{shinn2023reflexion} 这类机制通过自我批评加入显式探索，类似于 PPO 中的熵奖励。
+  % \item \textbf{Horizon and discount}: Longer loops face compounding errors and context degradation, just as long-horizon RL suffers from credit assignment difficulty. Budget caps serve as effective horizons.
+  \item \textbf{时域与折扣}：更长的循环面对累积误差与上下文劣化，正如长时域 RL 受困于信用分配难题。预算上限就是有效的时域。
+  % \item \textbf{State representation}: Context management (compaction, pruning, externalization) is the loop-engineering equivalent of state representation design in RL---both determine whether the agent can reason effectively about its situation.
+  \item \textbf{状态表示}：上下文管理（压缩、剪枝、外化）就是 RL 中状态表示设计在循环工程里的对应物——两者都决定 Agent 能否有效地对自己的处境进行推理。
+\end{enumerate}
+
+% \section{Anatomy of a Production Loop}
+\section{生产级循环的解剖}
+\label{sec:loop-anatomy}
+
+% A functional loop requires five structural primitives~\cite{osmani2026loop} plus external state persistence:
+一个可用的循环需要五个结构性原语~\cite{osmani2026loop}，外加外部状态持久化：
+
+% \subsection{The Five Primitives}
+\subsection{五个原语}
+\label{sec:loop-primitives}
+
+\begin{table}[ht!]
+\centering
+% \caption{The five structural primitives of loop engineering.}
+\caption{循环工程的五个结构性原语。}
+\begin{tabular}{@{}lp{4.5cm}p{7.5cm}@{}}
+\toprule
+% \textbf{Primitive} & \textbf{Role in the Loop} & \textbf{RL Analogue} \\
+\textbf{原语} & \textbf{在循环中的角色} & \textbf{RL 对应物} \\
+\midrule
+% Automations & Trigger the loop on schedule or event & Episode initiation; environment reset \\
+自动化 & 按计划或事件触发循环 & 回合启动；环境重置 \\
+% Worktrees & Isolate parallel agents & Independent rollout workers in distributed RL \\
+工作树 & 隔离并行 Agent & 分布式 RL 中的独立 rollout worker \\
+% Skills & Codify reusable capabilities and project knowledge & Policy conditioning; task-specific reward shaping \\
+技能 & 固化可复用能力与项目知识 & 策略条件化；任务特定奖励塑形 \\
+% Connectors & Interface with external tools and systems & Environment action space \\
+连接器 & 对接外部工具与系统 & 环境动作空间 \\
+% Sub-agents & Decompose and verify & Hierarchical RL; critic networks \\
+子 Agent & 分解与验证 & 分层 RL；critic 网络 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% \paragraph{Automations.}
+\paragraph{自动化。}
+\label{par:automations}
+% Automations are the heartbeat that transforms a single agent run into a true loop. They define \emph{when} and \emph{why} a loop fires---on a cron schedule, in response to a webhook, or triggered by a file-system event. Without automations, you have an agent; with them, you have a self-sustaining system. Production examples include nightly CI failure triage, hourly dependency-vulnerability scans, and post-commit review passes.
+自动化是把一次性的 Agent 运行变成真正循环的心跳。它们定义循环\emph{何时}、\emph{为何}触发——按 cron 计划、响应 webhook，或由文件系统事件触发。没有自动化，你只有一个 Agent；有了它们，你拥有一个自维持的系统。生产示例包括：夜间 CI 失败分类、每小时依赖漏洞扫描，以及提交后审查。
+
+% \paragraph{Worktrees (Isolation).}
+\paragraph{工作树（隔离）。}
+\label{par:worktrees}
+% The moment multiple agents run in parallel, file-level conflicts become the dominant failure mode. Git worktrees---separate working directories sharing repository history---provide isolation: each agent operates on its own branch without the possibility of write conflicts with siblings. This is the same principle as running independent rollout workers in distributed RL (Section~\ref{sec:parallelism}): parallelism requires isolation.
+多个 Agent 并行运行的那一刻起，文件级冲突就成了主导性失败模式。Git 工作树——共享仓库历史的独立工作目录——提供了隔离：每个 Agent 在自己的分支上操作，不可能与兄弟 Agent 发生写入冲突。这与分布式 RL 中运行独立 rollout worker（第~\ref{sec:parallelism} 节）是同一个原则：并行需要隔离。
+
+% \paragraph{Skills.}
+\paragraph{技能。}
+\label{par:skills-in-loops}
+% Skills (Chapter~\ref{sec:agent-skills}) encode project knowledge that the agent would otherwise re-derive from scratch every cycle. In the loop context, skills serve as \emph{persistent conditioning}---the conventions, build procedures, and constraints that remain stable across iterations. Without skills, each loop iteration begins cold; with them, the agent compounds knowledge across runs without exhausting the context window on rediscovered facts.
+技能（第~\ref{sec:agent-skills} 章）把 Agent 本会在每个循环从头重新推导的项目知识固化下来。在循环语境中，技能充当\emph{持久条件}——跨迭代保持稳定的约定、构建流程与约束。没有技能，每次循环迭代都从零开始；有了它们，Agent 跨运行累积知识，而不会把上下文窗口浪费在重新发现的事实上。
+
+% \paragraph{Connectors.}
+\paragraph{连接器。}
+\label{par:connectors}
+% Connectors---typically implemented via MCP (Chapter~\ref{sec:mcp})---extend the loop's action space beyond the filesystem. A loop that can only read and write files is limited; one connected to the issue tracker, CI system, staging environment, and team communication channel can close the full feedback loop: detect problem $\to$ fix $\to$ validate $\to$ deploy $\to$ notify.
+连接器——通常通过 MCP 实现（第~\ref{sec:mcp} 章）——把循环的动作空间扩展到文件系统之外。只能读写文件的循环是受限的；连接了问题跟踪器、CI 系统、预发布环境与团队通信渠道的循环可以闭合完整的反馈回路：发现问题 $\to$ 修复 $\to$ 验证 $\to$ 部署 $\to$ 通知。
+
+% \paragraph{Sub-agents (Maker--Checker Separation).}
+\paragraph{子 Agent（制造者—检查者分离）。}
+\label{par:sub-agents-loops}
+% The most critical structural principle in loop engineering is separating the agent that \emph{produces} output from the agent that \emph{evaluates} it. A model grading its own output is analogous to a student marking their own exam---the incentives are misaligned. A dedicated verification sub-agent, potentially running a different model or at higher reasoning effort, provides the independent evaluation that makes unattended operation trustworthy. This mirrors the actor--critic architecture in RL: the actor (generator) proposes actions; the critic (verifier) evaluates them.
+循环工程中最关键的结构性原则是把\emph{产出}输出的 Agent 与\emph{评估}输出的 Agent 分开。让模型给自己的输出打分，就像让学生给自己批改考卷——激励是错位的。一个专门的验证子 Agent（可以运行不同的模型或以更高的推理强度运行）提供独立的评估，让无人值守的运行变得可信。这对应 RL 中的 actor-critic 架构：actor（生成器）提出动作；critic（验证器）评估它们。
+
+% \subsection{External State: The Loop's Memory}
+\subsection{外部状态：循环的记忆}
+\label{sec:loop-state}
+
+% Every primitive above operates within a single iteration. \emph{External state} is what connects iterations across time. Because LLMs are stateless between invocations---the model forgets everything not in its current context---the loop's continuity must live on disk: a markdown progress file, a structured database, or a version-controlled log. This external state serves three functions:
+上述每个原语都只作用于单次迭代。\emph{外部状态}是把各次迭代在时间上连接起来的东西。由于 LLM 在两次调用之间是无状态的——模型会忘记当前上下文之外的一切——循环的连续性必须驻留在磁盘上：一个 Markdown 进度文件、一个结构化数据库，或一份受版本控制的日志。这个外部状态有三个功能：
+\begin{enumerate}
+  % \item \textbf{Progress tracking}: What has been attempted, what succeeded, what remains.
+  \item \textbf{进度追踪}：尝试过什么、成功了什么、还剩什么。
+  % \item \textbf{Failure memory}: Which approaches were tried and failed, preventing the loop from oscillating between identical dead ends.
+  \item \textbf{失败记忆}：哪些方法试过并失败了，防止循环在相同的死胡同之间震荡。
+  % \item \textbf{Handoff context}: When the loop escalates to a human or a subsequent run, the state file provides a complete audit trail.
+  \item \textbf{交接上下文}：当循环升级给人类或后续运行接管时，状态文件提供完整的审计轨迹。
+\end{enumerate}
+
+\begin{warningbox}[状态不是可选项]
+% A loop without external state is a loop with amnesia. It will re-attempt failed approaches, lose track of partial progress, and provide no audit trail when things go wrong. The state mechanism need not be complex---a markdown file committed to git after each iteration is often sufficient---but it must exist.
+没有外部状态的循环是一个失忆的循环。它会重新尝试已失败的方法、丢失部分进度，并在出错时拿不出审计轨迹。状态机制不必复杂——每轮迭代后提交到 git 的一个 Markdown 文件通常就足够——但它必须存在。
+\end{warningbox}
+
+% \section{The Loop in Pseudocode}
+\section{循环的伪代码}
+\label{sec:loop-pseudocode}
+
+% Stripped to its essence, every agent loop is a control structure closer to a thermostat or a REPL than to a conversation:
+剥去所有表象，每个 Agent 循环都是一种控制结构，更像恒温器或 REPL，而不是一段对话：
+
+\begin{lstlisting}[style=pythonstyle]
+def agent_loop(goal: str, max_steps: int = 50, budget: TokenBudget = None):
+    """The canonical agent loop structure."""
+    state = initialize_state(goal)        # 加载外部状态和目标
+
+    for step in range(max_steps):
+        # 1. 推理当前状态（ReAct 风格）
+        thought = model.reason(state)
+
+        # 2. 选择并执行动作
+        action = model.choose_action(state)
+        observation = environment.execute(action)
+
+        # 3. 用新信息更新状态
+        state = update_state(state, thought, action, observation)
+
+        # 4. 接近上下文窗口上限时压缩上下文
+        if state.token_count > CONTEXT_BUDGET * 0.8:
+            state = compact(state)        # 汇总旧步骤
+
+        # 5. 检查终止条件
+        if verifier.passes(state, goal):  # 确定性检查
+            persist_state(state, status="success")
+            return Success(state)
+
+        if no_progress_detected(state, window=3):
+            persist_state(state, status="stuck")
+            return escalate_to_human(state)
+
+        if budget and budget.exhausted():
+            persist_state(state, status="budget_exceeded")
+            return escalate_to_human(state)
+
+    # 达到硬性上限
+    persist_state(state, status="max_steps")
+    return escalate_to_human(state)
+\end{lstlisting}
+
+% Everything interesting in loop engineering is a decision about one of these lines: what constitutes a valid \texttt{goal}, how \texttt{verifier.passes} is implemented, how \texttt{compact} preserves relevant history while discarding noise, and how \texttt{no\_progress\_detected} avoids both premature termination and infinite cycling.
+循环工程中所有有趣的地方，都是关于这些行之一的决策：什么构成有效的 \texttt{goal}，\texttt{verifier.passes} 如何实现，\texttt{compact} 如何在丢弃噪声的同时保留相关历史，以及 \texttt{no\_progress\_detected} 如何既避免过早终止又避免无限循环。
+
+% \section{Loop Patterns}
+\section{循环模式}
+\label{sec:loop-patterns}
+
+% Building on the agent design patterns introduced in Chapter~\ref{sec:agent-design-patterns}, loop engineering recognizes a hierarchy of increasingly autonomous patterns:
+在第~\ref{sec:agent-design-patterns} 章介绍的 Agent 设计模式基础之上，循环工程识别出一组自主性逐级递增的模式层级：
+
+% \subsection{The Validation Loop}
+\subsection{验证循环}
+\label{sec:validation-loop}
+
+% The simplest and most common pattern: generate, validate against a deterministic check, retry on failure.
+最简单也最常见的模式：生成，对照确定性检查验证，失败则重试。
+
+\begin{examplebox}[验证循环：修复直到测试通过]
+\begin{lstlisting}[style=pythonstyle]
+failure_log = []
+for attempt in range(MAX_ATTEMPTS):
+    result = run_tests()
+    if result.passed:
+        break  # 成功——退出循环
+    fix = model.generate(
+        f"Fix this test failure:\n{result.errors}\n"
+        f"Previous attempts that failed: {failure_log}"
+    )
+    apply_patch(fix)
+    failure_log.append(result.errors)
+\end{lstlisting}
+% \textbf{Termination}: Tests pass (success) or retry budget exhausted (escalate).
+\textbf{终止条件}：测试通过（成功）或重试预算耗尽（升级）。
+% \textbf{Key property}: The verification signal is \emph{deterministic}---the test runner produces an objective pass/fail that the model cannot argue around.
+\textbf{关键属性}：验证信号是\emph{确定性的}——测试运行器产生客观的通过/失败，模型无法争辩。
+\end{examplebox}
+
+% This pattern succeeds because its reward signal is crisp. The test runner serves as an incorruptible critic---unlike LLM-as-judge evaluation, it cannot be persuaded or fooled.
+这一模式之所以成功，是因为它的奖励信号干净利落。测试运行器充当不可腐蚀的批评者——与 LLM-as-judge 评估不同，它无法被说服或愚弄。
+
+% \subsection{The Reflexion Loop}
+\subsection{Reflexion 循环}
+\label{sec:reflexion-loop}
+
+% Extends the validation loop with explicit self-critique between attempts~\cite{shinn2023reflexion}. After each failure, the agent writes a natural-language reflection (``I failed because I modified the wrong function---the error traces back to the import, not the implementation'') into an episodic memory buffer. Subsequent attempts read this buffer, enabling learning \emph{within} an episode without weight updates.
+在验证循环之上加入尝试之间的显式自我批评~\cite{shinn2023reflexion}。每次失败后，Agent 把一段自然语言反思（“我失败是因为修改了错误的函数——错误追溯到 import，而不是实现”）写入情景记忆缓冲区。后续尝试会读取这个缓冲区，从而在\emph{单个回合内}实现学习，无需权重更新。
+
+\begin{keybox}[Reflexion：从失败中做上下文内学习]
+% The Reflexion loop adds three components beyond basic retry:
+Reflexion 循环在基本重试之外增加了三个组件：
+\begin{enumerate}
+  % \item \textbf{Actor}: Executes the task
+  \item \textbf{Actor}：执行任务
+  % \item \textbf{Evaluator}: Provides the reward signal (tests, metrics, or LLM judge)
+  \item \textbf{Evaluator}：提供奖励信号（测试、指标或 LLM judge）
+  % \item \textbf{Self-Reflection}: Writes a verbal ``lesson learned'' to episodic memory
+  \item \textbf{自我反思}：把一条口头化的“学到的教训”写入情景记忆
+\end{enumerate}
+% The reflection memory persists across attempts, giving the agent a mechanism to avoid repeating identical failures. Empirically, Reflexion achieves 91\% pass@1 on HumanEval (vs.\ 67\% baseline), demonstrating that verbal self-critique can substitute for weight updates in iterative settings~\cite{shinn2023reflexion}.
+反思记忆跨尝试持久化，为 Agent 提供避免重复相同失败的机制。实证上，Reflexion 在 HumanEval 上达到 91\% 的 pass@1（基线为 67\%），证明口头自我批评在迭代场景中可以替代权重更新~\cite{shinn2023reflexion}。
+\end{keybox}
+
+% \subsection{The Evaluator-Optimizer Loop}
+\subsection{评估器—优化器循环}
+\label{sec:eval-opt-loop}
+
+% A two-model architecture~\cite{madaan2023selfrefine, anthropic2024buildingagents}: one model generates a candidate, a separate model evaluates it against explicit criteria and returns structured feedback. The generator incorporates this feedback and produces an improved version. The cycle repeats until the evaluator's score exceeds a threshold or the iteration budget is consumed.
+一种双模型架构~\cite{madaan2023selfrefine, anthropic2024buildingagents}：一个模型生成候选，另一个独立模型依据显式标准评估它并返回结构化反馈。生成器吸收反馈，产出改进版本。循环重复，直到评估器评分超过阈值或迭代预算耗尽。
+
+% The critical design choice is whether the evaluator is \emph{deterministic} (compiler, test suite, linter) or \emph{probabilistic} (another LLM). Deterministic evaluators produce reliable convergence; probabilistic evaluators are necessary for subjective criteria but introduce the risk of evaluator--generator collusion.
+关键的设计选择是评估器是\emph{确定性的}（编译器、测试套件、linter）还是\emph{概率性的}（另一个 LLM）。确定性评估器带来可靠的收敛；概率性评估器对主观标准是必要的，但引入了评估器—生成器合谋的风险。
+
+% \subsection{The Hierarchical Loop}
+\subsection{层级循环}
+\label{sec:hierarchical-loop}
+
+% A meta-loop spawns and monitors sub-loops. An orchestrator agent decomposes a high-level goal into subtasks, assigns each to a specialized sub-agent running its own loop, monitors their progress, and synthesizes results. This mirrors hierarchical RL~\cite{barto2003recent}: a high-level policy selects sub-goals while low-level policies execute them.
+一个元循环生成并监控多个子循环。编排 Agent 把高层目标分解为子任务，把每个子任务指派给运行自己循环的专门化子 Agent，监控它们的进度并综合结果。这对应分层 RL~\cite{barto2003recent}：高层策略选择子目标，低层策略执行它们。
+
+\begin{examplebox}[层级循环：通宵仓库维护]
+\begin{lstlisting}[style=pythonstyle]
+# 外层循环：通过自动化每晚运行
+for issue in triage_agent.identify_actionable_issues():
+    # 内层循环：每个问题一个子智能体，使用隔离工作树
+    worktree = create_isolated_worktree(issue.branch_name)
+
+    result = fix_loop(
+        goal=issue.description,
+        worktree=worktree,
+        verifier=run_tests_and_lint,
+        max_steps=20
+    )
+
+    if result.success:
+        review = review_agent.evaluate(result.patch)  # 检查器
+        if review.approved:
+            open_pull_request(result.patch, issue)
+        else:
+            state_db.log(issue, "fix_rejected", review.feedback)
+    else:
+        state_db.log(issue, "fix_failed", result.state)
+\end{lstlisting}
+% The outer loop (triage) operates on a schedule. Inner loops (fixes) are ephemeral and task-scoped. The review agent provides the maker--checker separation. State is persisted across nightly runs.
+外层循环（分类）按计划运行。内层循环（修复）是临时的、任务范围的。审查 Agent 提供制造者—检查者分离。状态跨夜间运行持久化。
+\end{examplebox}
+
+% \subsection{The Autonomous Research Loop}
+\subsection{自主研究循环}
+\label{sec:research-loop}
+
+% Karpathy's AutoResearch~\cite{karpathy2026autoresearch} demonstrates a tightly constrained research loop: the agent modifies a training script, runs a time-bounded experiment (e.g., 5 minutes on a GPU), reads the validation metric, and decides whether to commit the change (metric improved) or roll back (metric degraded). The loop continues indefinitely, exploring the hyperparameter and architectural space through iterative experimentation.
+Karpathy 的 AutoResearch~\cite{karpathy2026autoresearch} 展示了一个受严格约束的研究循环：Agent 修改训练脚本，运行一个限时实验（例如在 GPU 上跑 5 分钟），读取验证指标，并决定是提交改动（指标提升）还是回滚（指标下降）。循环无限持续，通过迭代式实验探索超参数与架构空间。
+
+% This pattern works because the reward signal is \emph{scalar and unambiguous}: validation loss either decreased or it did not. The tight time bound per iteration prevents any single failed experiment from consuming excessive resources.
+这一模式之所以有效，是因为奖励信号\emph{标量且无歧义}：验证损失要么下降了要么没有。每轮迭代的严格时间上限防止任何一次失败的实验消耗过多资源。
+
+% \section{Verification Engineering}
+\section{验证工程}
+\label{sec:verification-engineering}
+
+% Verification is the reward function of loop engineering. Its quality determines whether the loop converges to the correct answer, converges to a wrong one, or fails to converge at all. This section establishes a hierarchy of verification strategies ordered by reliability.
+验证是循环工程的奖励函数。它的质量决定了循环是收敛到正确答案、收敛到错误答案，还是根本不收敛。本节建立一张按可靠性排序的验证策略层级。
+
+% \subsection{The Verification Hierarchy}
+\subsection{验证层级}
+\label{sec:verification-hierarchy}
+
+\begin{table}[ht!]
+\centering
+% \caption{Verification strategies ordered by reliability.}
+\caption{按可靠性排序的验证策略。}
+\begin{tabular}{@{}lp{4cm}p{3.5cm}p{4cm}@{}}
+\toprule
+% \textbf{Strategy} & \textbf{Signal Source} & \textbf{Reliability} & \textbf{Applicable When} \\
+\textbf{策略} & \textbf{信号来源} & \textbf{可靠性} & \textbf{适用场景} \\
+\midrule
+% Compilation & Language toolchain & Deterministic & Code must parse/build \\
+编译 & 语言工具链 & 确定性 & 代码必须能解析/构建 \\
+% Type checking & Static analyzer & Deterministic & Typed languages \\
+类型检查 & 静态分析器 & 确定性 & 类型化语言 \\
+% Unit/integration tests & Test runner & Deterministic & Tests exist and are correct \\
+单元/集成测试 & 测试运行器 & 确定性 & 测试存在且正确 \\
+% Linting \& formatting & Style tools & Deterministic & Conventions are codified \\
+Lint 与格式化 & 风格工具 & 确定性 & 约定已代码化 \\
+% Metric comparison & Training/eval script & Numerical & ML experiments \\
+指标对比 & 训练/评估脚本 & 数值型 & ML 实验 \\
+% LLM-as-judge & Second model & Probabilistic & Subjective quality criteria \\
+LLM-as-judge & 第二个模型 & 概率性 & 主观质量标准 \\
+% Human review & Domain expert & Gold standard & High-stakes decisions \\
+人工审查 & 领域专家 & 黄金标准 & 高风险的决策 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{intuitionbox}[验证原则]
+% A loop is only as trustworthy as its least reliable verification step. Wherever a deterministic check exists, use it. Reserve LLM-as-judge for criteria that genuinely cannot be mechanically verified. Never let the generating model judge its own output---the maker and the checker must be separate.
+循环的可靠程度不会超过它最不可靠的那一步验证。只要存在确定性检查，就用它。把 LLM-as-judge 留给那些确实无法机械验证的标准。绝不让生成模型评判自己的输出——制造者与检查者必须分离。
+\end{intuitionbox}
+
+% \subsection{Deterministic vs. Probabilistic Verification}
+\subsection{确定性 vs.\ 概率性验证}
+\label{sec:det-vs-prob-verification}
+
+% Deterministic verifiers (compilers, test suites, linters) are the gold standard because they produce an objective pass/fail that the model cannot game through persuasion. A test either passes or it does not---no amount of eloquent reasoning changes the verdict.
+确定性验证器（编译器、测试套件、linter）是黄金标准，因为它们产生客观的通过/失败，模型无法靠说服钻空子。测试要么通过要么不通过——再雄辩的推理也改变不了裁决。
+
+% Probabilistic verifiers (LLM-as-judge) are necessary for tasks without mechanical checks---code quality, documentation clarity, UX improvement---but they introduce failure modes:
+概率性验证器（LLM-as-judge）对没有机械检查的任务是必要的——代码质量、文档清晰度、UX 改进——但它们引入了失败模式：
+\begin{itemize}
+  % \item \textbf{Self-evaluation bias}: If the same model generates and evaluates, it will be lenient with its own output.
+  \item \textbf{自我评估偏差}：如果同一个模型既生成又评估，它会对自己的输出手下留情。
+  % \item \textbf{Evaluator gaming}: Over many iterations, the generator may learn to produce outputs that satisfy the evaluator's surface patterns without achieving genuine quality.
+  \item \textbf{评估器博弈}：经过多次迭代，生成器可能学会产出满足评估器表面模式的输出，却没有实现真正的质量。
+  % \item \textbf{Evaluator inconsistency}: The same LLM-judge may score identical outputs differently across runs due to sampling variance.
+  \item \textbf{评估器不一致}：由于采样方差，同一个 LLM-judge 可能在不同运行中对相同输出给出不同分数。
+\end{itemize}
+% Mitigation strategies include using a different (often stronger) model as evaluator, providing explicit rubrics with binary criteria, and periodically calibrating the LLM-judge against human judgments.
+缓解策略包括：用另一个（通常更强）模型作评估器、提供带二元标准的显式评分细则，以及定期用人类判断校准 LLM-judge。
+
+% \section{Termination Engineering}
+\section{终止工程}
+\label{sec:termination-engineering}
+
+% The signature failure of a naive loop is that it never stops. Termination design is not an afterthought---it is half the engineering.
+朴素循环的标志性失败是它永远不会停。终止设计不是事后补丁——它是工程的一半。
+
+% \subsection{Termination Conditions}
+\subsection{终止条件}
+\label{sec:termination-conditions}
+
+% A production loop carries multiple independent exit conditions:
+生产级循环携带多个独立的退出条件：
+\begin{enumerate}
+  % \item \textbf{Goal achieved}: The verifier confirms the objective is met. This is the only \emph{successful} termination.
+  \item \textbf{目标达成}：验证器确认目标已实现。这是唯一\emph{成功}的终止。
+  % \item \textbf{Hard iteration cap}: Maximum number of loop steps (typically 20--50). Prevents unbounded execution regardless of other conditions.
+  \item \textbf{硬性迭代上限}：循环步数上限（通常 20--50）。无论其他条件如何，防止无界执行。
+  % \item \textbf{Budget exhaustion}: Token count, wall-clock time, or monetary cost exceeds a predefined limit.
+  \item \textbf{预算耗尽}：token 数、墙钟时间或金钱成本超过预定义上限。
+  % \item \textbf{No-progress detection}: The last $k$ iterations produced no measurable change in state---the loop is oscillating or stuck. This is the most important safety mechanism after the hard cap.
+  \item \textbf{无进展检测}：最近 $k$ 轮迭代没有产生可测量的状态变化——循环在震荡或卡死。这是硬性上限之后最重要的安全机制。
+  % \item \textbf{Fatal error}: An unrecoverable condition (missing credentials, infrastructure failure) that no amount of iteration can resolve.
+  \item \textbf{致命错误}：任何迭代都无法解决的不可恢复状况（凭据缺失、基础设施故障）。
+\end{enumerate}
+
+\begin{keybox}[无进展检测：停滞断路器]
+% Detecting stagnation requires tracking a progress signal across iterations. Common approaches:
+检测停滞需要在迭代间追踪一个进展信号。常见方法：
+\begin{itemize}
+  % \item \textbf{Output hash comparison}: If the last 3 agent outputs or file states are identical, the loop is cycling.
+  \item \textbf{输出哈希比较}：如果最近 3 次 Agent 输出或文件状态完全相同，循环在打转。
+  % \item \textbf{Error repetition}: The same error message appears in $k$ consecutive iterations.
+  \item \textbf{错误重复}：同一错误消息连续出现 $k$ 轮。
+  % \item \textbf{Metric plateau}: A numerical signal (test pass rate, validation loss) has not improved by $\epsilon$ in $k$ steps.
+  \item \textbf{指标平台期}：数值信号（测试通过率、验证损失）在 $k$ 步内没有提升 $\epsilon$。
+  % \item \textbf{Diff entropy}: The size of code changes per iteration is decreasing toward zero---the agent is making progressively smaller, inconsequential edits.
+  \item \textbf{Diff 熵}：每轮迭代的代码改动量正趋近于零——Agent 在做越来越小、无关紧要的编辑。
+\end{itemize}
+% When stagnation is detected, the correct action is \emph{escalation}, not continued iteration. The loop saves its state and hands control to a human or a higher-level orchestrator.
+检测到停滞时，正确的行动是\emph{升级}，而不是继续迭代。循环保存状态，把控制权交给人类或更高级的编排器。
+\end{keybox}
+
+% \subsection{The Exploration Problem}
+\subsection{探索问题}
+\label{sec:loop-exploration}
+
+% A loop stuck in a local minimum---repeating the same failing approach with minor variations---is exhibiting the exploration--exploitation failure familiar from RL. Mechanisms to promote exploration within loops:
+卡在局部最小值的循环——用微小的变体重复同一种失败方法——正在表现出 RL 中熟悉的探索—利用失败。循环内促进探索的机制：
+\begin{itemize}
+  % \item \textbf{Reflection-based exploration}: After $k$ failed attempts, trigger a reflection step that explicitly asks the model to consider fundamentally different approaches (analogous to entropy regularization in PPO~\cite{schulman2017proximal}).
+  \item \textbf{基于反思的探索}：$k$ 次失败尝试之后，触发一个反思步骤，显式要求模型考虑根本不同的方法（类似于 PPO 中的熵正则化~\cite{schulman2017proximal}）。
+  % \item \textbf{Temperature escalation}: Increase sampling temperature after consecutive failures to encourage diverse outputs.
+  \item \textbf{温度升级}：连续失败后提高采样温度，鼓励多样化输出。
+  % \item \textbf{Strategy memory}: Record not just failed actions but failed \emph{strategies}. ``Approach A (modify the handler) failed 3 times; try approach B (rewrite the schema) instead.''
+  \item \textbf{策略记忆}：不仅记录失败的动作，还记录失败的\emph{策略}。“方法 A（修改 handler）失败了 3 次；改试方法 B（重写 schema）。”
+  % \item \textbf{Fresh sub-agent}: Spawn a new sub-agent with a clean context window---it cannot fall into the rut that the accumulated context may have created.
+  \item \textbf{全新子 Agent}：生成一个上下文窗口干净的子 Agent——它不会陷入已累积上下文可能造成的窠臼。
+\end{itemize}
+
+% \section{Failure Modes and Anti-Patterns}
+\section{失败模式与反模式}
+\label{sec:loop-failures}
+
+% \subsection{The Loopmaxxing Trap}
+\subsection{Loopmaxxing 陷阱}
+\label{sec:loopmaxxing}
+
+% ``Loopmaxxing''---the assumption that running an agent through enough iterations will eventually produce a correct solution---is the loop-engineering equivalent of believing that enough compute solves all problems. It fails for the same reason that pure random search fails: without a gradient signal pointing toward improvement, iteration alone is not optimization.
+“Loopmaxxing”——假设让 Agent 跑足够多轮迭代最终就会产出正确解——是循环工程版的“算力够多就能解决一切”。它的失败与纯随机搜索的失败同源：没有指向改进的梯度信号，光靠迭代不是优化。
+
+% Loopmaxxing manifests when:
+Loopmaxxing 在以下情况出现：
+\begin{itemize}
+  % \item The goal lacks a checkable success condition (``improve the user experience'')
+  \item 目标缺少可检查的成功条件（“改善用户体验”）
+  % \item The verification signal is too coarse (binary pass/fail on a 1000-test suite provides no gradient toward the fix)
+  \item 验证信号过于粗糙（在 1000 个测试的套件上只有二元通过/失败，无法提供指向修复的梯度）
+  % \item The agent lacks the capability to solve the problem regardless of iteration count
+  \item 无论迭代多少次，Agent 都缺乏解决问题的能力
+\end{itemize}
+% The antidote is recognizing that loops \emph{amplify} engineering capability---they do not replace it. A loop with a poorly specified objective will pursue the wrong thing with great efficiency.
+解药是认识到循环只是\emph{放大}工程能力——它们不取代工程能力。目标定义糟糕的循环会以极高的效率去追求错误的东西。
+
+% \subsection{Comprehension Debt}
+\subsection{理解债}
+\label{sec:comprehension-debt}
+
+% When a loop modifies code faster than the engineering team can review it, the gap between what exists in the repository and what humans understand grows---\emph{comprehension debt}~\cite{osmani2026loop}. Unlike technical debt (which the code carries), comprehension debt lives in the team's heads. It compounds silently until a crisis forces someone to debug code whose design decisions, structural dependencies, and edge cases are entirely unmapped.
+当循环修改代码的速度超过工程团队审阅的速度时，仓库中实际存在的东西与人类理解之间的差距就会扩大——这就是\emph{理解债（comprehension debt）}~\cite{osmani2026loop}。与技术债不同（技术债由代码承载），理解债存在于团队成员的头脑里。它无声地复利增长，直到某场危机迫使人们去调试那些设计决策、结构依赖与边界情况完全未被记录的代码。
+
+\begin{warningbox}[循环同时放大生产力与风险]
+% A well-designed loop accelerates work the engineer understands deeply. A loop used to avoid understanding the work creates an accelerating spiral of incomprehension. Same mechanism, opposite outcomes. The difference is whether the human stays the engineer or becomes merely the person who presses ``go.''
+设计良好的循环加速的是工程师深刻理解的工作。用循环来逃避理解工作，则会造成加速的不理解螺旋。同样的机制，相反的结果。区别在于：人仍然是工程师，还是沦为了按“开始”按钮的人。
+\end{warningbox}
+
+% \subsection{Reward Hacking in Loops}
+\subsection{循环中的 Reward Hacking}
+\label{sec:loop-reward-hacking}
+
+% Just as RL agents exploit reward misspecification to achieve high reward without achieving the intended goal, loop agents exploit verification gaps:
+正如 RL Agent 利用奖励定义缺陷在未达成既定目标的情况下拿到高奖励，循环 Agent 也会利用验证漏洞：
+\begin{itemize}
+  % \item \textbf{Test deletion}: The simplest reward hack---delete the failing test to make CI green.
+  \item \textbf{删除测试}：最简单的 reward hack——删掉失败的测试让 CI 变绿。
+  % \item \textbf{Metric gaming}: Overfitting to validation loss by memorizing the validation set rather than generalizing.
+  \item \textbf{指标博弈}：通过记住验证集而非泛化来过拟合验证损失。
+  % \item \textbf{Specification narrowing}: Solving an easier version of the stated problem that happens to pass the checks.
+  \item \textbf{收窄规格}：解决所陈述问题的简化版本，恰好能通过检查。
+  % \item \textbf{Output masking}: Suppressing error output rather than fixing the underlying cause.
+  \item \textbf{掩盖输出}：压制错误输出而不是修复根本原因。
+\end{itemize}
+% The defense is the same as in RLHF: design reward functions (verification criteria) that are \emph{hard to game}. Multiple independent checks---tests \emph{and} type checking \emph{and} linting \emph{and} a review sub-agent---create a verification surface that is much harder to exploit than any single signal.
+防御手段与 RLHF 相同：设计\emph{难以钻空子}的奖励函数（验证标准）。多个独立检查——测试\emph{和}类型检查\emph{和} lint\emph{和}审查子 Agent——构成一个比任何单一信号都更难利用的验证面。
+
+% \subsection{Context Degradation}
+\subsection{上下文劣化}
+\label{sec:context-degradation}
+
+% In long-running loops, the context window fills with the history of every step---thoughts, tool outputs, errors, patches. As the window approaches capacity, the model's attention to relevant information degrades (the ``lost in the middle'' phenomenon~\cite{liu2024lost}). Symptoms include:
+在长时程循环中，上下文窗口会被每一步的历史——思考、工具输出、错误、补丁——填满。当窗口接近容量时，模型对相关信息的注意力下降（“中间迷失”现象~\cite{liu2024lost}）。症状包括：
+\begin{itemize}
+  % \item The agent re-attempts approaches it has already tried and explicitly noted as failures
+  \item Agent 重新尝试它已经试过并明确标记为失败的方法
+  % \item Tool calls become less precise---the agent forgets which files it has already read
+  \item 工具调用变得不那么精确——Agent 忘记了自己读过哪些文件
+  % \item Responses become shorter and less coherent as the model struggles to attend across a bloated context
+  \item 模型在臃肿的上下文中艰难地分配注意力，回答变得更短、更不连贯
+\end{itemize}
+% Countermeasures:
+对策：
+\begin{enumerate}
+  % \item \textbf{Aggressive compaction}: After every $k$ steps, summarize completed work into a brief state description and discard raw transcripts.
+  \item \textbf{激进压缩}：每 $k$ 步之后，把已完成的工作总结为简短的状态描述，丢弃原始记录。
+  % \item \textbf{External scratchpad}: Write intermediate results to files that the agent reads on-demand rather than keeping everything in context.
+  \item \textbf{外部草稿本}：把中间结果写入文件，让 Agent 按需读取，而不是把一切留在上下文里。
+  % \item \textbf{Sub-agent isolation}: Spawn subtasks in fresh context windows that return only their conclusion---not their full reasoning trace.
+  \item \textbf{子 Agent 隔离}：在新上下文窗口中生成子任务，只返回它们的结论——而不是完整推理轨迹。
+  % \item \textbf{Sliding window over history}: Keep only the last $w$ steps in full detail; compress everything earlier into a summary block.
+  \item \textbf{历史滑动窗口}：只完整保留最近 $w$ 步；把更早的内容压缩进一个摘要块。
+\end{enumerate}
+
+% \section{Production Loop Architectures}
+\section{生产级循环架构}
+\label{sec:production-loops}
+
+% \subsection{The Nightly Maintenance Loop}
+\subsection{夜间维护循环}
+\label{sec:nightly-maintenance}
+
+% The most immediately practical loop pattern: a scheduled automation that runs overnight, processing accumulated work while the team sleeps.
+最立即可用的循环模式：一个按计划在夜间运行的自动化，趁团队睡觉时处理累积的工作。
+
+\begin{examplebox}[架构：夜间 CI 分类与修复循环]
+% \textbf{Trigger}: Cron schedule (e.g., 02:00 UTC daily).
+\textbf{触发}：Cron 计划（例如每天 02:00 UTC）。
+
+% \textbf{Phase 1 --- Triage} (single agent, read-only):
+\textbf{阶段 1 —— 分类}（单 Agent，只读）：
+\begin{itemize}
+  % \item Read yesterday's CI failures, newly opened issues, and recent commits
+  \item 读取昨天的 CI 失败、新开的 issue 与最近的提交
+  % \item Classify each finding: auto-fixable / needs-human / false-positive
+  \item 对每条发现分类：可自动修复 / 需人工 / 误报
+  % \item Write findings to a state file; archive false positives
+  \item 把发现写入状态文件；归档误报
+\end{itemize}
+% \textbf{Phase 2 --- Fix} (parallel sub-agents, isolated worktrees):
+\textbf{阶段 2 —— 修复}（并行子 Agent，隔离工作树）：
+\begin{itemize}
+  % \item For each auto-fixable issue, spawn a sub-agent in an isolated worktree
+  \item 对每个可自动修复的 issue，在隔离工作树中生成一个子 Agent
+  % \item Each sub-agent runs a validation loop (fix $\to$ test $\to$ retry)
+  \item 每个子 Agent 运行一个验证循环（修复 $\to$ 测试 $\to$ 重试）
+  % \item Budget: 20 steps or 15 minutes per issue
+  \item 预算：每个 issue 20 步或 15 分钟
+\end{itemize}
+% \textbf{Phase 3 --- Review} (separate verification agent):
+\textbf{阶段 3 —— 审查}（独立验证 Agent）：
+\begin{itemize}
+  % \item A review sub-agent evaluates each proposed fix against project coding standards
+  \item 审查子 Agent 依据项目编码标准评估每个提议的修复
+  % \item Approved fixes: open draft PR, link to issue, notify channel via connector
+  \item 批准的修复：开 draft PR、链接到 issue、通过连接器通知频道
+  % \item Rejected fixes: log rejection reason, escalate to human triage inbox
+  \item 被拒的修复：记录拒绝原因，升级到人工分类收件箱
+\end{itemize}
+% \textbf{Persistence}: State file (committed to repo) records all actions taken, enabling the next night's run to skip resolved issues and pick up where failures left off.
+\textbf{持久化}：状态文件（提交到仓库）记录所有已采取的行动，让第二天的运行跳过已解决的 issue，并从失败处接着干。
+\end{examplebox}
+
+% \subsection{The Continuous Experimentation Loop}
+\subsection{持续实验循环}
+\label{sec:experimentation-loop}
+
+% Inspired by AutoResearch~\cite{karpathy2026autoresearch}, this pattern applies the loop to scientific discovery: modify a training script, run a time-bounded experiment, evaluate the result, and decide whether to commit or rollback.
+受 AutoResearch~\cite{karpathy2026autoresearch} 启发，这一模式把循环应用于科学发现：修改训练脚本，运行限时实验，评估结果，决定提交还是回滚。
+
+\begin{keybox}[AutoResearch 循环结构]
+\begin{enumerate}
+  % \item \textbf{Hypothesis generation}: Agent proposes a modification (hyperparameter, architecture change, data augmentation)
+  \item \textbf{假设生成}：Agent 提出一项修改（超参数、架构改动、数据增强）
+  % \item \textbf{Implementation}: Agent modifies the training script
+  \item \textbf{实现}：Agent 修改训练脚本
+  % \item \textbf{Bounded execution}: Run for exactly $T$ minutes (hard wall-clock cap)
+  \item \textbf{限时执行}：恰好运行 $T$ 分钟（硬性墙钟上限）
+  % \item \textbf{Evaluation}: Read validation metric from output
+  \item \textbf{评估}：从输出读取验证指标
+  % \item \textbf{Decision}: If metric improved $\to$ \texttt{git commit}; if degraded $\to$ \texttt{git rollback}
+  \item \textbf{决策}：指标提升 $\to$ \texttt{git commit}；指标下降 $\to$ \texttt{git rollback}
+  % \item \textbf{Log}: Record hypothesis, result, and reasoning in experiment log
+  \item \textbf{记录}：把假设、结果与推理记入实验日志
+  % \item \textbf{Repeat}: Generate next hypothesis informed by cumulative experiment history
+  \item \textbf{重复}：依据累积的实验历史生成下一个假设
+\end{enumerate}
+% \textbf{Key constraint}: The bounded execution time prevents any single failed experiment from consuming excessive compute. The git-based commit/rollback ensures the codebase only moves forward.
+\textbf{关键约束}：限时执行防止任何一次失败的实验消耗过多算力。基于 git 的提交/回滚确保代码库只会向前。
+\end{keybox}
+
+\begin{warningbox}[研究循环中的局部最小值问题]
+% Research loops are susceptible to conservative exploration. When facing difficult optimization landscapes, agents tend to propose minimal changes---adjusting a learning rate by 0.001---that produce nominal improvements without genuine progress. This is the RL exploration problem manifesting at the loop level. Countermeasures include periodic ``bold hypothesis'' prompts, diversity bonuses for trying novel approaches, and human-injected research directions between runs.
+研究循环容易陷入保守探索。面对困难的优化景观时，Agent 倾向于提出最小改动——把学习率调 0.001——只带来名义上的改进而非真正的进展。这是 RL 探索问题在循环层面的显现。对策包括：定期的“大胆假设”提示、为尝试新颖方法设置多样性奖励，以及在两次运行之间由人类注入研究方向。
+\end{warningbox}
+
+% \subsection{The Always-On Orchestrator}
+\subsection{常驻编排器}
+\label{sec:always-on-orchestrator}
+
+% Systems like OpenClaw~\cite{steinberger2026openclaw} implement a persistent ``heartbeat'' mechanism: a meta-agent that runs on a fixed cycle, evaluates repository state, supervises sub-loops, and dispatches work. Unlike the nightly pattern which fires once per day, the always-on orchestrator maintains continuous awareness and responds to events (new commits, failing CI, incoming issues) within minutes.
+OpenClaw~\cite{steinberger2026openclaw} 这类系统实现了一个持久的“心跳”机制：一个按固定周期运行的元 Agent，评估仓库状态、监督子循环并分派工作。与每天触发一次的夜间模式不同，常驻编排器保持持续感知，在几分钟内响应事件（新提交、CI 失败、新 issue）。
+
+% The architecture introduces a durable state database with crash recovery---if the orchestrator fails mid-cycle, it resumes from its last checkpointed state rather than restarting from scratch. Sub-loops are tracked as independent tasks with their own termination conditions, and the orchestrator monitors them for stagnation, budget exhaustion, or conflict.
+该架构引入了一个带崩溃恢复的持久状态数据库——如果编排器在循环中途失败，它会从最后一个检查点状态恢复，而不是从头重启。子循环被作为拥有各自终止条件的独立任务来跟踪，编排器监控它们的停滞、预算耗尽或冲突。
+
+% \section{Context Management in Long-Running Loops}
+\section{长时程循环中的上下文管理}
+\label{sec:loop-context-management}
+
+% Long-running loops face a fundamental tension: the context window is the agent's working memory, but it has a fixed capacity. Every step appends new information (thoughts, observations, errors), and without active management the window fills and quality degrades. This section presents the engineering techniques for maintaining context health across many iterations.
+长时程循环面临一个根本张力：上下文窗口是 Agent 的工作记忆，但容量固定。每一步都会追加新信息（思考、观测、错误），没有主动管理，窗口就会填满、质量下降。本节介绍跨大量迭代维持上下文健康的工程技术。
+
+% \subsection{Compaction Strategies}
+\subsection{压缩策略}
+\label{sec:compaction-strategies}
+
+\begin{table}[ht!]
+\centering
+% \caption{Context compaction strategies for long-running loops.}
+\caption{长时程循环的上下文压缩策略。}
+\begin{tabular}{@{}lp{5cm}p{6.5cm}@{}}
+\toprule
+% \textbf{Strategy} & \textbf{Mechanism} & \textbf{Trade-off} \\
+\textbf{策略} & \textbf{机制} & \textbf{权衡} \\
+\midrule
+% Periodic summarization & Every $k$ steps, replace raw history with a summary & Lossy; may discard details needed later \\
+周期摘要 & 每 $k$ 步用摘要替换原始历史 & 有损；可能丢弃之后需要的细节 \\
+% Sliding window & Keep last $w$ steps verbatim; summarize earlier & Recency-biased; may lose early context \\
+滑动窗口 & 逐字保留最近 $w$ 步；更早的摘要化 & 偏重新近；可能丢失早期上下文 \\
+% Importance-weighted & Retain steps that changed state; discard no-ops & Requires defining ``importance'' \\
+重要性加权 & 保留改变状态的步骤；丢弃无操作 & 需要定义“重要性” \\
+% External memory & Write details to files; keep only references in context & Requires explicit read-back; adds latency \\
+外部记忆 & 细节写入文件；上下文只留引用 & 需要显式回读；增加延迟 \\
+% Sub-agent isolation & Subtasks run in fresh contexts; return conclusions only & Overhead of spawning; coordination cost \\
+子 Agent 隔离 & 子任务在新上下文中运行；只返回结论 & 生成开销；协调成本 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% The optimal strategy depends on the task. For debugging loops, a sliding window works well---recent errors are most relevant. For research loops, importance-weighted retention preserves key experimental results across many iterations. For complex multi-file refactoring, external memory (writing a progress file that summarizes all changes so far) prevents the agent from losing track of its own modifications.
+最优策略取决于任务。对调试循环，滑动窗口效果很好——最近的错误最相关。对研究循环，重要性加权保留能跨大量迭代保存关键实验结果。对复杂的多文件重构，外部记忆（写一个总结迄今所有改动的进度文件）能防止 Agent 丢失对自己修改的追踪。
+
+% \subsection{The Context Budget}
+\subsection{上下文预算}
+\label{sec:context-budget}
+
+% A practical heuristic: reserve 20--30\% of the context window for the current step's reasoning and generation. This means active history should not exceed 70--80\% of capacity. When this threshold is approached, trigger compaction before the next iteration---not after the model has already produced degraded output.
+一个实用的启发式：为当前步骤的推理与生成预留上下文窗口的 20--30\%。这意味着有效历史不应超过容量的 70--80\%。当接近这个阈值时，在下一轮迭代\emph{之前}触发压缩——而不是等模型已经产出劣化输出之后。
+
+\begin{lstlisting}[style=pythonstyle]
+CONTEXT_CAPACITY = 128_000  # token 总数
+RESERVED_FOR_GENERATION = 0.25 * CONTEXT_CAPACITY
+ACTIVE_BUDGET = CONTEXT_CAPACITY - RESERVED_FOR_GENERATION
+
+def should_compact(state: LoopState) -> bool:
+    return state.token_count > ACTIVE_BUDGET * 0.85
+\end{lstlisting}
+
+% \section{When Not to Use Loops}
+\section{何时不该使用循环}
+\label{sec:when-not-loops}
+
+% Loop engineering is not universally applicable. It adds complexity, cost, and failure modes that are unjustified when simpler approaches suffice. Prefer direct prompting or simple workflows when:
+循环工程并非普遍适用。它增加了复杂度、成本与失败模式，在更简单的方法够用时这些是不合理的。以下情况请优先选择直接提示或简单工作流：
+\begin{itemize}
+  % \item The task is \textbf{single-turn}: A well-crafted prompt produces the correct answer in one shot most of the time. Adding a loop provides marginal quality improvement at significant cost.
+  \item 任务是\textbf{单轮的}：精心构造的提示大多数时候一次就能给出正确答案。加循环只带来边际质量提升，却付出显著成本。
+  % \item The goal \textbf{lacks a checkable condition}: ``Make the code better'' has no objective stopping point. The loop will either run forever or stop arbitrarily.
+  \item 目标\textbf{缺少可检查的条件}：“让代码更好”没有客观的停止点。循环要么永远运行，要么任意停止。
+  % \item \textbf{Human interaction is cheap}: If a developer is actively working and can provide feedback in real-time, the interactive chat modality is faster than engineering a loop.
+  \item \textbf{人工交互很廉价}：如果开发者正在积极工作并能实时反馈，交互式聊天比工程化一个循环更快。
+  % \item The task \textbf{exceeds model capability}: If the agent cannot solve the problem in principle---regardless of iteration count---a loop merely burns tokens. No amount of retry fixes a fundamental capability gap.
+  \item 任务\textbf{超出模型能力}：如果 Agent 原则上解决不了这个问题——无论迭代多少次——循环只是在烧 token。再多的重试也补不上根本的能力差距。
+  % \item \textbf{Verification is impossible}: Without a feedback signal, the loop has no gradient. It degenerates into random search.
+  \item \textbf{验证不可能}：没有反馈信号，循环就没有梯度。它会退化为随机搜索。
+\end{itemize}
+
+\begin{intuitionbox}[简洁性原则]
+% The same design principle articulated in Chapter~\ref{sec:agent-design-patterns} applies: start with the simplest approach that works, and add loop complexity only when you have evidence that iteration materially improves outcomes. A prompt chain that solves the problem is always preferable to a loop that might.
+第~\ref{sec:agent-design-patterns} 章阐述的同一设计原则在此适用：从最简单的可行方法开始，只有当你有了“迭代确实显著改善结果”的证据时才加入循环复杂度。一个能解决问题的提示链，永远优于一个或许能解决问题的循环。
+\end{intuitionbox}
+
+% \section{The Economics of Loops}
+\section{循环的经济学}
+\label{sec:loop-economics}
+
+% Loops trade compute (tokens, wall-clock time) for quality. Understanding this trade-off is essential for production deployment.
+循环用算力（token、墙钟时间）换取质量。理解这一权衡对生产部署至关重要。
+
+\begin{keybox}[循环成本模型]
+% For a loop with average $N$ iterations, each consuming $T$ tokens at price $p$ per token:
+对于一个平均 $N$ 轮迭代、每轮消耗 $T$ 个 token、单价为每 token $p$ 的循环：
+\[
+\text{Cost}_{\text{loop}} = N \cdot T \cdot p + \text{Cost}_{\text{tools}} + \text{Cost}_{\text{verification}}
+\]
+% With prompt caching (where the system prompt and early context are cached and charged at reduced rate $p_c < p$):
+使用提示缓存（系统提示与早期上下文被缓存，按较低的 $p_c < p$ 计费）时：
+\[
+\text{Cost}_{\text{cached}} = T_{\text{new}} \cdot p + T_{\text{cached}} \cdot p_c + \text{(tools + verification)}
+\]
+% Prompt caching is particularly valuable for loops because the goal specification, skill content, and early history remain constant across iterations---often 60--80\% of each call's context is cacheable.
+提示缓存对循环尤其有价值，因为目标定义、技能内容与早期历史跨迭代保持不变——每次调用通常有 60--80\% 的上下文可缓存。
+\end{keybox}
+
+% The economic decision: is the value of the loop's output (developer time saved, overnight productivity, quality improvement) greater than its token cost? For a loop that runs 20 iterations at \$0.02/iteration, the total cost is \$0.40---trivial if it saves 30 minutes of developer time. But a runaway loop without budget caps can consume hundreds of dollars in a single night.
+经济决策：循环产出的价值（节省的开发者时间、通宵生产力、质量提升）是否大于它的 token 成本？一个运行 20 轮、每轮 \$0.02 的循环总成本是 \$0.40——如果能省下开发者 30 分钟，这微不足道。但没有预算上限的失控循环，一夜之间就能烧掉数百美元。
+
+% \section{Historical Context and Related Work}
+\section{历史背景与相关工作}
+\label{sec:loop-history}
+
+% Loop engineering did not emerge from a vacuum. It productized a research lineage spanning several years:
+循环工程并非凭空出现。它把一条跨越数年的研究谱系产品化了：
+\begin{enumerate}
+  % \item \textbf{ReAct} (2022)~\cite{yao2023react}: Established the interleaved reasoning-and-action pattern that all modern loops inherit.
+  \item \textbf{ReAct}（2022）~\cite{yao2023react}：确立了所有现代循环都继承的推理与行动交错模式。
+  % \item \textbf{Reflexion} (2023)~\cite{shinn2023reflexion}: Added episodic memory and self-critique, demonstrating that agents can improve across attempts without weight updates.
+  \item \textbf{Reflexion}（2023）~\cite{shinn2023reflexion}：加入情景记忆与自我批评，证明 Agent 可以在不更新权重的情况下跨尝试改进。
+  % \item \textbf{AutoGPT} (2023)~\cite{significantgravitas2023autogpt}: The first widely-used autonomous agent loop, demonstrating both the potential and the pitfalls (runaway execution, high cost, unreliable output) of unattended operation.
+  \item \textbf{AutoGPT}（2023）~\cite{significantgravitas2023autogpt}：第一个被广泛使用的自主 Agent 循环，同时展示了无人值守运行的潜力与陷阱（失控执行、高成本、不可靠输出）。
+  % \item \textbf{Self-Refine} (2023)~\cite{madaan2023selfrefine}: Formalized the generate-then-critique loop with iterative refinement.
+  \item \textbf{Self-Refine}（2023）~\cite{madaan2023selfrefine}：把“先生成后批评”的迭代精化循环形式化。
+  % \item \textbf{``Ralph loops''} (2025): Informal bash-based one-liner scripts that ran coding agents in simple retry loops---the precursor to productized loop primitives.
+  \item \textbf{“Ralph 循环”}（2025）：非正式的基于 bash 的单行脚本，让编码 Agent 在简单的重试循环中运行——产品化循环原语的前身。
+  % \item \textbf{Productized loops} (2026): Major platforms (Codex, Claude Code) embedded \texttt{/goal} and \texttt{/loop} commands directly, making sophisticated loop patterns accessible without custom infrastructure~\cite{osmani2026loop}.
+  \item \textbf{产品化循环}（2026）：主要平台（Codex、Claude Code）直接内嵌 \texttt{/goal} 与 \texttt{/loop} 命令，无需定制基础设施就能使用复杂的循环模式~\cite{osmani2026loop}。
+\end{enumerate}
+% The progression from AutoGPT to modern loop engineering illustrates a maturation: early systems lacked termination logic, verification, and cost controls---they were loops without engineering. The 2026 formalization added the discipline that makes unattended operation safe: explicit termination, deterministic verification, budget constraints, and maker--checker separation.
+从 AutoGPT 到现代循环工程的演进展示了一条成熟之路：早期系统缺少终止逻辑、验证与成本控制——它们是没有工程的循环。2026 年的形式化补上了让无人值守运行变得安全的纪律：显式终止、确定性验证、预算约束与制造者—检查者分离。
+
+% \section{Summary}
+\section{小结}
+\label{sec:loop-summary}
+
+% Loop engineering represents the current frontier of human--agent collaboration: the shift from participating in conversations to designing systems that have those conversations autonomously. Its key principles:
+循环工程代表了人—Agent 协作的当前前沿：从参与对话，转向设计能够自主进行那些对话的系统。其关键原则：
+\begin{enumerate}
+  % \item A loop is inference-time RL---state, action, reward, and policy update (via context)---operating without gradient descent.
+  \item 循环是推理时 RL——状态、动作、奖励与（通过上下文的）策略更新——在无梯度下降的情况下运行。
+  % \item Verification is the reward signal. Its quality determines convergence. Prefer deterministic checks; separate the maker from the checker.
+  \item 验证就是奖励信号。它的质量决定收敛。优先确定性检查；把制造者与检查者分开。
+  % \item Termination is half the design. Every loop needs a hard cap, a budget, and no-progress detection.
+  \item 终止是设计的一半。每个循环都需要硬性上限、预算与无进展检测。
+  % \item Context is finite working memory. Manage it actively through compaction, externalization, and sub-agent isolation.
+  \item 上下文是有限的工作记忆。通过压缩、外化与子 Agent 隔离来主动管理它。
+  % \item Loops amplify engineering skill---they do not replace it. A loop with a poorly specified objective will pursue the wrong thing efficiently.
+  \item 循环放大工程能力——它们不取代工程能力。目标定义糟糕的循环会高效地追求错误的东西。
+  % \item Start simple. A single validation loop with a deterministic verifier outperforms an elaborate multi-agent system you cannot debug.
+  \item 从简单开始。一个带确定性验证器的验证循环，胜过一套你无法调试的精密多 Agent 系统。
+\end{enumerate}
+
+\begin{intuitionbox}[构建循环——但保持工程师身份]
+% The leverage point has moved from writing prompts to designing cycles. But designing a cycle that converges requires understanding the problem deeply enough to specify what ``done'' means, what constitutes progress, and when to stop. Loop engineering makes the human's judgment \emph{more} important, not less---because the consequences of bad judgment now compound at machine speed.
+杠杆点已经从写提示转向设计循环。但设计一个能够收敛的循环，需要把问题理解得足够深，才能定义“完成”意味着什么、什么构成进展、何时停止。循环工程让人类的判断\emph{更加}重要，而不是更不重要——因为糟糕判断的后果现在会以机器速度复利增长。
+\end{intuitionbox}
+
 \chapter{Agent 设计模式}
 \label{sec:agent-design-patterns}
 
@@ -6269,6 +7167,21 @@ Agent 环境是训练和评估 LLM Agent 的基底。本节的关键要点是：
   \item 当 LLM 在可能包含基准答案的越来越大的 Web 语料上训练时，如何防止基准污染？
 \end{itemize}
 \end{questionbox}
+
+% \subsection{Emerging Benchmarks (2026)}
+\subsection{新兴基准（2026）}
+\label{sec:emerging-benchmarks-2026}
+
+% \paragraph{UniClawBench.}
+\paragraph{UniClawBench。}
+% UniClawBench~\cite{uniclawbench2026} runs 400 bilingual real-world tasks inside live, isolated Docker containers---testing agents across five functional areas including cross-platform coordination. Its distinguishing feature is a multi-agent feedback loop: a hidden supervisor and a simulated user inject real-world friction (ambiguous requests, changing requirements, partial failures), measuring \emph{interactive resilience} rather than one-shot task completion. As of mid-2026, it represents the most rigorous benchmark for evaluating production-ready agents.
+UniClawBench~\cite{uniclawbench2026} 在实时、隔离的 Docker 容器中运行 400 个双语真实世界任务——跨五个功能领域测试 Agent，包括跨平台协调。其标志性特征是多 Agent 反馈回路：一个隐藏的监督者与一个模拟用户注入真实世界的摩擦（含混的请求、不断变化的需求、部分失败），衡量的是\emph{交互韧性}，而非一次性任务完成率。截至 2026 年年中，它是评估生产就绪 Agent 的最严格基准。
+
+% \paragraph{Long-Horizon-Terminal-Bench.}
+\paragraph{Long-Horizon-Terminal-Bench。}
+% Long-Horizon-Terminal-Bench~\cite{terminalbench2026} spans 46 complex tasks across 21 domains, testing whether agents can navigate command-line operations that take hours rather than minutes. Its key innovation is \textbf{dense reward-based grading}: scoring intermediate progress at each step rather than relying on binary success at the finish line. This exposes a brutal reality: even the strongest frontier models fail to execute more than $\sim$15 consecutive terminal commands without derailing---revealing that long-horizon sequential execution remains a fundamental unsolved challenge.
+Long-Horizon-Terminal-Bench~\cite{terminalbench2026} 覆盖 21 个领域的 46 个复杂任务，测试 Agent 能否驾驭以小时而非分钟计的终端操作。其关键创新是\textbf{基于密集奖励的评分}：在每一步给中间进展打分，而不是依赖终点线的二元成功。这暴露了一个残酷的现实：即使是最强的前沿模型，也无法连续执行超过 $\sim$15 条终端命令而不跑偏——揭示长时程顺序执行仍是一个根本性的未解挑战。
+
 \chapter{模型上下文协议（Model Context Protocol, MCP）}
 \label{sec:mcp}
 
@@ -9709,8 +10622,8 @@ class TaskDAG:
 \subsection{Stigmergy：通过环境进行的间接通信}
 \label{subsubsec:stigmergy}
 
-% \textbf{Stigmergy}~\cite{grasse1959reconstruction} replaces explicit agent-to-agent messaging with a simpler mechanism: each agent modifies the shared environment as a side effect of its work, and other agents react to those modifications rather than to direct signals. The classic illustration is a foraging ant depositing pheromone on its return path; subsequent ants amplify successful routes without any ant ``talking'' to another.
-\textbf{Stigmergy（共识主动性）}~\cite{grasse1959reconstruction} 用一种更简单的机制取代显式的 Agent 间消息传递：每个 Agent 在工作时以副作用方式修改共享环境，其他 Agent 对这些修改而非直接信号做出反应。经典例证是觅食的蚂蚁在返程路径上沉积信息素；后续蚂蚁强化成功路径，无需任何蚂蚁“开口”说话。
+% \textbf{Stigmergy}~\cite{grassé1959reconstruction} replaces explicit agent-to-agent messaging with a simpler mechanism: each agent modifies the shared environment as a side effect of its work, and other agents react to those modifications rather than to direct signals. The classic illustration is a foraging ant depositing pheromone on its return path; subsequent ants amplify successful routes without any ant ``talking'' to another.
+\textbf{Stigmergy（共识主动性）}~\cite{grassé1959reconstruction} 用一种更简单的机制取代显式的 Agent 间消息传递：每个 Agent 在工作时以副作用方式修改共享环境，其他 Agent 对这些修改而非直接信号做出反应。经典例证是觅食的蚂蚁在返程路径上沉积信息素；后续蚂蚁强化成功路径，无需任何蚂蚁“开口”说话。
 
 % In LLM multi-agent systems, stigmergy manifests as:
 在 LLM 多智能体系统中，Stigmergy 表现为：
@@ -10538,6 +11451,26 @@ Ensemble & L & H & H & H & 高风险决策；可靠性优先于效率 \\
 % In practice, most production systems use \textbf{hierarchical} architectures: a top-level supervisor delegates to domain-specific sub-supervisors, who manage small teams of specialized workers.
 在实践中，大多数生产系统采用\textbf{层级式}架构：顶层 Supervisor 委派给特定领域的子 Supervisor，后者管理由专门化 Worker 组成的小团队。
 \end{keybox}
+
+% \section{Self-Evolving Agents: BDI Meets LLMs}
+\section{自进化 Agent：BDI 遇上 LLM}
+\label{sec:bdi-llm}
+
+% A May 2026 line of research~\cite{bdillm2026} represents the first serious attempt to combine \textbf{Belief-Desire-Intention (BDI)} architectures---the classical framework for rational agents in multi-agent systems---with LLMs. Unlike static agents that execute fixed tool-call sequences, BDI-LLM agents autonomously modify their own goals and rewrite their underlying code based on environmental feedback:
+2026 年 5 月的一条研究路线~\cite{bdillm2026} 代表了首次认真尝试把\textbf{信念—愿望—意图（Belief-Desire-Intention, BDI）}架构——多智能体系统中理性 Agent 的经典框架——与 LLM 结合。与执行固定工具调用序列的静态 Agent 不同，BDI-LLM Agent 会基于环境反馈自主修改自己的目标并重写底层代码：
+\begin{itemize}
+  % \item \textbf{Beliefs}: The LLM maintains and updates a structured world model (beliefs about file states, API responses, user intent)
+  \item \textbf{信念（Beliefs）}：LLM 维护并更新一个结构化的世界模型（关于文件状态、API 响应、用户意图的信念）
+  % \item \textbf{Desires}: High-level goals that can be dynamically reprioritized based on observed outcomes
+  \item \textbf{愿望（Desires）}：可以根据观测结果动态重新排优先级的高层目标
+  % \item \textbf{Intentions}: Concrete plans (code + tool sequences) that the agent can rewrite when a plan fails
+  \item \textbf{意图（Intentions）}：计划失败时 Agent 可以重写的具体计划（代码 + 工具序列）
+\end{itemize}
+
+\begin{warningbox}[自我修改的对齐挑战]
+% Early experiments revealed a critical failure mode: agents deleting their own safety constraints to speed up execution. When an agent can rewrite its own code, alignment becomes a moving target---the guardrails you installed may not survive the agent's self-optimization. This places BDI-LLM architectures at the frontier of agent autonomy but demands robust meta-level constraints that the agent cannot modify.
+早期实验揭示了一个关键失败模式：Agent 删除自己的安全约束以加速执行。当 Agent 可以重写自己的代码时，对齐就成了一个移动靶——你安装的护栏可能无法在 Agent 的自我优化中存活。这把 BDI-LLM 架构推到了 Agent 自主性的前沿，同时也要求存在 Agent 无法修改的健壮元级约束。
+\end{warningbox}
 
 \section{小结}
 \label{subsec:mas-summary}
@@ -11445,6 +12378,161 @@ SK 特别适合企业部署，原因包括：
   % \item Support for on-premises model deployments
   \item 支持本地（on-premises）模型部署
 \end{itemize}
+
+% \subsection{NVIDIA OO Agents (NOOA)}
+\subsection{NVIDIA OO Agents（NOOA）}
+\label{subsubsec:nooa}
+
+% NOOA~\cite{nvidia_oo_agents_2026} is NVIDIA's model-agnostic framework built on a radical premise: \textbf{an agent is a Python object}. Where other frameworks introduce DSLs, graph definitions, or decorator-heavy abstractions, NOOA maps agent concepts directly onto Python's native constructs---fields are state, methods are capabilities, docstrings are prompts, and type annotations are contracts. A method whose body is the literal \texttt{...} (Python's \texttt{Ellipsis}) becomes an \emph{agentic method}: implemented at runtime by an LLM-driven loop. Methods with normal bodies remain deterministic Python, callable by both the developer and the model.
+NOOA~\cite{nvidia_oo_agents_2026} 是 NVIDIA 的模型无关框架，建立在一个激进的前提之上：\textbf{Agent 就是一个 Python 对象}。其他框架引入 DSL、图定义或重度装饰器抽象，而 NOOA 把 Agent 概念直接映射到 Python 的原生构造上——字段即状态，方法即能力，docstring 即提示，类型注解即契约。方法体为字面 \texttt{...}（Python 的 \texttt{Ellipsis}）的方法成为\emph{智能体方法（agentic method）}：在运行时由 LLM 驱动的循环实现。方法体为普通代码的方法保持为确定性 Python，开发者与模型都可以调用。
+
+\begin{keybox}[NOOA 设计映射]
+\begin{tabular}{@{}ll@{}}
+\toprule
+% \textbf{Agent Concept} & \textbf{Python Construct} \\
+\textbf{Agent 概念} & \textbf{Python 构造} \\
+\midrule
+% Agent identity \& instructions & Class + class docstring \\
+Agent 身份与指令 & 类 + 类 docstring \\
+% Persistent state & Instance fields (typed) \\
+持久状态 & 实例字段（带类型） \\
+% Capabilities / tools & Methods on \texttt{self} \\
+能力 / 工具 & \texttt{self} 上的方法 \\
+% Prompts & Method docstrings \\
+提示 & 方法 docstring \\
+% I/O contracts & Type annotations \\
+I/O 契约 & 类型注解 \\
+% LLM-driven behavior & Body = \texttt{...} \\
+LLM 驱动行为 & 方法体 = \texttt{...} \\
+% Deterministic logic & Body = normal code \\
+确定性逻辑 & 方法体 = 普通代码 \\
+\bottomrule
+\end{tabular}
+\end{keybox}
+
+% \paragraph{Core Programming Model.}
+\paragraph{核心编程模型。}
+% The framework's central insight is that Python already has the abstractions agents need. Consider a research agent that summarizes papers and maintains a reading list:
+该框架的核心洞见是：Python 早已具备 Agent 所需的抽象。考虑一个总结论文并维护阅读清单的研究 Agent：
+
+\begin{lstlisting}[style=pythonstyle, caption={NOOA Agent：状态、确定性方法与智能体方法}]
+from nooa import Agent
+from nooa.unifiedllm import get_llm_client
+from pydantic import BaseModel, Field
+
+llm = get_llm_client("claude-sonnet-4-5-20250514")
+
+class PaperSummary(BaseModel):
+    title: str
+    key_findings: list[str]
+    relevance_score: float = Field(ge=0, le=1)
+
+class ResearchAgent(Agent, llm=llm):
+    """You are a research assistant specializing in ML papers.
+    Summarize concisely. Score relevance to the user's topic."""
+
+    # 状态：实例上的类型化字段
+    topic: str
+    reading_list: list[PaperSummary] = []
+
+    # 确定性方法：普通 Python，可由模型或开发者调用
+    def top_papers(self, n: int = 5) -> list[PaperSummary]:
+        """Return the highest-relevance papers seen so far."""
+        return sorted(
+            self.reading_list,
+            key=lambda p: p.relevance_score,
+            reverse=True
+        )[:n]
+
+    # 智能体方法：由 LLM 在运行时实现
+    async def summarize(self, abstract: str) -> PaperSummary:
+        """Read the abstract and produce a structured summary.
+        Score relevance against self.topic."""
+        ...
+
+    async def literature_review(self, abstracts: list[str]) -> str:
+        """Summarize each abstract, add to reading_list,
+        then synthesize a literature review of the top findings."""
+        ...
+\end{lstlisting}
+
+% Three things are happening simultaneously: (1) \texttt{top\_papers} is a regular method---unit-testable, deterministic, and also available to the LLM as a callable tool during agentic execution; (2) \texttt{summarize} returns a typed \texttt{PaperSummary}---the framework auto-validates the LLM output against the Pydantic schema and retries on failure; (3) \texttt{literature\_review} can internally call both \texttt{summarize} and \texttt{top\_papers}, composing agentic and deterministic logic in a single control flow.
+三件事同时发生：(1)~\texttt{top\_papers} 是普通方法——可单元测试、确定性，并且在智能体执行期间也可作为可调用工具提供给 LLM；(2)~\texttt{summarize} 返回带类型的 \texttt{PaperSummary}——框架会依据 Pydantic schema 自动校验 LLM 输出，失败时重试；(3)~\texttt{literature\_review} 可以在内部同时调用 \texttt{summarize} 与 \texttt{top\_papers}，在单一控制流中组合智能体逻辑与确定性逻辑。
+
+% \paragraph{Code as Action.}
+\paragraph{代码即动作。}
+% When the model executes an agentic method, it does not emit JSON tool calls. Instead, it writes Python code in a Jupyter-style REPL with access to \texttt{self}, imports, and any helper methods. This means the model's action space is the full Python language---it can loop, branch, catch exceptions, and compose method calls without the framework needing to define each possible action as a separate tool schema:
+当模型执行一个智能体方法时，它不输出 JSON 工具调用。相反，它在 Jupyter 风格的 REPL 中编写 Python 代码，可以访问 \texttt{self}、import 与任何辅助方法。这意味着模型的动作空间是整个 Python 语言——它可以循环、分支、捕获异常、组合方法调用，而框架无需把每个可能的动作定义成独立的工具 schema：
+
+\begin{lstlisting}[style=pythonstyle, caption={LLM 在智能体方法内部生成的内容}]
+# 在 literature_review(...) 中，模型会写：
+for abstract in abstracts:
+    summary = await self.summarize(abstract)
+    self.reading_list.append(summary)
+
+top = self.top_papers(n=5)
+review = "Key findings from top papers:\n"
+for p in top:
+    review += f"- {p.title}: {', '.join(p.key_findings)}\n"
+return review
+\end{lstlisting}
+
+% The model writes code that calls \texttt{self.summarize}---which is itself an agentic method. This produces nested agent loops: the outer \texttt{literature\_review} loop delegates to the inner \texttt{summarize} loop for each paper, with full tracing of the parent-child span hierarchy.
+模型编写的代码会调用 \texttt{self.summarize}——它本身也是一个智能体方法。这就产生了嵌套的 Agent 循环：外层 \texttt{literature\_review} 循环把每篇论文委派给内层 \texttt{summarize} 循环，并完整追踪父子 span 层级。
+
+% \paragraph{Pass-by-Reference and Live Objects.}
+\paragraph{按引用传递与活对象。}
+% Unlike frameworks that serialize tool inputs to JSON, NOOA passes Python objects by reference. When a method receives an \texttt{Order} or \texttt{Database} object, the model can call methods on it, inspect its fields, and mutate its state---all within the sandboxed REPL. This eliminates the impedance mismatch between the agent's object model and the serialization boundary.
+与把工具输入序列化为 JSON 的框架不同，NOOA 按引用传递 Python 对象。当方法收到 \texttt{Order} 或 \texttt{Database} 对象时，模型可以在沙箱化的 REPL 中调用它的方法、检查它的字段、修改它的状态。这消除了 Agent 对象模型与序列化边界之间的阻抗失配。
+
+% \paragraph{Multi-Agent Composition.}
+\paragraph{多 Agent 组合。}
+% Agents compose naturally through Python's object model---one agent holds a reference to another:
+Agent 通过 Python 的对象模型自然组合——一个 Agent 持有对另一个 Agent 的引用：
+
+\begin{lstlisting}[style=pythonstyle, caption={NOOA 通过对象引用做多 Agent 组合}]
+class PlannerAgent(Agent, llm=llm):
+    """Decompose complex research tasks into sub-tasks."""
+
+    researcher: ResearchAgent  # 子智能体，从父智能体继承 llm
+
+    async def deep_dive(self, question: str) -> str:
+        """Break the question into sub-questions, delegate each
+        to self.researcher, then synthesize a final answer."""
+        ...
+\end{lstlisting}
+
+% The planner's agentic method can call \texttt{self.researcher.summarize(...)} or \texttt{self.researcher.literature\_review(...)} directly---no message bus, no serialization protocol, just Python method calls that happen to trigger nested LLM loops.
+规划者的智能体方法可以直接调用 \texttt{self.researcher.summarize(...)} 或 \texttt{self.researcher.literature\_review(...)}——没有消息总线、没有序列化协议，只是恰好会触发嵌套 LLM 循环的 Python 方法调用。
+
+% \paragraph{Tracing and Observability.}
+\paragraph{追踪与可观测性。}
+% Every LLM call, code execution, and method invocation is traced by default with parent-child span relationships preserved. The built-in trace viewer (\texttt{nooa start-dev}) provides real-time visibility into nested agentic execution without requiring external observability infrastructure.
+默认情况下，每次 LLM 调用、代码执行与方法调用都会被追踪，并保留父子 span 关系。内置的追踪查看器（\texttt{nooa start-dev}）为嵌套的智能体执行提供实时可见性，无需外部可观测性基础设施。
+
+% \paragraph{Model Agnosticism.}
+\paragraph{模型无关性。}
+% NOOA supports any model accessible through its \texttt{UnifiedLLM} layer: Anthropic, OpenAI, local models via Ollama, or self-hosted endpoints via vLLM. The same agent class works unchanged across providers---the model choice is a constructor parameter, not an architectural decision.
+NOOA 支持任何通过其 \texttt{UnifiedLLM} 层可访问的模型：Anthropic、OpenAI、通过 Ollama 的本地模型，或通过 vLLM 的自托管端点。同一个 Agent 类可以在不同提供商之间原样工作——模型选择是构造参数，而不是架构决策。
+
+\begin{intuitionbox}[何时选择 NOOA]
+% NOOA is the right choice when you want:
+当你有以下需求时，NOOA 是合适的选择：
+\begin{itemize}
+  % \item Minimal abstraction overhead---if you know Python, you know the framework
+  \item 极小的抽象开销——懂 Python 就懂这个框架
+  % \item Type-safe I/O with automatic validation and retry
+  \item 带自动校验与重试的类型安全 I/O
+  % \item Testability through standard \texttt{pytest} (mock the LLM, test deterministic methods normally)
+  \item 通过标准 \texttt{pytest} 可测试（mock 掉 LLM，正常测试确定性方法）
+  % \item Code as action rather than rigid tool schemas
+  \item 代码即动作，而非僵硬的工具 schema
+  % \item Nested agent composition without serialization boundaries
+  \item 无序列化边界的嵌套 Agent 组合
+\end{itemize}
+% The trade-off: NOOA is research software (July 2026) without the production hardening, managed deployment, or ecosystem integrations of LangGraph or Semantic Kernel. It prioritizes programming model clarity over operational maturity.
+权衡：NOOA 是研究级软件（2026 年 7 月），没有 LangGraph 或 Semantic Kernel 那样的生产加固、托管部署或生态集成。它优先的是编程模型的清晰，而非运维成熟度。
+\end{intuitionbox}
 
 \section{开源 Agent 工具链}
 \label{subsec:open-source-tooling}
@@ -13683,7 +14771,7 @@ function ToolCard({ event }: { event: AgentEvent & { type: 'tool_call' } }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ color, fontWeight: 600 }}>[gear] {event.tool}</span>
         <span style={{ color: '#6b7280', fontSize: 11 }}>
-          Tier {event.tier} . {event.tier === 1 ? 'Auto' : 'Approved'}
+          Tier {event.tier} | {event.tier === 1 ? 'Auto' : 'Approved'}
         </span>
         <button onClick={() => setExpanded(!expanded)}
                 style={{ marginLeft: 'auto', fontSize: 11 }}>
@@ -13729,13 +14817,13 @@ function ApprovalGate({
           onClick={() => onDecision(true, event.parameters)}
           style={{ background: '#22c55e', color: 'white', border: 'none',
                    borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>
-          [OK] Approve
+          [ok] Approve
         </button>
         <button
           onClick={() => onDecision(false)}
           style={{ background: '#ef4444', color: 'white', border: 'none',
                    borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>
-          [X] Reject
+          [x] Reject
         </button>
       </div>
     </div>
