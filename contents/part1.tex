@@ -876,8 +876,8 @@ ALiBi~\cite{press2022train} 采取了根本不同的方法：\emph{完全不使�
 
 \begin{keybox}[Pre-LN vs Post-LN]
 \begin{itemize}
-  % \item \textbf{Post-LN} (original Transformer): $h + \text{LayerNorm}(\text{Attn}(h))$. Requires careful warmup; training can be unstable.
-  \item \textbf{Post-LN}（原始 Transformer）：$h + \text{LayerNorm}(\text{Attn}(h))$。需要仔细的 warmup；训练可能不稳定。
+  % \item \textbf{Post-LN} (original Transformer): $\text{LayerNorm}(h + \text{Attn}(h))$. Requires careful warmup; training can be unstable.
+  \item \textbf{Post-LN}（原始 Transformer）：$\text{LayerNorm}(h + \text{Attn}(h))$。需要仔细的 warmup；训练可能不稳定。
   % \item \textbf{Pre-LN} (GPT-2+, all modern LLMs): $h + \text{Attn}(\text{LayerNorm}(h))$. Stabilizes training; enables higher learning rates.
   \item \textbf{Pre-LN}（GPT-2+，所有现代 LLM）：$h + \text{Attn}(\text{LayerNorm}(h))$。稳定训练；允许更高的学习率。
   % \item \textbf{RMSNorm} (Llama~\cite{grattafiori2024llama3}, Mistral~\cite{jiang2023mistral}): Simplified LayerNorm without mean-centering: $\text{RMSNorm}(x) = x / \text{RMS}(x) \cdot \gamma$. Slightly faster, same quality.
